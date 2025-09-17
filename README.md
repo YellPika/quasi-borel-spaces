@@ -13,7 +13,7 @@ We differ from the original paper[^1] in the following ways:
 - _Probability measures_ from the paper are called `PreProbabilityMeasure`s. We reserve the name `ProbabilityMeasure` for the monad defined in Section V-D[^1], i.e. probability measures quotiented by the relation
 
   $$
-  (α, μ) \sim (β, ν) \iff ∀f\ldotp \int f\,d(α, μ) = \int f\,d(β, ν).
+  (α, μ) \sim (β, ν) \iff ∀f\ldotp \int f\ d(α, μ) = \int f\ d(β, ν).
   $$
 
 - We prove the probability measure monad is strong by constructing the strength operation (as in the Isabelle formalization[^3]), instead of by showing `bind` is a morphism (as in Section V-D[^1]).
