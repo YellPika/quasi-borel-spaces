@@ -1,3 +1,4 @@
+import QuasiBorelSpaces.ProbabilityMeasure
 import QuasiBorelSpaces.Hom
 import QuasiBorelSpaces.Pi
 import QuasiBorelSpaces.Sigma
@@ -136,5 +137,28 @@ lemma isHom_map
     simp only [List.foldr_cons_eq_append, List.append_nil]
   simp only [this]
   fun_prop
+
+@[simp]
+noncomputable def sequence : List (ProbabilityMeasure A) → ProbabilityMeasure (List A)
+  | [] => .unit []
+  | μ :: μs => .bind (fun x ↦ .map (x :: ·) (sequence μs)) μ
+
+@[simp]
+noncomputable def lintegral (k : List A → ENNReal) : List (ProbabilityMeasure A) → ENNReal
+  | [] => k []
+  | μ :: μs => μ.lintegral fun x ↦ lintegral (fun xs ↦ k (x :: xs)) μs
+
+@[simp]
+lemma lintegral_sequence
+    (μs : List (ProbabilityMeasure A))
+    (k : List A → ENNReal) (hk : IsHom k)
+    : (sequence μs).lintegral k = lintegral k μs := by
+  induction μs generalizing k with
+  | nil => simp (disch := fun_prop) only [sequence, ProbabilityMeasure.lintegral_unit, lintegral]
+  | cons head tail ih =>
+    have : IsHom (fun x ↦ ProbabilityMeasure.map (x :: ·) (sequence tail)) := by fun_prop
+    simp (disch := fun_prop) only [
+      sequence, ProbabilityMeasure.lintegral_bind,
+      ProbabilityMeasure.lintegral_map, ih, lintegral]
 
 end QuasiBorelSpace.List
