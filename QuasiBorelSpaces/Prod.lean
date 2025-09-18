@@ -1,7 +1,6 @@
 import QuasiBorelSpaces.Basic
 import QuasiBorelSpaces.Nat
-import QuasiBorelSpaces.MeasureTheory.PairN
-import QuasiBorelSpaces.MeasureTheory.PairR
+import QuasiBorelSpaces.MeasureTheory.Pack
 
 namespace QuasiBorelSpace.Prod
 
@@ -63,6 +62,20 @@ lemma isHom_iff (f : A → B × C) : IsHom f ↔ IsHom (fun x ↦ (f x).1) ∧ I
   · rintro ⟨h₁, h₂⟩
     exact isHom_mk h₁ h₂
 
+instance
+    [MeasurableSpace A] [MeasurableSpace B]
+    [MeasurableQuasiBorelSpace A] [MeasurableQuasiBorelSpace B]
+    : MeasurableQuasiBorelSpace (A × B) where
+  isVar_iff_measurable φ := by
+    simp only [IsVar_def, isVar_iff_measurable]
+    apply Iff.intro
+    · rintro ⟨h₁, h₂⟩
+      apply Measurable.prodMk h₁ h₂
+    · intro h
+      apply And.intro
+      · fun_prop
+      · fun_prop
+
 @[fun_prop]
 lemma isHom_map {f : A → B} {g : C → D} (hf : IsHom f) (hg : IsHom g) : IsHom (Prod.map f g) := by
   simp only [isHom_iff, Prod.map_fst, Prod.map_snd]
@@ -76,16 +89,5 @@ lemma isHom_of_uncurry
   apply isHom_comp' (f := Function.uncurry f) (g := fun x ↦ (g x, h x))
   · apply hf
   · fun_prop
-
-@[simp, fun_prop]
-lemma isHom_unpairN : IsHom MeasureTheory.unpairN := by
-  open DiscreteQuasiBorelSpace in
-  simp only [isHom_iff, isHom_iff_isVar, isVar_iff_measurable, Real.IsVar_def]
-  apply And.intro <;> fun_prop
-
-@[simp, fun_prop]
-lemma isHom_unpairR : IsHom MeasureTheory.unpairR := by
-  simp only [isHom_iff, isHom_iff_isVar, Real.IsVar_def]
-  apply And.intro <;> fun_prop
 
 end QuasiBorelSpace.Prod

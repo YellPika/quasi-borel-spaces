@@ -8,6 +8,7 @@ A quasi‑borel space consists of a type `A` together with a set of "random
 variables" in `ℝ → A` satisfying closure under constants, measurable
 precomposition, and gluing along borel partitions.
 -/
+@[ext]
 class QuasiBorelSpace (A : Type*) where
   /--
   `IsVar φ` denotes whether `φ` is a random variable. Variables can be
@@ -31,17 +32,25 @@ class QuasiBorelSpace (A : Type*) where
     → IsVar (fun r ↦ φ (ix r) r)
 
 /--
+A _measurable quasi-borel space_ is the quasi-borel space where the notion of
+variable aligns with measurable functions.
+-/
+class MeasurableQuasiBorelSpace (A : Type*) [QuasiBorelSpace A] [MeasurableSpace A] where
+  /-- Variables are measurable functions. -/
+  isVar_iff_measurable (φ : ℝ → A) : QuasiBorelSpace.IsVar φ ↔ Measurable φ
+
+/--
 A _discrete quasi-borel space_ is the quasi-borel space analogue of the discrete
 measurable space.
 -/
-class DiscreteQuasiBorelSpace (A : Type*) [QuasiBorelSpace A] where
-  /-- Variables are measurable functions. -/
-  isVar_iff_measurable (φ : ℝ → A) : QuasiBorelSpace.IsVar φ ↔ Measurable[_, ⊤] φ
+class abbrev DiscreteQuasiBorelSpace (A : Type*) [QuasiBorelSpace A] [MeasurableSpace A] :=
+  DiscreteMeasurableSpace A
+  MeasurableQuasiBorelSpace A
 
 namespace QuasiBorelSpace
 
 attribute [fun_prop] IsVar isVar_const isVar_comp
-attribute [simp] isVar_const DiscreteQuasiBorelSpace.isVar_iff_measurable
+attribute [simp] isVar_const
 
 variable {A B : Type*} [QuasiBorelSpace A] [QuasiBorelSpace B]
 
@@ -62,6 +71,9 @@ def ofMeasurableSpace [MeasurableSpace A] : QuasiBorelSpace A where
   isVar_const x := measurable_const
   isVar_comp := by fun_prop
   isVar_cases' := MeasureTheory.measurable_cases
+
+instance [MeasurableSpace A] : @MeasurableQuasiBorelSpace A ofMeasurableSpace _ :=
+  @MeasurableQuasiBorelSpace.mk A ofMeasurableSpace _ fun _ ↦ by rfl
 
 /-- Every `QuasiBorelSpace` induces a `MeasurableSpace`. -/
 def toMeasurableSpace [QuasiBorelSpace A] : MeasurableSpace A where
@@ -89,10 +101,6 @@ def lift [QuasiBorelSpace A] (f : B → A) : QuasiBorelSpace B where
 @[simps!]
 instance : Inhabited (QuasiBorelSpace A) where
   default := @ofMeasurableSpace _ ⊤
-
-instance : @DiscreteQuasiBorelSpace A default :=
-  @DiscreteQuasiBorelSpace.mk A default (by
-    simp only [default_IsVar, implies_true])
 
 namespace Real
 

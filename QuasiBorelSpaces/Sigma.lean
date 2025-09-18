@@ -156,12 +156,17 @@ lemma isHom_inj' {i} {f : A → P i} (hf : IsHom f) : IsHom (fun x ↦ ⟨i, f x
   · exact hf
 
 lemma isHom_inj_countable
-    [Countable I] [QuasiBorelSpace I] [DiscreteQuasiBorelSpace I]
+    [Countable I] [QuasiBorelSpace I] [MeasurableSpace I] [DiscreteQuasiBorelSpace I]
     {f : A → I} (hf : IsHom f)
     {g : (i : I) → A → P i} (hg : ∀ i, IsHom (g i))
     : IsHom (fun x ↦ (⟨f x, g (f x) x⟩ : Sigma P)) := by
   apply isHom_cases (ix := f) (f := fun i x ↦ (⟨i, g i x⟩ : Sigma P))
-  · fun_prop
+  · intro φ hφ
+    specialize hf hφ
+    simp only [isVar_iff_measurable, default_IsVar] at ⊢ hf
+    intro X hX
+    apply hf
+    apply MeasurableSet.of_discrete
   · fun_prop
 
 lemma isHom_elim {f : Sigma P → A} (hf : ∀ i, IsHom (fun x ↦ f ⟨i, x⟩)) : IsHom f := by

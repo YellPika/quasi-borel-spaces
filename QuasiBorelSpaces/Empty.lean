@@ -1,4 +1,5 @@
 import QuasiBorelSpaces.Basic
+import QuasiBorelSpaces.MeasureTheory.Instances
 
 variable {A : Type*} [QuasiBorelSpace A]
 

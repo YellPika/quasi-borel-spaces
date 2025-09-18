@@ -8,8 +8,7 @@ import QuasiBorelSpaces.Lift
 import QuasiBorelSpaces.List
 import QuasiBorelSpaces.MeasureTheory.Cases
 import QuasiBorelSpaces.MeasureTheory.Map
-import QuasiBorelSpaces.MeasureTheory.PairN
-import QuasiBorelSpaces.MeasureTheory.PairR
+import QuasiBorelSpaces.MeasureTheory.Pack
 import QuasiBorelSpaces.MeasureTheory.ProbabilityMeasure
 import QuasiBorelSpaces.Nat
 import QuasiBorelSpaces.Option

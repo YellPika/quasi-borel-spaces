@@ -32,7 +32,7 @@ lemma isHom_not
     : IsHom (fun x ↦ ¬f x) := by
   intro φ hφ
   specialize hf hφ
-  simp only [DiscreteQuasiBorelSpace.isVar_iff_measurable] at ⊢ hf
+  simp only [isVar_iff_measurable] at ⊢ hf
   apply Measurable.not hf
 
 @[fun_prop]
@@ -42,7 +42,7 @@ lemma isHom_and
   intro φ hφ
   specialize hf hφ
   specialize hg hφ
-  simp only [DiscreteQuasiBorelSpace.isVar_iff_measurable] at ⊢ hf hg
+  simp only [isVar_iff_measurable] at ⊢ hf hg
   apply Measurable.and hf hg
 
 @[fun_prop]
@@ -52,7 +52,7 @@ lemma isHom_or
   intro φ hφ
   specialize hf hφ
   specialize hg hφ
-  simp only [DiscreteQuasiBorelSpace.isVar_iff_measurable] at ⊢ hf hg
+  simp only [isVar_iff_measurable] at ⊢ hf hg
   apply Measurable.or hf hg
 
 lemma isHom_imp
@@ -61,7 +61,7 @@ lemma isHom_imp
   intro φ hφ
   specialize hf hφ
   specialize hg hφ
-  simp only [DiscreteQuasiBorelSpace.isVar_iff_measurable] at ⊢ hf hg
+  simp only [isVar_iff_measurable] at ⊢ hf hg
   apply Measurable.imp hf hg
 
 @[fun_prop]
@@ -71,7 +71,7 @@ lemma isHom_iff
   intro φ hφ
   specialize hf hφ
   specialize hg hφ
-  simp only [DiscreteQuasiBorelSpace.isVar_iff_measurable] at ⊢ hf hg
+  simp only [isVar_iff_measurable] at ⊢ hf hg
   apply Measurable.iff hf hg
 
 lemma isHom_forall
@@ -83,7 +83,7 @@ lemma isHom_forall
   apply Measurable.forall
   intro i
   specialize hf i hφ
-  simp only [DiscreteQuasiBorelSpace.isVar_iff_measurable] at hf
+  simp only [isVar_iff_measurable] at hf
   exact hf
 
 @[fun_prop]
@@ -96,7 +96,7 @@ lemma isHom_exists
   apply Measurable.exists
   intro i
   specialize hf i hφ
-  simp only [DiscreteQuasiBorelSpace.isVar_iff_measurable] at hf
+  simp only [isVar_iff_measurable] at hf
   exact hf
 
 end QuasiBorelSpace.Prop

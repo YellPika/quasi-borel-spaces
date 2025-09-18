@@ -32,4 +32,17 @@ lemma isHom_iff {f : A → (i : I) → P i} : IsHom f ↔ ∀i, IsHom (f · i) :
     exact isHom_comp (isHom_apply i) hf
   · exact isHom_pi
 
+instance
+    [∀ i, MeasurableSpace (P i)]
+    [∀ i, MeasurableQuasiBorelSpace (P i)]
+    : MeasurableQuasiBorelSpace (∀i, P i) where
+  isVar_iff_measurable φ := by
+    apply Iff.intro
+    · intro hφ
+      simp only [IsVar_def, isVar_iff_measurable] at hφ
+      fun_prop
+    · intro hφ i
+      simp only [isVar_iff_measurable]
+      fun_prop
+
 end QuasiBorelSpace.Pi

@@ -3,27 +3,29 @@ import Mathlib.Tactic.FunProp
 
 namespace MeasureTheory
 
+variable {A : Type*} [MeasurableSpace A] [StandardBorelSpace A]
+
 /-- Packs a natural number and a real number into a single real number. -/
-noncomputable def pairN : ℕ × ℝ → ℝ :=
+noncomputable def pack : A → ℝ :=
   MeasureTheory.embeddingReal _
 
 /-- Unpacks a natural number and a real number from a single real number. -/
-noncomputable def unpairN : ℝ → ℕ × ℝ :=
+noncomputable def unpack [Nonempty A] : ℝ → A :=
   (MeasureTheory.measurableEmbedding_embeddingReal _).invFun
 
 @[simp]
-lemma unpairN_pairN (x : ℕ × ℝ) : unpairN (pairN x) = x := by
-  simp only [unpairN, pairN]
+lemma unpack_pack [Nonempty A] (x : A) : unpack (pack x) = x := by
+  simp only [unpack, pack]
   apply MeasurableEmbedding.leftInverse_invFun
 
 @[simp, measurability, fun_prop]
-lemma measurable_pairN : Measurable pairN := by
-  unfold pairN
+lemma measurable_pack : Measurable (pack (A := A)) := by
+  unfold pack
   fun_prop
 
 @[simp, measurability, fun_prop]
-lemma measurable_unpairN : Measurable unpairN := by
-  unfold unpairN
+lemma measurable_unpack [Nonempty A] : Measurable (unpack (A := A)) := by
+  unfold unpack
   fun_prop
 
 end MeasureTheory

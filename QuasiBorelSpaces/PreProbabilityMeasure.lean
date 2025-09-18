@@ -39,6 +39,29 @@ noncomputable def lintegral (f : A → ENNReal) : PreProbabilityMeasure A → EN
 @[simp]
 alias lintegral_mk := PreProbabilityMeasure.lintegral.eq_1
 
+noncomputable def mk'
+    [MeasurableSpace A] [MeasurableQuasiBorelSpace A] [StandardBorelSpace A]
+    (eval : A →𝒒 B) (base : ProbabilityMeasure A)
+    : PreProbabilityMeasure B where
+  eval :=
+    have : Nonempty A := base.nonempty
+    .mk fun x ↦ eval (unpack x)
+  base := base.map measurable_pack.aemeasurable
+
+@[simp]
+lemma lintegral_mk'
+    [MeasurableSpace A] [MeasurableQuasiBorelSpace A] [StandardBorelSpace A]
+    {k : B → ENNReal} (hk : IsHom k)
+    (φ : A →𝒒 B) (μ : ProbabilityMeasure A)
+    : lintegral k (mk' φ μ) = ∫⁻ (x : A), k (φ x) ∂μ.toMeasure := by
+  simp only [mk', lintegral_mk, ProbabilityMeasure.toMeasure_map, QuasiBorelHom.coe_mk]
+  rw [lintegral_map]
+  · simp only [unpack_pack]
+  · apply hk
+    rw [←isHom_iff_isVar]
+    fun_prop
+  · fun_prop
+
 lemma lintegral_add_left
     {f : A → ENNReal} (hf : IsHom f)
     (g : A → ENNReal) (μ : PreProbabilityMeasure A)
@@ -148,17 +171,19 @@ noncomputable def cases
     {ix : ℝ → ℕ} (hix : Measurable ix)
     (φ : ℕ → Var A) : Var A where
   eval := {
-    toFun r := (φ (unpairN r).1).eval (unpairN r).2
+    toFun r := (φ (unpack r : ℕ × ℝ).1).eval (unpack r : ℕ × ℝ).2
     property := by
-      apply isHom_cases (ix := fun r ↦ (unpairN r).1) (f := fun n r ↦ (φ n).eval (unpairN r).2)
-      · simp only [isHom_iff_isVar, DiscreteQuasiBorelSpace.isVar_iff_measurable]
+      apply isHom_cases
+          (ix := fun r ↦ (unpack r : ℕ × ℝ).1)
+          (f := fun n r ↦ (φ n).eval (unpack r : ℕ × ℝ).2)
+      · simp only [isHom_iff_isVar, default_IsVar]
         fun_prop
       · fun_prop
   }
-  base r := ((φ (ix r)).base r).map (f := fun x ↦ pairN (ix r, x)) (by fun_prop)
+  base r := ((φ (ix r)).base r).map (f := fun x ↦ pack (ix r, x)) (by fun_prop)
   measurable_base := by
     apply measurable_cases (f := fun n r ↦
-        ((φ n).base r).map (f := fun x ↦ pairN (n, x)) (by fun_prop))
+        ((φ n).base r).map (f := fun x ↦ pack (n, x)) (by fun_prop))
     · exact hix
     · intro i
       apply Measurable.subtype_mk
@@ -175,12 +200,12 @@ lemma apply_cases
   intro f hf
   simp only [ProbabilityMeasure.toMeasure_map]
   rw [lintegral_map]
-  · simp only [unpairN_pairN]
+  · simp only [unpack_pack]
     simp only [lintegral, apply]
-  · apply measurable_cases (f := fun n r ↦ f ((φ n).eval (unpairN r).2))
+  · apply measurable_cases (f := fun n r ↦ f ((φ n).eval (unpack r : ℕ × ℝ).2))
     · fun_prop
     · intro i
-      apply Measurable.comp' (g := fun r ↦ f _) (f := fun r ↦ (unpairN r).2)
+      apply Measurable.comp' (g := fun r ↦ f _) (f := fun r ↦ (unpack r : ℕ × ℝ).2)
       · apply hf
         simp only [QuasiBorelHom.isVar_coe]
       · fun_prop
@@ -264,12 +289,12 @@ lemma isHom_lintegral
   dsimp only
 
   specialize hk
-    (φ := fun r ↦ (φ (unpairR r).2, ((subeval fun x ↦ f (φ x)) (unpairR r).1)))
+    (φ := fun r ↦ (φ (unpack r : ℝ × ℝ).2, ((subeval fun x ↦ f (φ x)) (unpack r : ℝ × ℝ).1)))
     (by rw [←isHom_iff_isVar] at ⊢ hφ
         fun_prop)
   dsimp at hk
-  have := Measurable.comp' hk (by fun_prop : Measurable pairR)
-  simp only [unpairR_pairR] at this
+  have := Measurable.comp' hk (by fun_prop : Measurable (pack (A := ℝ × ℝ)))
+  simp only [unpack_pack] at this
   exact this
 
 @[gcongr]
@@ -340,6 +365,7 @@ noncomputable def bind
   eval := subeval (f ∘ μ.eval)
   base := ProbabilityMeasure.bind μ.base (subbase (f ∘ μ.eval))
 
+@[simp]
 lemma lintegral_bind
     {f : B → ENNReal} (hf : IsHom f)
     {g : A → PreProbabilityMeasure B} (hg : IsHom g)
@@ -439,8 +465,8 @@ namespace Var
 
 /-- The functorial `str`ength operation, lifted to variables. -/
 noncomputable def str {φ : ℝ → A} (hφ : IsHom φ) (ψ : Var B) : Var (A × B) where
-  eval := .mk fun r ↦ (φ (unpairR r).1, ψ.eval (unpairR r).2)
-  base r := (ψ r).base.map (f := fun x ↦ pairR (r, x)) (by fun_prop)
+  eval := .mk fun r ↦ (φ (unpack r : ℝ × ℝ).1, ψ.eval (unpack r : ℝ × ℝ).2)
+  base r := (ψ r).base.map (f := fun x ↦ pack (r, x)) (by fun_prop)
   measurable_base := by
     apply Measurable.subtype_mk
     apply Measure.measurable_map'
@@ -457,7 +483,7 @@ lemma apply_str
     QuasiBorelHom.coe_mk, lintegral_str]
   rw [MeasureTheory.lintegral_map]
   · rcases ψ
-    simp only [apply_mk, unpairR_pairR, lintegral_mk]
+    simp only [apply_mk, unpack_pack, lintegral_mk]
   · apply hχ
     simp only [Prod.IsVar_def]
     apply And.intro
@@ -487,7 +513,7 @@ noncomputable def coin (p : I) : PreProbabilityMeasure Bool where
       apply Bool.isHom_decide
       change IsHom fun x ↦ x ∈ ({0} : Set ℝ)
       simp only [
-        isHom_iff_isVar, DiscreteQuasiBorelSpace.isVar_iff_measurable,
+        isHom_iff_isVar, isVar_iff_measurable,
         measurable_mem, MeasurableSet.singleton]
   }
   base := {
