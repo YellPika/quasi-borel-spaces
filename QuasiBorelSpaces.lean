@@ -1,12 +1,13 @@
 import QuasiBorelSpaces.Basic
 import QuasiBorelSpaces.Bool
 import QuasiBorelSpaces.Defs
-import QuasiBorelSpaces.Empty
 import QuasiBorelSpaces.ENNReal
+import QuasiBorelSpaces.Empty
 import QuasiBorelSpaces.Hom
 import QuasiBorelSpaces.Lift
 import QuasiBorelSpaces.List
 import QuasiBorelSpaces.MeasureTheory.Cases
+import QuasiBorelSpaces.MeasureTheory.Instances
 import QuasiBorelSpaces.MeasureTheory.Map
 import QuasiBorelSpaces.MeasureTheory.Pack
 import QuasiBorelSpaces.MeasureTheory.ProbabilityMeasure
@@ -17,6 +18,8 @@ import QuasiBorelSpaces.PreProbabilityMeasure
 import QuasiBorelSpaces.ProbabilityMeasure
 import QuasiBorelSpaces.Prod
 import QuasiBorelSpaces.Prop
+import QuasiBorelSpaces.Quotient
 import QuasiBorelSpaces.Sigma
+import QuasiBorelSpaces.Subtype
 import QuasiBorelSpaces.Sum
 import QuasiBorelSpaces.Unit
