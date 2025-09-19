@@ -24,6 +24,7 @@ def mk (μ : PreProbabilityMeasure A) : ProbabilityMeasure A := ⟨⟦μ⟧⟩
 lemma mk_eq_iff (μ ν : PreProbabilityMeasure A) : mk μ = mk ν ↔ μ ≈ ν := by
   simp only [mk, fromQuotient.injEq, Quotient.eq, PreProbabilityMeasure.setoid_r]
 
+@[induction_eliminator, cases_eliminator]
 lemma inductionOn
     {motive : ProbabilityMeasure A → Prop} (μ : ProbabilityMeasure A)
     (mk : (μ : PreProbabilityMeasure A) → motive (mk μ))
@@ -56,8 +57,8 @@ lemma ext
     {μ₁ μ₂ : ProbabilityMeasure A}
     (hμ : ∀ {k}, IsHom k → μ₁.lintegral k = μ₂.lintegral k)
     : μ₁ = μ₂ := by
-  induction μ₁ using inductionOn with | mk μ =>
-  induction μ₂ using inductionOn with | mk ν =>
+  cases μ₁ with | mk μ =>
+  cases μ₂ with | mk ν =>
   simp only [mk_eq_iff, PreProbabilityMeasure.equiv_def]
   intro k hk
   specialize hμ hk
@@ -90,7 +91,7 @@ lemma isHom_mk : IsHom (mk (A := A)) := by
 lemma lintegral_toPredist
     (μ : ProbabilityMeasure A) {k : A → ENNReal} (hk : IsHom k)
     : μ.toPreDist.lintegral k = μ.lintegral k := by
-  induction μ using inductionOn with | mk μ =>
+  cases μ with | mk μ =>
   simp only [lintegral_mk, hk, ↓reduceIte]
   apply toPreDist_mk μ hk
 
@@ -110,7 +111,7 @@ lemma lintegral_add
     {g : A → ENNReal} (hg : IsHom g)
     (μ : ProbabilityMeasure A)
     : lintegral (f + g) μ = lintegral f μ + lintegral g μ := by
-  induction μ using inductionOn
+  cases μ with | mk μ =>
   simp only [lintegral_mk]
   have : IsHom (f + g) := by
     change IsHom (fun x ↦ f x + g x)
@@ -129,7 +130,7 @@ lemma lintegral_add'
 lemma lintegral_mul_left
     (c : ENNReal) {f : A → ENNReal} (hf : IsHom f) (μ : ProbabilityMeasure A)
     : lintegral (fun x ↦ c * f x) μ = c * lintegral f μ := by
-  induction μ using inductionOn
+  cases μ with | mk μ =>
   have : IsHom fun x ↦ c * f x := by fun_prop
   simp only [lintegral_mk, this, ↓reduceIte, hf]
   simp  (disch := fun_prop) only [PreProbabilityMeasure.lintegral_mul_left]
@@ -137,7 +138,7 @@ lemma lintegral_mul_left
 lemma lintegral_mul_right
     (c : ENNReal) {f : A → ENNReal} (hf : IsHom f) (μ : ProbabilityMeasure A)
     : lintegral (fun x ↦ f x * c) μ = lintegral f μ * c := by
-  induction μ using inductionOn
+  cases μ with | mk μ =>
   have : IsHom fun x ↦ f x * c := by fun_prop
   simp only [lintegral_mk, this, ↓reduceIte, hf]
   simp (disch := fun_prop) only [PreProbabilityMeasure.lintegral_mul_right]
@@ -171,7 +172,7 @@ lemma lintegral_bind
     {f : A → ProbabilityMeasure B} (hf : IsHom f)
     (μ : ProbabilityMeasure A)
     : lintegral k (bind f μ) = lintegral (fun x ↦ lintegral k (f x)) μ := by
-  induction μ using inductionOn with | mk μ =>
+  cases μ with | mk μ =>
   have : IsHom fun x ↦ lintegral k (f x) := by fun_prop
   simp only [bind, lintegral_mk, hk, ↓reduceIte, this]
   rw [PreProbabilityMeasure.lintegral_bind]
@@ -180,7 +181,7 @@ lemma lintegral_bind
       fun_prop
     · congr
       ext x
-      induction f x using inductionOn with | mk ν =>
+      cases f x with | mk ν =>
       simp only [hk, lintegral_toPredist, lintegral_mk, ↓reduceIte]
   · fun_prop
   · fun_prop
@@ -270,7 +271,7 @@ lemma lintegral_str
     {k : A × B → ENNReal} (hk : IsHom k)
     (x : A) (μ : ProbabilityMeasure B)
     : lintegral k (str x μ) = lintegral (fun y ↦ k (x, y)) μ := by
-  induction μ using inductionOn
+  cases μ with | mk μ =>
   have : IsHom fun y ↦ k (x, y) := by fun_prop
   simp only [
     str, lintegral_mk, hk, ↓reduceIte, PreProbabilityMeasure.lintegral_str,
