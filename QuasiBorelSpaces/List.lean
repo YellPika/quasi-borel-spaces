@@ -1,6 +1,8 @@
 import QuasiBorelSpaces.Hom
 import QuasiBorelSpaces.List.Encoding
 import QuasiBorelSpaces.MeasureTheory.List
+import QuasiBorelSpaces.Option
+import QuasiBorelSpaces.Nat
 import QuasiBorelSpaces.Pi
 import QuasiBorelSpaces.ProbabilityMeasure
 import QuasiBorelSpaces.Sigma
@@ -99,6 +101,36 @@ lemma isHom_map
     : IsHom (fun x ↦ List.map (f x) (g x)) := by
   have {f : B → C} {xs : List B} : List.map f xs = List.foldr (fun x ↦ (f x :: ·)) [] xs := by
     simp only [List.foldr_cons_eq_append, List.append_nil]
+  simp only [this]
+  fun_prop
+
+lemma isHom_getElem?
+    {f : A → List B} (hf : IsHom f)
+    {g : A → ℕ} (hg : IsHom g)
+    : IsHom (fun x ↦ (f x)[g x]?) := by
+  have {x} : (f x)[g x]?
+           = List.foldr
+              (fun x k ↦ .mk fun i ↦ Nat.casesOn i (.some x) k)
+              (.mk fun _ ↦ .none : ℕ →𝒒 Option B)
+              (f x)
+              (g x) := by
+    generalize g x = n
+    induction f x generalizing n with
+    | nil =>
+      simp only [
+        List.length_nil, not_lt_zero', not_false_eq_true, getElem?_neg,
+        List.foldr_nil, QuasiBorelHom.coe_mk]
+    | cons head tail ih =>
+      cases n with
+      | zero =>
+        simp only [
+          List.length_cons, lt_add_iff_pos_left, add_pos_iff, zero_lt_one,
+          or_true, getElem?_pos, List.getElem_cons_zero, List.foldr_cons,
+          QuasiBorelHom.coe_mk, Nat.rec_zero]
+      | succ n =>
+        simp only [
+          List.getElem?_cons_succ, ih,
+          List.foldr_cons, QuasiBorelHom.coe_mk]
   simp only [this]
   fun_prop
 
