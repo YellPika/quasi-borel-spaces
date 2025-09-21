@@ -1,5 +1,6 @@
 import Mathlib.MeasureTheory.MeasurableSpace.Defs
 import Mathlib.MeasureTheory.MeasurableSpace.Instances
+import Mathlib.MeasureTheory.MeasurableSpace.Constructions
 
 open scoped MeasureTheory
 
@@ -37,5 +38,20 @@ lemma measurable_decide
   apply measurable_cases (f := fun p _ ↦ decide p)
   · exact hp
   · simp only [measurable_const, implies_true]
+
+@[fun_prop]
+lemma measurable_dite
+    {p : A → Prop} (hp₁ : Measurable p) (hp₂ : DecidablePred p)
+    {f : (x : A) → p x → B} (hf : Measurable fun x : Subtype p ↦ f x.val x.property)
+    {g : (x : A) → ¬p x → B} (hg : Measurable fun x : Subtype (fun x ↦ ¬p x) ↦ g x.val x.property)
+    : Measurable (fun x ↦ if h : p x then f x h else g x h) := by
+  let f' (x : Subtype p) := f x.val x.property
+  let g' (x : Subtype fun x ↦ ¬p x) := g x.val x.property
+  change Measurable fun x ↦ if h : x ∈ { x | p x } then f' ⟨x, h⟩ else g' ⟨x, h⟩
+  apply Measurable.dite
+  · exact hf
+  · exact hg
+  · simp only [measurableSet_setOf]
+    exact hp₁
 
 end MeasureTheory
