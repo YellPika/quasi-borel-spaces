@@ -6,11 +6,14 @@ import QuasiBorelSpaces.Empty
 import QuasiBorelSpaces.Hom
 import QuasiBorelSpaces.Lift
 import QuasiBorelSpaces.List
+import QuasiBorelSpaces.List.Encoding
 import QuasiBorelSpaces.MeasureTheory.Cases
 import QuasiBorelSpaces.MeasureTheory.Instances
+import QuasiBorelSpaces.MeasureTheory.List
 import QuasiBorelSpaces.MeasureTheory.Map
 import QuasiBorelSpaces.MeasureTheory.Pack
 import QuasiBorelSpaces.MeasureTheory.ProbabilityMeasure
+import QuasiBorelSpaces.MeasureTheory.Sigma
 import QuasiBorelSpaces.Nat
 import QuasiBorelSpaces.Option
 import QuasiBorelSpaces.Pi
