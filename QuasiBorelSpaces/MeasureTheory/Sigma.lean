@@ -57,6 +57,41 @@ lemma measurable_fst [MeasurableSpace I] : Measurable (Sigma.fst : Sigma P → I
   rw [MeasurableSpace.map_def]
   simp only [Set.preimage, Set.mem_setOf_eq, measurableSet_setOf, measurable_const]
 
+lemma measurable_cast
+    (ix : A → I) (i : I)
+    (p : ∀ x, ix x = i)
+    (f : ∀ x, P (ix x)) (hf : Measurable fun x ↦ (⟨ix x, f x⟩ : Sigma P))
+    : Measurable fun x : A ↦ cast (congr_arg P (p x)) (f x) := by
+  intro X hX
+  have : (fun x ↦ cast (congr_arg P (p x)) (f x)) ⁻¹' X
+       = {x | Sigma.mk (ix x) (f x) ∈ Sigma.mk i '' X} := by
+    grind
+  rw [this]
+  apply hf
+  simp only [
+    MeasurableSpace.measurableSet_sInf, Set.mem_range,
+    forall_exists_index, forall_apply_eq_imp_iff]
+  intro j
+  rw [MeasurableSpace.map_def]
+  by_cases h : i = j
+  · subst h
+    simp only [
+      Set.preimage, Set.mem_image, Sigma.mk.injEq, heq_eq_eq,
+      true_and, exists_eq_right, Set.setOf_mem_eq, hX]
+  · simp only [
+      Set.preimage, Set.mem_image, Sigma.mk.injEq, h, false_and,
+      and_false, exists_false, Set.setOf_false, MeasurableSet.empty]
+
+lemma measurable_eq_rec
+    (ix : A → I) (i : I)
+    (p : ∀ x, ix x = i)
+    (f : ∀ x, P (ix x)) (hf : Measurable fun x ↦ (⟨ix x, f x⟩ : Sigma P))
+    : Measurable fun x : A ↦ p x ▸ f x := by
+  simp only [Eq.rec_eq_cast]
+  apply measurable_cast
+  · exact p
+  · exact hf
+
 lemma measurable_distrib [Countable I]
     : Measurable (fun x : A × Sigma P ↦ (⟨x.2.1, x.1, x.2.2⟩ : (i : I) × A × P i)) := by
   classical
@@ -83,33 +118,12 @@ lemma measurable_distrib [Countable I]
         · fun_prop
         · apply Measurable.subtype_val
           fun_prop
-      · intro X hX
-        simp [Subtype.instMeasurableSpace, MeasurableSpace.measurableSet_comap]
-        use {x | ∃(h : x.2.1 = i), h ▸ x.2.2 ∈ X }
-        apply And.intro
-        · constructor
-          simp only [Set.sup_eq_union, Set.mem_union, Set.mem_setOf_eq]
-          right
-          simp only [
-            MeasurableSpace.measurableSet_comap, MeasurableSpace.measurableSet_sInf,
-            Set.mem_range, forall_exists_index, forall_apply_eq_imp_iff]
-          use {x | ∃ (h : x.fst = i), h ▸ x.snd ∈ X}
-          simp only [Set.preimage_setOf_eq, and_true]
-          intro j
-          simp only [MeasurableSpace.map_def, Set.preimage_setOf_eq]
-          simp only [Set.preimage_setOf_eq]
-          by_cases h : j = i
-          · subst h
-            simp only [exists_const, Set.setOf_mem_eq]
-            exact hX
-          · simp only [h, IsEmpty.exists_iff, Set.setOf_false, MeasurableSet.empty]
-        · ext
-          simp only [Set.preimage_setOf_eq, Set.mem_setOf_eq, Set.mem_preimage]
-          apply Iff.intro
-          · rintro ⟨h, x⟩
-            exact x
-          · intro h
-            exact ⟨_, h⟩
+      · apply measurable_eq_rec
+        simp only [Sigma.eta]
+        apply Measurable.comp'
+        · fun_prop
+        · apply Measurable.subtype_val
+          fun_prop
     · fun_prop
 
   have : (fun x ↦ ⟨x.2.fst, (x.1, x.2.snd)⟩) = (fun x ↦ f (ix x) x) := by
@@ -128,5 +142,14 @@ lemma measurable_distrib' [Countable I]
       (f := fun x : A × Sigma P ↦ ⟨x.2.1, x.1, x.2.2⟩)
   · exact hf
   · apply measurable_distrib
+
+instance [∀ i, DiscreteMeasurableSpace (P i)] : DiscreteMeasurableSpace (Sigma P) where
+  forall_measurableSet X := by
+    simp only [
+      MeasurableSpace.measurableSet_sInf, Set.mem_range,
+      forall_exists_index, forall_apply_eq_imp_iff]
+    intro i
+    rw [MeasurableSpace.map_def]
+    apply MeasurableSet.of_discrete
 
 end MeasureTheory.Sigma
