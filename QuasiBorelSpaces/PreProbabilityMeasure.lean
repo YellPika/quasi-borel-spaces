@@ -178,7 +178,11 @@ noncomputable def cases
           (f := fun n r ↦ (φ n).eval (unpack r : ℕ × ℝ).2)
       · simp only [isHom_iff_isVar, default_IsVar]
         fun_prop
-      · fun_prop
+      · intro n
+        apply isHom_comp'
+        · simp only [QuasiBorelHom.isHom_coe]
+        · simp only [isHom_iff_isVar, isVar_iff_measurable]
+          fun_prop
   }
   base r := ((φ (ix r)).base r).map (f := fun x ↦ pack (ix r, x)) (by fun_prop)
   measurable_base := by

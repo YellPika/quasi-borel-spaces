@@ -1,6 +1,4 @@
 import QuasiBorelSpaces.Basic
-import QuasiBorelSpaces.Nat
-import QuasiBorelSpaces.MeasureTheory.Pack
 
 namespace QuasiBorelSpace.Prod
 
