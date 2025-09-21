@@ -104,6 +104,7 @@ lemma isHom_map
   simp only [this]
   fun_prop
 
+@[fun_prop]
 lemma isHom_getElem?
     {f : A → List B} (hf : IsHom f)
     {g : A → ℕ} (hg : IsHom g)
