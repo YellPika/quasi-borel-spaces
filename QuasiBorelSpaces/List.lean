@@ -1,50 +1,22 @@
-import QuasiBorelSpaces.ProbabilityMeasure
 import QuasiBorelSpaces.Hom
+import QuasiBorelSpaces.List.Encoding
+import QuasiBorelSpaces.MeasureTheory.List
 import QuasiBorelSpaces.Pi
+import QuasiBorelSpaces.ProbabilityMeasure
 import QuasiBorelSpaces.Sigma
-
-namespace QuasiBorelSpace.List
 
 variable {A B C : Type*} [QuasiBorelSpace A] [QuasiBorelSpace B] [QuasiBorelSpace C]
 
-/--
-We derive the `QuasiBorelSpace` instance for `List A`s from their encoding as
-`(n : ℕ) × (Fin n → A)`.
--/
-abbrev Encoding (A : Type*) :=
-  (n : ℕ) × (Fin n → A)
+namespace List.Encoding
 
-namespace Encoding
-
-/-- The encoded version of `[]`. -/
-def nil : Encoding A := ⟨0, Fin.elim0⟩
-
-/-- The encoded version of `· ∷ ·`. -/
-def cons (x : A) (xs : Encoding A) : Encoding A :=
-  ⟨xs.1 + 1, Fin.cases x xs.2⟩
-
-/-- The encoded version of `List.foldr`. -/
-def foldr (cons : A → B → B) (nil : B) : Encoding A → B
-  | ⟨0, _⟩ => nil
-  | ⟨n + 1, k⟩ => cons (k 0) (foldr cons nil ⟨n, fun i ↦ k i.succ⟩)
-
-@[simp]
-lemma foldr_nil {A B} (f : A → B → B) (z : B) : foldr f z nil = z := by
-  simp only [nil, foldr]
-
-@[simp]
-lemma foldr_cons {A B}
-    (f : A → B → B) (z : B) (x : A) (xs : Encoding A)
-    : foldr f z (cons x xs) = f x (foldr f z xs) := by
-  simp only [cons, foldr, Fin.cases_zero, Fin.cases_succ, Sigma.eta]
+open QuasiBorelSpace
 
 @[fun_prop]
-lemma isHom_cons : IsHom (fun x : A × Encoding A ↦ cons x.1 x.2) := by
-  unfold cons
+lemma isHom_cons : IsHom (fun x : A × List.Encoding A ↦ cons x.1 x.2) := by
   apply Sigma.isHom_distrib'
   apply Sigma.isHom_elim
   intro i
-  dsimp only
+  dsimp only [cons]
   apply Sigma.isHom_inj'
   simp only [Pi.isHom_iff]
   intro j
@@ -57,7 +29,7 @@ lemma isHom_cons : IsHom (fun x : A × Encoding A ↦ cons x.1 x.2) := by
 @[fun_prop]
 lemma isHom_fold
       {cons : A → B → B} (hcons : IsHom fun (x, y) ↦ cons x y) (nil : B)
-    : IsHom (Encoding.foldr cons nil) := by
+    : IsHom (foldr cons nil) := by
   apply Sigma.isHom_elim
   intro i
   induction i with
@@ -70,29 +42,19 @@ lemma isHom_fold
     · apply isHom_comp' ih
       fun_prop
 
-end Encoding
+end List.Encoding
 
-/-- Encodes a `List A` as an `Encoding A`. -/
-def encode : List A → Encoding A :=
-  List.foldr Encoding.cons Encoding.nil
+namespace QuasiBorelSpace.List
 
-@[simp]
-lemma encode_nil {A} : encode (A := A) [] = Encoding.nil := rfl
-
-@[simp]
-lemma encode_cons {A} (x : A) (xs : List A) : encode (x :: xs) = Encoding.cons x (encode xs) := rfl
-
-instance : QuasiBorelSpace (List A) := lift encode
+instance : QuasiBorelSpace (List A) := lift List.encode
 
 @[simp, fun_prop]
-lemma isHom_encode : IsHom (encode (A := A)) := by
+lemma isHom_encode : IsHom (List.encode (A := A)) := by
   apply isHom_of_lift
 
 @[simp, fun_prop]
 lemma isHom_cons : IsHom (fun x : A × List A ↦ x.1 :: x.2) := by
-  simp only [isHom_to_lift]
-  have (x : A) (xs : List A) : encode (x :: xs) = Encoding.cons x (encode xs) := rfl
-  simp only [this]
+  simp only [isHom_to_lift, List.encode_cons]
   fun_prop
 
 lemma isHom_cons'
@@ -105,11 +67,13 @@ lemma isHom_cons'
 lemma isHom_foldr
     {cons : A → B → B} (hcons : IsHom fun (x, xs) ↦ cons x xs) (nil : B)
     : IsHom (List.foldr cons nil) := by
-  have : List.foldr cons nil = fun xs ↦ Encoding.foldr cons nil (encode xs) := by
+  have : List.foldr cons nil = fun xs ↦ List.Encoding.foldr cons nil (List.encode xs) := by
     ext xs
     induction xs with
-    | nil => simp only [List.foldr_nil, encode_nil, Encoding.foldr_nil]
-    | cons head tail ih => simp only [List.foldr_cons, encode_cons, Encoding.foldr_cons, ih]
+    | nil =>
+      simp only [List.foldr_nil, List.encode_nil, List.Encoding.foldr_nil]
+    | cons head tail ih =>
+      simp only [List.foldr_cons, ih, List.encode_cons, List.Encoding.foldr_cons]
   rw [this]
   fun_prop
 
@@ -137,6 +101,14 @@ lemma isHom_map
     simp only [List.foldr_cons_eq_append, List.append_nil]
   simp only [this]
   fun_prop
+
+instance
+    [MeasurableSpace A] [MeasurableQuasiBorelSpace A]
+    : MeasurableQuasiBorelSpace (List A) where
+  isVar_iff_measurable φ := by
+    simp [MeasureTheory.List.measurable_to_encode, ← isHom_iff_isVar, isHom_to_lift]
+    simp only [isHom_iff_isVar]
+    rw [isVar_iff_measurable]
 
 @[simp]
 noncomputable def sequence : List (ProbabilityMeasure A) → ProbabilityMeasure (List A)
