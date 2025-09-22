@@ -39,6 +39,10 @@ noncomputable def lintegral (f : A → ENNReal) : PreProbabilityMeasure A → EN
 @[simp]
 alias lintegral_mk := PreProbabilityMeasure.lintegral.eq_1
 
+/--
+A `PreProbabilityMeasure` can be constructed from any `ProbabilityMeasure` on a
+standard borel space.
+-/
 noncomputable def mk'
     [MeasurableSpace A] [MeasurableQuasiBorelSpace A] [StandardBorelSpace A]
     (eval : A →𝒒 B) (base : ProbabilityMeasure A)
@@ -510,6 +514,7 @@ lemma isHom_str : IsHom (fun x : A × PreProbabilityMeasure B ↦ str x.1 x.2) :
   dsimp only at ⊢ hψ
   grw [Var.apply_str, hψ]
 
+/-- The Bernoulli measure. -/
 noncomputable def coin (p : I) : PreProbabilityMeasure Bool where
   eval := {
     toFun := fun r ↦ r = 0

@@ -44,6 +44,7 @@ lemma apply_mk
     : apply ⟨f, i, φ, hφ, hi⟩ r = ⟨f (i r), φ (i r) r⟩ :=
   rfl
 
+/-- A `Var` can be constructed from any `Encodable` index type. -/
 def mk'
     (Index : Type*) [Encodable Index] (embed : Index → I) (index : ℝ → Index)
     (var : (i : Index) → ℝ → P (embed i)) (isVar_var : ∀ i, IsVar (var i))

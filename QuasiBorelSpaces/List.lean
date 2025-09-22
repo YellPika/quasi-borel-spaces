@@ -143,11 +143,16 @@ instance
     simp only [isHom_iff_isVar]
     rw [isVar_iff_measurable]
 
+/--
+Converts a sequence of measures into a measure of sequences, where each element
+is drawn from an element of the original sequence.
+-/
 @[simp]
 noncomputable def sequence : List (ProbabilityMeasure A) → ProbabilityMeasure (List A)
   | [] => .unit []
   | μ :: μs => .bind (fun x ↦ .map (x :: ·) (sequence μs)) μ
 
+/-- Lifting integration to sequences. -/
 @[simp]
 noncomputable def lintegral (k : List A → ENNReal) : List (ProbabilityMeasure A) → ENNReal
   | [] => k []

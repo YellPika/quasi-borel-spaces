@@ -338,6 +338,7 @@ example
     str_eq_map, isHom_str, Prod.isHom_iff, isHom_const, isHom_id', and_self,
     bind_map, Function.uncurry_apply_pair, isHom_id, map_bind, id_eq]
 
+/-- The Bernoulli measure. -/
 noncomputable def coin (p : I) : ProbabilityMeasure Bool :=
   mk (.coin p)
 
@@ -349,6 +350,7 @@ lemma lintegral_coin
     coin, lintegral_mk, isHom_of_discrete_countable,
     ↓reduceIte, PreProbabilityMeasure.lintegral_coin]
 
+/-- Probabilistic choice. -/
 noncomputable def choose (p : I) (μ ν : ProbabilityMeasure A) : ProbabilityMeasure A :=
   bind (fun b ↦ if b then μ else ν) (coin p)
 
