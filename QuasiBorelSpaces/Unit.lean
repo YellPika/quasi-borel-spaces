@@ -4,7 +4,6 @@ variable {A : Type*} [QuasiBorelSpace A]
 
 namespace QuasiBorelSpace.Unit
 
-@[simps! IsVar]
 instance : QuasiBorelSpace Unit := default
 
 example : DiscreteQuasiBorelSpace Unit := inferInstance
@@ -15,7 +14,6 @@ end QuasiBorelSpace.Unit
 
 namespace QuasiBorelSpace.PUnit
 
-@[simps! IsVar]
 instance : QuasiBorelSpace PUnit := default
 
 example : DiscreteQuasiBorelSpace PUnit := inferInstance

@@ -8,26 +8,33 @@ variable
   {C : Type*} [QuasiBorelSpace C]
   {D : Type*} [QuasiBorelSpace D]
 
-@[simps IsVar]
 instance : QuasiBorelSpace (A × B) where
-  IsVar φ := IsVar (fun x ↦ Prod.fst (φ x)) ∧ IsVar (fun x ↦ Prod.snd (φ x))
+  IsVar φ := IsHom (fun x ↦ Prod.fst (φ x)) ∧ IsHom (fun x ↦ Prod.snd (φ x))
   isVar_const x := by
+    simp only [isHom_const, and_self]
+  isVar_comp hf := by
+    rintro ⟨hφ₁, hφ₂⟩
     apply And.intro
-    · apply isVar_const x.1
-    · apply isVar_const x.2
-  isVar_comp f hf := by
-    apply And.intro
-    · apply isVar_comp f hf.1
-    · apply isVar_comp f hf.2
+    · apply isHom_comp' hφ₁
+      simp only [isHom_ofMeasurableSpace, hf]
+    · apply isHom_comp' hφ₂
+      simp only [isHom_ofMeasurableSpace, hf]
   isVar_cases' {ix} {φ} hix hφ := by
     apply And.intro
-    · apply isVar_cases' (ix := ix) (φ := fun n r ↦ (φ n r).1) hix (fun n ↦ (hφ n).1)
-    · apply isVar_cases' (ix := ix) (φ := fun n r ↦ (φ n r).2) hix (fun n ↦ (hφ n).2)
+    · apply isHom_cases (ix := ix) (f := fun n r ↦ (φ n r).1) ?_ (fun n ↦ (hφ n).1)
+      simp only [isHom_ofMeasurableSpace, hix]
+    · apply isHom_cases (ix := ix) (f := fun n r ↦ (φ n r).2) ?_ (fun n ↦ (hφ n).2)
+      simp only [isHom_ofMeasurableSpace, hix]
+
+@[local simp]
+lemma isHom_def (f : ℝ → A × B) : IsHom f ↔ IsHom (fun x ↦ (f x).1) ∧ IsHom (fun x ↦ (f x).2) := by
+  rw [← isVar_iff_isHom]
+  rfl
 
 @[simp]
 lemma isHom_fst : IsHom (Prod.fst : A × B → A) := by
-  intro φ ⟨hφ₁, hφ₂⟩
-  apply hφ₁
+  rw [QuasiBorelSpace.isHom_def]
+  simp_all only [isHom_def, implies_true]
 
 @[fun_prop]
 lemma isHom_fst' {f : A → B × C} (hf : IsHom f) : IsHom (fun x ↦ (f x).1) :=
@@ -35,8 +42,8 @@ lemma isHom_fst' {f : A → B × C} (hf : IsHom f) : IsHom (fun x ↦ (f x).1) :
 
 @[simp]
 lemma isHom_snd : IsHom (Prod.snd : A × B → B) := by
-  intro φ ⟨hφ₁, hφ₂⟩
-  apply hφ₂
+  rw [QuasiBorelSpace.isHom_def]
+  simp_all only [isHom_def, implies_true]
 
 @[fun_prop]
 lemma isHom_snd' {f : A → B × C} (hf : IsHom f) : IsHom (fun x ↦ (f x).2) :=
@@ -47,10 +54,9 @@ lemma isHom_mk
     {f : A → B} (hf : IsHom f)
     {g : A → C} (hg : IsHom g)
     : IsHom (fun x ↦ (f x, g x)) := by
-  intro φ hφ
-  refine ⟨?_, ?_⟩
-  · apply hf hφ
-  · apply hg hφ
+  rw [QuasiBorelSpace.isHom_def] at ⊢ hf hg
+  simp only [isHom_def]
+  grind
 
 @[simp]
 lemma isHom_iff (f : A → B × C) : IsHom f ↔ IsHom (fun x ↦ (f x).1) ∧ IsHom (fun x ↦ (f x).2) := by
@@ -64,8 +70,8 @@ instance
     [MeasurableSpace A] [MeasurableSpace B]
     [MeasurableQuasiBorelSpace A] [MeasurableQuasiBorelSpace B]
     : MeasurableQuasiBorelSpace (A × B) where
-  isVar_iff_measurable φ := by
-    simp only [IsVar_def, isVar_iff_measurable]
+  isHom_iff_measurable φ := by
+    simp only [isHom_iff, isHom_iff_measurable]
     apply Iff.intro
     · rintro ⟨h₁, h₂⟩
       apply Measurable.prodMk h₁ h₂

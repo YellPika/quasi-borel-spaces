@@ -85,6 +85,7 @@ lemma isHom_inr : IsHom (Sum.inr : B → A ⊕ B) := by
 lemma isHom_inr' {f : A → C} (hf : IsHom f) : IsHom (fun x ↦ Sum.inr (f x) : A → B ⊕ C) :=
   isHom_comp isHom_inr hf
 
+@[local fun_prop]
 lemma isHom_elim
     {f : A → C} (hf : IsHom f)
     {g : B → C} (hg : IsHom g)
@@ -106,13 +107,7 @@ lemma isHom_elim'
       = Sum.elim (γ := A →𝒒 D) (fun x ↦ .mk (f · x)) (fun x ↦ .mk (g · x)) (h x) x := by
     cases h x <;> rfl
   simp only [this]
-  apply QuasiBorelHom.isHom_eval'
-  · apply isHom_comp'
-    · apply isHom_elim
-      · fun_prop
-      · fun_prop
-    · fun_prop
-  · fun_prop
+  fun_prop
 
 @[fun_prop]
 lemma isHom_map

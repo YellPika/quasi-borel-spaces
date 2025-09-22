@@ -19,7 +19,7 @@ lemma isHom_cons : IsHom (fun x : A × List.Encoding A ↦ cons x.1 x.2) := by
   apply Sigma.isHom_elim
   intro i
   dsimp only [cons]
-  apply Sigma.isHom_inj'
+  apply Sigma.isHom_mk'
   simp only [Pi.isHom_iff]
   intro j
   cases j using Fin.cases with
@@ -138,10 +138,8 @@ lemma isHom_getElem?
 instance
     [MeasurableSpace A] [MeasurableQuasiBorelSpace A]
     : MeasurableQuasiBorelSpace (List A) where
-  isVar_iff_measurable φ := by
-    simp [MeasureTheory.List.measurable_to_encode, ← isHom_iff_isVar, isHom_to_lift]
-    simp only [isHom_iff_isVar]
-    rw [isVar_iff_measurable]
+  isHom_iff_measurable φ := by
+    simp only [isHom_to_lift, isHom_iff_measurable, MeasureTheory.List.measurable_to_encode]
 
 /--
 Converts a sequence of measures into a measure of sequences, where each element

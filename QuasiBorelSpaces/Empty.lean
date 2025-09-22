@@ -5,7 +5,6 @@ variable {A : Type*} [QuasiBorelSpace A]
 
 namespace QuasiBorelSpace.Empty
 
-@[simps! IsVar]
 instance : QuasiBorelSpace Empty := default
 
 example : DiscreteQuasiBorelSpace Empty := inferInstance
@@ -16,7 +15,6 @@ end QuasiBorelSpace.Empty
 
 namespace QuasiBorelSpace.PEmpty
 
-@[simps! IsVar]
 instance : QuasiBorelSpace PEmpty := default
 
 example : DiscreteQuasiBorelSpace PEmpty := inferInstance

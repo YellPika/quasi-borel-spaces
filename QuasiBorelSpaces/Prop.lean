@@ -1,4 +1,5 @@
 import QuasiBorelSpaces.Basic
+import QuasiBorelSpaces.Pi
 import QuasiBorelSpaces.Subtype
 import QuasiBorelSpaces.Sum
 
@@ -32,74 +33,57 @@ lemma isHom_ite
 lemma isHom_not
     {f : A → Prop} (hf : IsHom f)
     : IsHom (fun x ↦ ¬f x) := by
-  intro φ hφ
-  specialize hf hφ
-  simp only [isVar_iff_measurable] at ⊢ hf
-  apply Measurable.not hf
+  fun_prop
 
 @[fun_prop]
 lemma isHom_and
     {f g : A → Prop} (hf : IsHom f) (hg : IsHom g)
     : IsHom (fun x ↦ f x ∧ g x) := by
-  intro φ hφ
-  specialize hf hφ
-  specialize hg hφ
-  simp only [isVar_iff_measurable] at ⊢ hf hg
-  apply Measurable.and hf hg
+  fun_prop
 
 @[fun_prop]
 lemma isHom_or
     {f g : A → Prop} (hf : IsHom f) (hg : IsHom g)
     : IsHom (fun x ↦ f x ∨ g x) := by
-  intro φ hφ
-  specialize hf hφ
-  specialize hg hφ
-  simp only [isVar_iff_measurable] at ⊢ hf hg
-  apply Measurable.or hf hg
+  fun_prop
 
 lemma isHom_imp
     {f g : A → Prop} (hf : IsHom f) (hg : IsHom g)
     : IsHom (fun x ↦ f x → g x) := by
-  intro φ hφ
-  specialize hf hφ
-  specialize hg hφ
-  simp only [isVar_iff_measurable] at ⊢ hf hg
-  apply Measurable.imp hf hg
+  apply isHom_comp' (f := fun x ↦ x.1 → x.2) (g := fun x ↦ (f x, g x))
+  · simp only [isHom_of_discrete_countable]
+  · fun_prop
 
 @[fun_prop]
 lemma isHom_iff
     {f g : A → Prop} (hf : IsHom f) (hg : IsHom g)
     : IsHom (fun x ↦ f x ↔ g x) := by
-  intro φ hφ
-  specialize hf hφ
-  specialize hg hφ
-  simp only [isVar_iff_measurable] at ⊢ hf hg
-  apply Measurable.iff hf hg
+  fun_prop
 
 lemma isHom_forall
     [QuasiBorelSpace I]
     {f : I → A → Prop} (hf : ∀ i, IsHom (f i))
     : IsHom (fun x ↦ ∀i, f i x) := by
+  rw [isHom_def]
   intro φ hφ
-  dsimp only [default_IsVar]
+  simp only [isHom_ofMeasurableSpace]
   apply Measurable.forall
   intro i
-  specialize hf i hφ
-  simp only [isVar_iff_measurable] at hf
-  exact hf
+  rw [←isHom_iff_measurable]
+  fun_prop
 
 @[fun_prop]
 lemma isHom_exists
     [QuasiBorelSpace I]
     {f : I → A → Prop} (hf : ∀ i, IsHom (f i))
     : IsHom (fun x ↦ ∃i, f i x) := by
+  rw [isHom_def]
   intro φ hφ
-  dsimp only [default_IsVar]
+  simp only [isHom_ofMeasurableSpace]
   apply Measurable.exists
   intro i
-  specialize hf i hφ
-  simp only [isVar_iff_measurable] at hf
-  exact hf
+  rw [←isHom_iff_measurable]
+  fun_prop
 
 @[fun_prop]
 lemma isHom_dite
@@ -141,27 +125,13 @@ lemma isHom_dite
   apply isHom_ite
   · fun_prop
   · apply isHom_comp' hf
-    simp only [Subtype.isHom_iff]
-    have {x}
-        : (if h : p x then ⟨x, h⟩ else Classical.arbitrary (Subtype p)).val
-        = (if p x then x else (Classical.arbitrary (Subtype p)).val) := by
-      by_cases h : p x
-      · simp only [h, ↓reduceDIte, ↓reduceIte]
-      · simp only [h, ↓reduceDIte, ↓reduceIte]
-    simp only [this]
+    simp only [Subtype.isHom_def, apply_dite, dite_eq_ite]
     apply isHom_ite
     · fun_prop
     · fun_prop
     · fun_prop
   · apply isHom_comp' hg
-    simp only [Subtype.isHom_iff]
-    have {x}
-        : (if h : ¬p x then ⟨x, h⟩ else Classical.arbitrary (Subtype fun x ↦ ¬p x)).val
-        = (if ¬p x then x else (Classical.arbitrary (Subtype fun x ↦ ¬p x)).val) := by
-      by_cases h : p x
-      · simp only [h, not_true_eq_false, ↓reduceDIte, ↓reduceIte]
-      · simp only [h, not_false_eq_true, ↓reduceDIte, ↓reduceIte]
-    simp only [this]
+    simp only [Subtype.isHom_def, apply_dite, dite_eq_ite]
     apply isHom_ite
     · fun_prop
     · fun_prop

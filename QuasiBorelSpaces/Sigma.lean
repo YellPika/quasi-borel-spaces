@@ -22,7 +22,7 @@ structure Var (I : Type*) (P : I → Type*) [∀ i, QuasiBorelSpace (P i)] where
   /-- The family of variables. -/
   var : (i : ℕ) → ℝ → P (embed i)
   /-- Each variable is, in fact, a variable. -/
-  isVar_var : ∀i, IsVar (var i)
+  isHom_var : ∀i, IsHom (var i)
   /-- The index function is measurable. -/
   measurable_index : Measurable[_, ⊤] index
 
@@ -40,20 +40,20 @@ def apply (x : Var I P) (r : ℝ) : Sigma P :=
 @[simp]
 lemma apply_mk
     {f : ℕ → I} {i : ℝ → ℕ} {φ : (i : ℕ) → ℝ → P (f i)} {r : ℝ}
-    (hφ : ∀ i, IsVar (φ i)) (hi : Measurable[_, ⊤] i)
+    (hφ : ∀ i, IsHom (φ i)) (hi : Measurable[_, ⊤] i)
     : apply ⟨f, i, φ, hφ, hi⟩ r = ⟨f (i r), φ (i r) r⟩ :=
   rfl
 
 /-- A `Var` can be constructed from any `Encodable` index type. -/
 def mk'
     (Index : Type*) [Encodable Index] (embed : Index → I) (index : ℝ → Index)
-    (var : (i : Index) → ℝ → P (embed i)) (isVar_var : ∀ i, IsVar (var i))
+    (var : (i : Index) → ℝ → P (embed i)) (isHom_var : ∀ i, IsHom (var i))
     (measurable_index : Measurable[_, ⊤] index)
     : Var I P where
   embed n := embed ((Encodable.decode₂ Index n).getD (index 0))
   index r := Encodable.encode (index r)
   var i r := var _ r
-  isVar_var i := isVar_var _
+  isHom_var i := isHom_var _
   measurable_index := by
     apply Measurable.comp'
     · apply measurable_from_top
@@ -63,7 +63,7 @@ def mk'
 lemma apply_mk'
     {J : Type*} [Encodable J]
     {f : J → I} {i : ℝ → J} {φ : (i : J) → ℝ → P (f i)} {r : ℝ}
-    (hφ : ∀ i, IsVar (φ i)) (hi : Measurable[_, ⊤] i)
+    (hφ : ∀ i, IsHom (φ i)) (hi : Measurable[_, ⊤] i)
     : apply (mk' J f i φ hφ hi) r = ⟨f (i r), φ (i r) r⟩ := by
   simp only [mk', apply_mk, Sigma.mk.injEq, Encodable.decode₂_encode, Option.getD_some, true_and]
   rw [Encodable.decode₂_encode]
@@ -78,7 +78,7 @@ def const (x : Sigma P) : Var I P := mk'
   (embed := fun _ ↦ x.1)
   (index := fun _ ↦ ())
   (var := fun _ _ ↦ x.2)
-  (isVar_var := by simp only [isVar_const, implies_true])
+  (isHom_var := by simp only [isHom_const, implies_true])
   (measurable_index := measurable_const)
 
 @[simp]
@@ -89,7 +89,10 @@ def comp {f : ℝ → ℝ} (hf : Measurable f) (x : Var I P) : Var I P where
   embed := x.embed
   index r := x.index (f r)
   var i r := x.var i (f r)
-  isVar_var i := isVar_comp hf (x.isVar_var i)
+  isHom_var i := by
+    apply isHom_comp'
+    · apply x.isHom_var
+    · simp only [isHom_ofMeasurableSpace, hf]
   measurable_index := Measurable.comp' x.measurable_index hf
 
 @[simp]
@@ -105,7 +108,7 @@ def cases {ix : ℝ → ℕ} (hix : Measurable ix) (φ : ℕ → Var I P) : Var 
   (embed := fun x ↦ (φ x.1).embed x.2)
   (index := fun r ↦ ⟨ix r, (φ (ix r)).index r⟩)
   (var := fun i r ↦ (φ i.1).var i.2 r)
-  (isVar_var := fun i ↦ (φ i.1).isVar_var i.2)
+  (isHom_var := fun i ↦ (φ i.1).isHom_var i.2)
   (measurable_index := by
     let : MeasurableSpace (ℕ × ℕ) := ⊤
     apply MeasureTheory.measurable_cases (f := fun n r ↦
@@ -125,22 +128,21 @@ lemma cases_apply
   rfl
 
 /-- Normal `QuasiBorelSpace.Var`s can be pushed 'inside' a `Var`. -/
-def distrib {φ₁ : ℝ → A} (hφ₁ : IsVar φ₁) (φ₂ : Var I P) : Var I (fun i ↦ A × P i) where
+def distrib {φ₁ : ℝ → A} (hφ₁ : IsHom φ₁) (φ₂ : Var I P) : Var I (fun i ↦ A × P i) where
   embed := φ₂.embed
   index := φ₂.index
   var i r := (φ₁ r, φ₂.var i r)
-  isVar_var i := ⟨hφ₁, φ₂.isVar_var i⟩
+  isHom_var i := by simp only [Prod.isHom_iff, hφ₁, φ₂.isHom_var i, and_self]
   measurable_index := φ₂.measurable_index
 
 @[simp]
 lemma distrib_apply
-    {φ₁ : ℝ → A} (hφ₁ : IsVar φ₁) (φ₂ : Var I P) (r : ℝ)
+    {φ₁ : ℝ → A} (hφ₁ : IsHom φ₁) (φ₂ : Var I P) (r : ℝ)
     : apply (distrib hφ₁ φ₂) r = ⟨(φ₂ r).1, φ₁ r, (φ₂ r).2⟩ :=
   rfl
 
 end Var
 
-@[simps]
 instance : QuasiBorelSpace (Σ i : I, P i) where
   IsVar φ := ∃ (ψ : Var I P), ∀r, φ r = ψ r
   isVar_const x := by
@@ -155,50 +157,41 @@ instance : QuasiBorelSpace (Σ i : I, P i) where
     use Var.cases hindex ψ
     simp only [hψ, Var.cases_apply, implies_true]
 
+@[local simp]
+lemma isHom_def (φ : ℝ → (i : I) × P i) : IsHom φ ↔ ∃ (ψ : Var I P), ∀r, φ r = ψ r := by
+  rw [← isVar_iff_isHom]
+  rfl
+
 @[fun_prop, simp]
-lemma isHom_inj (i) : IsHom (⟨i, ·⟩ : P i → Sigma P) := by
+lemma isHom_mk (i) : IsHom (⟨i, ·⟩ : P i → Sigma P) := by
+  rw [QuasiBorelSpace.isHom_def]
+  simp only [isHom_def]
   intro φ hφ
-  simp only [IsVar_def]
   use .mk'
     (Index := Unit)
     (embed := fun _ ↦ i)
     (index := fun _ ↦ ())
     (var := fun _ ↦ φ)
-    (isVar_var := fun _ ↦ hφ)
+    (isHom_var := fun _ ↦ hφ)
     (measurable_index := by simp only [measurable_const])
   simp only [Var.apply_mk', implies_true]
 
 @[fun_prop]
-lemma isHom_inj' {i} {f : A → P i} (hf : IsHom f) : IsHom (fun x ↦ ⟨i, f x⟩ : A → Sigma P) := by
-  apply isHom_comp
-  · exact isHom_inj i
-  · exact hf
-
-lemma isHom_inj_countable
-    [Countable I] [QuasiBorelSpace I] [MeasurableSpace I] [DiscreteQuasiBorelSpace I]
-    {f : A → I} (hf : IsHom f)
-    {g : (i : I) → A → P i} (hg : ∀ i, IsHom (g i))
-    : IsHom (fun x ↦ (⟨f x, g (f x) x⟩ : Sigma P)) := by
-  apply isHom_cases (ix := f) (f := fun i x ↦ (⟨i, g i x⟩ : Sigma P))
-  · intro φ hφ
-    specialize hf hφ
-    simp only [isVar_iff_measurable, default_IsVar] at ⊢ hf
-    intro X hX
-    apply hf
-    apply MeasurableSet.of_discrete
-  · fun_prop
+lemma isHom_mk' {i} {f : A → P i} (hf : IsHom f) : IsHom (fun x ↦ ⟨i, f x⟩ : A → Sigma P) := by
+  fun_prop
 
 lemma isHom_elim {f : Sigma P → A} (hf : ∀ i, IsHom (fun x ↦ f ⟨i, x⟩)) : IsHom f := by
+  rw [QuasiBorelSpace.isHom_def]
+  simp only [isHom_def]
   intro φ hφ
   choose φ hφ₀ using hφ
   rcases φ with ⟨emb, ix, var, hvar, hix⟩
   simp only [Var.apply_mk] at hφ₀
   conv => enter [1, x]; rw [hφ₀]
-  apply isVar_cases (ix := ix) (φ := fun i x ↦ f ⟨emb i, var i x⟩)
-  · apply hix
+  apply isHom_cases (ix := ix) (f := fun i x ↦ f ⟨emb i, var i x⟩)
+  · simp only [isHom_ofMeasurableSpace, hix]
   · intro j
-    apply hf
-    apply hvar
+    apply isHom_comp' (hf (emb j)) (hvar j)
 
 lemma isHom_elim'
     {f : ∀ i, P i → B} (hf : ∀ i, IsHom (f i))
@@ -210,21 +203,24 @@ lemma isHom_elim'
 
 @[fun_prop, simp]
 lemma isHom_fst [QuasiBorelSpace I] : IsHom (Sigma.fst : Sigma P → I) := by
-  intro φ ⟨ψ, hψ⟩
+  rw [QuasiBorelSpace.isHom_def]
+  simp only [isHom_def, forall_exists_index]
+  intro φ ψ hψ
   simp only [hψ]
-  rcases ψ with ⟨embed, index, var, isVar_var, measurable_index⟩
+  rcases ψ with ⟨embed, index, var, isHom_var, measurable_index⟩
   simp only [Var.apply_mk]
-  apply isVar_cases (ix := index) (φ := fun n r ↦ embed n)
-  · exact measurable_index
-  · simp only [isVar_const, implies_true]
+  apply isHom_cases (ix := index) (f := fun n r ↦ embed n)
+  · simp only [isHom_ofMeasurableSpace, measurable_index]
+  · simp only [isHom_const, implies_true]
 
 lemma isHom_distrib : IsHom (fun x : A × Sigma P ↦ (⟨x.2.1, x.1, x.2.2⟩ : (i : I) × A × P i)) := by
-  intro φ ⟨hφ₁, ψ, hφ₂⟩
-  exists Var.distrib hφ₁ ψ
+  rw [QuasiBorelSpace.isHom_def]
+  simp only [Prod.isHom_iff, isHom_def, and_imp, forall_exists_index]
+  intro φ hφ ψ hψ
+  exists Var.distrib hφ ψ
   intro r
   simp only [Var.distrib_apply]
-  simp only at hφ₂
-  rw [hφ₂]
+  rw [hψ]
 
 lemma isHom_distrib'
     {f : A × Sigma P → B} (hf : IsHom (fun x : (i : I) × A × P i ↦ f ⟨x.2.1, x.1, x.2.2⟩))
@@ -244,14 +240,14 @@ lemma isHom_map
   apply isHom_elim
   intro i
   dsimp only
-  apply isHom_inj'
-  apply hg
+  fun_prop
 
 instance
     [Countable I] [∀ i, MeasurableSpace (P i)] [∀ i, MeasurableQuasiBorelSpace (P i)]
     : MeasurableQuasiBorelSpace (Sigma P) where
-  isVar_iff_measurable φ := by
+  isHom_iff_measurable φ := by
     classical
+    rw [isHom_def]
     apply Iff.intro
     · intro ⟨ψ, hψ⟩
       rw [←funext_iff] at hψ
@@ -262,8 +258,8 @@ instance
       · fun_prop
       · intro i
         apply MeasureTheory.Sigma.measurable_mk'
-        have := ψ.isVar_var i
-        simp only [isVar_iff_measurable] at this
+        have := ψ.isHom_var i
+        simp only [isHom_iff_measurable] at this
         exact this
     · intro h
       have := Encodable.ofCountable I
@@ -282,7 +278,7 @@ instance
         rw [Var.apply_mk']
         simp only [↓reduceDIte]
       · intro ⟨i, hi⟩
-        simp only [isVar_iff_measurable]
+        simp only [isHom_iff_measurable]
         apply MeasureTheory.measurable_dite
         · change Measurable fun x ↦ (φ x).fst ∈ ({i} : Set _)
           apply Measurable.comp'
