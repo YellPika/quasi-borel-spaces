@@ -213,6 +213,18 @@ lemma isHom_fst [QuasiBorelSpace I] : IsHom (Sigma.fst : Sigma P → I) := by
   · simp only [isHom_ofMeasurableSpace, measurable_index]
   · simp only [isHom_const, implies_true]
 
+@[fun_prop]
+lemma isHom_snd : IsHom (Sigma.snd : (_ : I) × A → A) := by
+  rw [QuasiBorelSpace.isHom_def]
+  simp only [isHom_def, forall_exists_index]
+  intro φ ψ hψ
+  simp only [hψ]
+  rcases ψ with ⟨embed, index, var, isHom_var, measurable_index⟩
+  simp only [Var.apply_mk]
+  apply isHom_cases (ix := index) (f := fun n r ↦ var n r)
+  · simp only [isHom_ofMeasurableSpace, measurable_index]
+  · fun_prop
+
 lemma isHom_distrib : IsHom (fun x : A × Sigma P ↦ (⟨x.2.1, x.1, x.2.2⟩ : (i : I) × A × P i)) := by
   rw [QuasiBorelSpace.isHom_def]
   simp only [Prod.isHom_iff, isHom_def, and_imp, forall_exists_index]

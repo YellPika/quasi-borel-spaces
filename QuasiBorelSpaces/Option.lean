@@ -68,6 +68,16 @@ lemma isHom_elim
   fun_prop
 
 @[fun_prop]
+lemma isHom_map
+    {f : A → B → C} (hf : IsHom fun (x, y) ↦ f x y)
+    {g : A → Option B} (hg : IsHom g)
+    : IsHom (fun x ↦ Option.map (f x) (g x)) := by
+  have {x} : Option.map (f x) (g x) = Option.elim (g x) .none (.some ∘ f x) := by
+    cases g x <;> rfl
+  simp only [this]
+  fun_prop
+
+@[fun_prop]
 lemma isHom_getD
     {f : A → Option B} (hf : IsHom f)
     {g : A → B} (hg : IsHom g)

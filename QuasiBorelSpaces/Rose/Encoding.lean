@@ -18,7 +18,7 @@ def mk (x : A) (xs : List (Encoding A)) : Encoding A where
   fst := ⟨(), List.map Sigma.fst xs⟩
   snd := fun
     | [] => x
-    | i :: is => if _ : i < xs.length then xs[i].snd is else x
+    | i :: is => (xs[i]?.map fun k ↦ k.2 is).getD x
 
 /-- The encoded version of `Rose.foldr`. -/
 def fold (mk : A → List B → B) : Encoding A → B
@@ -47,7 +47,8 @@ lemma fold_mk
     : fold f (mk x xs) = f x (List.map (fold f) xs) := by
   simp only [
     mk, fold, List.length_map, Fin.getElem_fin, Fin.coe_cast, List.getElem_map,
-    Fin.is_lt, ↓reduceDIte, Sigma.eta, List.ofFn_getElem_eq_map]
+    Fin.is_lt, getElem?_pos, Option.map_some, Option.getD_some, Sigma.eta,
+    List.ofFn_getElem_eq_map]
 
 /-- Encodes a `Rose A` as an `Encoding A`. -/
 def encode : Rose A → Encoding A :=

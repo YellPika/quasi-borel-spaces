@@ -27,18 +27,7 @@ lemma isHom_mk : IsHom (fun x : A × List (Rose.Encoding A) ↦ mk x.1 x.2) := b
     intro is
     cases is with
     | nil => simp only [Prod.isHom_fst]
-    | cons head tail =>
-      apply Prop.isHom_dite
-      · fun_prop
-      · apply isHom_comp'
-            (f := fun f : Encoding _ ↦ f.snd tail)
-            (g := fun x : { x : _ × List _ // head < x.2.length } ↦ x.val.2[head])
-        · apply List.isHom_get
-          · fun_prop
-          · fun_prop
-        · apply Sigma.isHom_elim
-          fun_prop
-      · fun_prop
+    | cons head tail => fun_prop
 
 @[fun_prop]
 lemma isHom_fold
@@ -51,9 +40,10 @@ lemma isHom_fold
       : fold mk ⟨{ label := label, children := children }, k⟩
       = fold mk (Encoding.mk (k []) (List.ofFn fun i ↦ ⟨children[i], fun is ↦ k (i :: is)⟩)) := by
     simp only [
-      Encoding.mk, Fin.getElem_fin, List.map_ofFn, List.length_ofFn,
-      List.getElem_ofFn, dite_eq_ite, fold, Fin.coe_cast, Fin.eta,
-      Function.comp_apply, Fin.is_lt, ↓reduceIte]
+      Encoding.mk, Fin.getElem_fin, List.map_ofFn, List.getElem?_ofFn,
+      Option.map_dif, dite_eq_ite, fold, List.length_ofFn, Fin.coe_cast,
+      List.getElem_ofFn, Fin.eta, Function.comp_apply, Fin.is_lt, ↓reduceIte,
+      Option.getD_some]
     nth_rw 1 [fold]
     simp only [Fin.getElem_fin]
   simp only [this, Fin.getElem_fin, fold_mk, List.map_ofFn]
