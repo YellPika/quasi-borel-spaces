@@ -48,15 +48,15 @@ end List.Encoding
 
 namespace QuasiBorelSpace.List
 
-instance : QuasiBorelSpace (List A) := lift List.encode
+instance : QuasiBorelSpace (List A) := lift List.Encoding.encode
 
 @[simp, fun_prop]
-lemma isHom_encode : IsHom (List.encode (A := A)) := by
+lemma isHom_encode : IsHom (List.Encoding.encode (A := A)) := by
   apply isHom_of_lift
 
 @[simp, fun_prop]
 lemma isHom_cons : IsHom (fun x : A × List A ↦ x.1 :: x.2) := by
-  simp only [isHom_to_lift, List.encode_cons]
+  simp only [isHom_to_lift, List.Encoding.encode_cons]
   fun_prop
 
 lemma isHom_cons'
@@ -69,13 +69,13 @@ lemma isHom_cons'
 lemma isHom_foldr
     {cons : A → B → B} (hcons : IsHom fun (x, xs) ↦ cons x xs) (nil : B)
     : IsHom (List.foldr cons nil) := by
-  have : List.foldr cons nil = fun xs ↦ List.Encoding.foldr cons nil (List.encode xs) := by
+  have : List.foldr cons nil = fun xs ↦ List.Encoding.foldr cons nil (List.Encoding.encode xs) := by
     ext xs
     induction xs with
     | nil =>
-      simp only [List.foldr_nil, List.encode_nil, List.Encoding.foldr_nil]
+      simp only [List.foldr_nil, List.Encoding.encode_nil, List.Encoding.foldr_nil]
     | cons head tail ih =>
-      simp only [List.foldr_cons, ih, List.encode_cons, List.Encoding.foldr_cons]
+      simp only [List.foldr_cons, ih, List.Encoding.encode_cons, List.Encoding.foldr_cons]
   rw [this]
   fun_prop
 
@@ -134,6 +134,33 @@ lemma isHom_getElem?
           List.foldr_cons, QuasiBorelHom.coe_mk]
   simp only [this]
   fun_prop
+
+@[fun_prop]
+lemma isHom_length : IsHom (List.length : List A → ℕ) := by
+  -- Approach:
+  -- 1. Show `List.length xs = List.foldr ? ? xs`
+  -- 2. Show `IsHom fun x ↦ ?` (for each `?`)
+  -- 2. Apply `fun_prop`
+  sorry
+
+lemma isHom_get
+    {f : A → List B} (hf : IsHom f)
+    {g : A → ℕ} (hg : IsHom g)
+    (h : ∀ x, g x < (f x).length)
+    : IsHom (fun x ↦ have := h x; (f x)[g x]) := by
+  dsimp only [Lean.Elab.WF.paramLet]
+  -- Approach:
+  -- 1. Show `(f x)[g x] = List.foldr ? ? (f x) (g x) (h x)`
+  -- 2. Show `IsHom fun x ↦ ?` (for each `?`)
+  -- 2. Apply `fun_prop`
+  sorry
+
+@[fun_prop]
+lemma isHom_ofFn
+    {n} {f : A → Fin n → B} (hf : IsHom fun (x, y) ↦ f x y)
+    : IsHom (fun x ↦ List.ofFn (f x)) := by
+  -- Approach: induction on n
+  sorry
 
 instance
     [MeasurableSpace A] [MeasurableQuasiBorelSpace A]

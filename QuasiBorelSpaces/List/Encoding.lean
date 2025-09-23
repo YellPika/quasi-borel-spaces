@@ -67,8 +67,6 @@ lemma cons_inj_iff (x y : A) (xs ys : Encoding A) : cons x xs = cons y ys ↔ x 
   · rintro ⟨rfl, rfl, rfl⟩
     simp only [heq_eq_eq, and_self]
 
-end Encoding
-
 /-- Encodes a `List A` as an `Encoding A`. -/
 def encode : List A → Encoding A :=
   List.foldr Encoding.cons Encoding.nil
@@ -79,6 +77,7 @@ lemma encode_nil {A} : encode (A := A) [] = Encoding.nil := rfl
 @[simp]
 lemma encode_cons {A} (x : A) (xs : List A) : encode (x :: xs) = Encoding.cons x (encode xs) := rfl
 
+@[simp]
 lemma encode_injective : Function.Injective (encode (A := A)) := by
   intro xs ys h
   induction xs generalizing ys with
@@ -92,5 +91,7 @@ lemma encode_injective : Function.Injective (encode (A := A)) := by
     | cons y ys =>
       simp_all only [encode_cons, Encoding.cons_inj_iff, cons.injEq, true_and]
       grind
+
+end Encoding
 
 end List

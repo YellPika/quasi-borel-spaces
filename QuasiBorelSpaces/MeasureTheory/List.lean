@@ -49,16 +49,16 @@ end List.Encoding
 namespace MeasureTheory.List
 
 instance : MeasurableSpace (List A) :=
-  MeasurableSpace.comap List.encode inferInstance
+  MeasurableSpace.comap List.Encoding.encode inferInstance
 
 @[fun_prop]
-lemma measurable_encode : Measurable (List.encode (A := A)) := by
+lemma measurable_encode : Measurable (List.Encoding.encode (A := A)) := by
   apply comap_measurable
 
 @[local simp]
 lemma measurable_to_encode
     (f : A → List B)
-    : Measurable f ↔ Measurable (fun x ↦ List.encode (f x)) := by
+    : Measurable f ↔ Measurable (fun x ↦ List.Encoding.encode (f x)) := by
   rw [measurable_iff_comap_le]
   apply Iff.intro
   · intro h X hX
@@ -87,7 +87,7 @@ lemma measurable_to_encode
 
 @[local fun_prop, simp]
 lemma measurable_cons : Measurable (fun ((x : A), xs) ↦ x :: xs) := by
-  simp only [measurable_to_encode, List.encode_cons]
+  simp only [measurable_to_encode, List.Encoding.encode_cons]
   fun_prop
 
 @[fun_prop]
@@ -101,23 +101,23 @@ lemma measurable_cons'
 lemma measurable_foldr
     {cons : A → B → B} (hcons : Measurable fun (x, xs) ↦ cons x xs) (nil : B)
     : Measurable (List.foldr cons nil) := by
-  have : List.foldr cons nil = fun xs ↦ List.Encoding.foldr cons nil (List.encode xs) := by
+  have : List.foldr cons nil = fun xs ↦ List.Encoding.foldr cons nil (.encode xs) := by
     ext xs
     induction xs with
     | nil =>
-      simp only [List.foldr_nil, List.encode_nil, List.Encoding.foldr_nil]
+      simp only [List.foldr_nil, List.Encoding.encode_nil, List.Encoding.foldr_nil]
     | cons head tail ih =>
-      simp only [List.foldr_cons, ih, List.encode_cons, List.Encoding.foldr_cons]
+      simp only [List.foldr_cons, ih, List.Encoding.encode_cons, List.Encoding.foldr_cons]
   rw [this]
   fun_prop
 
 instance [DiscreteMeasurableSpace A] [Countable A] : DiscreteMeasurableSpace (List A) where
   forall_measurableSet X := by
     rw [MeasurableSpace.measurableSet_comap]
-    use List.encode '' X
+    use .encode '' X
     apply And.intro
     · apply MeasurableSet.of_discrete
     · rw [Set.preimage_image_eq]
-      apply List.encode_injective
+      simp only [List.Encoding.encode_injective]
 
 end MeasureTheory.List

@@ -110,3 +110,10 @@ measurable space.
 class abbrev DiscreteQuasiBorelSpace (A : Type*) [QuasiBorelSpace A] [MeasurableSpace A] :=
   DiscreteMeasurableSpace A
   MeasurableQuasiBorelSpace A
+
+namespace QuasiBorelSpace.Prop
+
+@[simps!]
+instance : QuasiBorelSpace Prop := ofMeasurableSpace
+
+end QuasiBorelSpace.Prop

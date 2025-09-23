@@ -9,9 +9,6 @@ variable
 
 namespace QuasiBorelSpace.Prop
 
-@[simps!]
-instance : QuasiBorelSpace Prop := ofMeasurableSpace
-
 example : DiscreteQuasiBorelSpace Prop := inferInstance
 
 @[fun_prop]
