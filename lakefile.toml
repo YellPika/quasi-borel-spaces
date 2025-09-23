@@ -16,5 +16,10 @@ name = "mathlib"
 scope = "leanprover-community"
 rev = "v4.24.0-rc1"
 
+[[require]]
+name = "rose-tree"
+git = "https://github.com/YellPika/lean-rose-tree"
+rev = "main"
+
 [[lean_lib]]
 name = "QuasiBorelSpaces"
