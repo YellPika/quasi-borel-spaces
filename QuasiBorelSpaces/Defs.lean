@@ -50,7 +50,7 @@ inductive IsHom (f : A → B) : Prop where
   | intro : (∀⦃φ⦄, IsVar φ → IsVar (fun x ↦ f (φ x))) → IsHom f
 
 @[inherit_doc IsHom]
-notation "IsHom[" inst₁ ", " inst₂ "]" => @IsHom _ _ inst₁ inst₂
+scoped notation "IsHom[" inst₁ ", " inst₂ "]" => @IsHom _ _ inst₁ inst₂
 
 /-- Every `MeasurableSpace` induces a `QuasiBorelSpace`. -/
 def ofMeasurableSpace [MeasurableSpace A] : QuasiBorelSpace A where
