@@ -44,6 +44,9 @@ protected def copy (f : A →𝒒 B) (f' : A → B) (h : f' = ⇑f) : A →𝒒 
 lemma coe_mk {f : A → B} (hf : IsHom f) : ⇑(mk f hf) = f := rfl
 
 @[simp]
+lemma eta (f : A →𝒒 B) : mk f f.property = f := rfl
+
+@[simp]
 lemma toFun_eq_coe (f : A →𝒒 B) : toFun f = ⇑f := rfl
 
 @[simp, fun_prop]
