@@ -22,6 +22,8 @@ import QuasiBorelSpaces.ProbabilityMeasure
 import QuasiBorelSpaces.Prod
 import QuasiBorelSpaces.Prop
 import QuasiBorelSpaces.Quotient
+import QuasiBorelSpaces.Rose
+import QuasiBorelSpaces.Rose.Encoding
 import QuasiBorelSpaces.Sigma
 import QuasiBorelSpaces.Subtype
 import QuasiBorelSpaces.Sum
