@@ -436,6 +436,14 @@ lemma bind_choose
   simp (disch := fun_prop) only [lintegral_bind, lintegral_choose, unitInterval.coe_symm_eq]
 
 @[simp]
+lemma map_choose
+    {f : A → B} (hf : IsHom f)
+    (p : unitInterval) (μ ν : ProbabilityMeasure A)
+    : map f (choose p μ ν) = choose p (map f μ) (map f ν) := by
+  apply bind_choose
+  fun_prop
+
+@[simp]
 lemma choose_bind
     {f : A → ProbabilityMeasure B} (hf : IsHom f)
     {g : A → ProbabilityMeasure B} (hg : IsHom g)
