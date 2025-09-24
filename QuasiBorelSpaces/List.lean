@@ -87,7 +87,7 @@ lemma isHom_foldr'
     : IsHom (fun x ↦ List.foldr (cons x) (nil x) (f x)) := by
   have {x}
       : List.foldr (cons x) (nil x) (f x)
-      = List.foldr (β := A →𝒒 C) (fun x k ↦ .mk (fun y ↦ cons y x (k y))) (.mk nil) (f x) x := by
+      = List.foldr (β := A →𝒒 C) (fun y k ↦ .mk (fun x ↦ cons x y (k x))) (.mk nil) (f x) x := by
     induction f x with
     | nil => simp only [List.foldr_nil, QuasiBorelHom.coe_mk]
     | cons x xs ih => simp only [List.foldr_cons, ih, QuasiBorelHom.coe_mk]
