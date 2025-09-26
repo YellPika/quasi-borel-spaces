@@ -427,6 +427,37 @@ lemma choose_comm (p : I) (μ ν : ProbabilityMeasure A) : choose p μ ν = choo
   simp (disch := fun_prop) only [lintegral_choose, unitInterval.coe_symm_eq, unitInterval.symm_symm]
   rw [add_comm]
 
+private lemma choose_assoc_bound {p q : I}
+    (hp₁ : 0 < p) (hp₂ : p < 1)
+    (hq₁ : 0 < q) (hq₂ : q < 1)
+    : (σ p * q : ℝ) / σ (p * q) ∈ I := by
+  have ⟨hq₃, hq₄⟩ := q.property
+  have ⟨hp₃, hp₄⟩ := p.property
+  simp only [unitInterval.coe_symm_eq, Set.mem_Icc] at ⊢ hp₃ hp₄ hq₃ hq₄
+  apply And.intro
+  · apply div_nonneg
+    · rw [mul_nonneg_iff_left_nonneg_of_pos]
+      · simp only [sub_nonneg]
+        assumption
+      · assumption
+    · grind
+  · rw [div_le_iff₀]
+    · simp only [Set.Icc.coe_mul, one_mul]
+      rw [sub_mul]
+      apply sub_le_sub
+      · simp only [one_mul]
+        assumption
+      · rfl
+    · simp only [Set.Icc.coe_mul, sub_pos]
+      sorry
+
+lemma choose_assoc {p q} {μ₁ μ₂ μ₃ : ProbabilityMeasure A}
+    (hp₁ : 0 < p) (hp₂ : p < 1)
+    (hq₁ : 0 < q) (hq₂ : q < 1)
+    : choose q (choose p μ₁ μ₂) μ₃
+    = choose (p * q) μ₁ (choose ⟨_, choose_assoc_bound hp₁ hp₂ hq₁ hq₂⟩ μ₂ μ₃) := by
+  sorry
+
 @[simp]
 lemma bind_choose
     {f : A → ProbabilityMeasure B} (hf : IsHom f)
