@@ -422,7 +422,7 @@ lemma choose_eq (p : I) (μ : ProbabilityMeasure A) : choose p μ μ = μ := by
     simp only [ENNReal.ofReal_le_one, hp]
   · simp only [ne_eq, hkμ, not_false_eq_true, implies_true]
 
-lemma choose_symm (p : I) (μ ν : ProbabilityMeasure A) : choose p μ ν = choose (σ p) ν μ := by
+lemma choose_comm (p : I) (μ ν : ProbabilityMeasure A) : choose p μ ν = choose (σ p) ν μ := by
   ext k hk
   simp (disch := fun_prop) only [lintegral_choose, unitInterval.coe_symm_eq, unitInterval.symm_symm]
   rw [add_comm]
