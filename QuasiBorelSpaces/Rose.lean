@@ -285,10 +285,30 @@ lemma isHom_bind
     {f : A → B → Rose C} (hf : IsHom fun (x, y) ↦ f x y)
     {g : A → Rose B} (hg : IsHom g)
     : IsHom (fun x ↦ Rose.bind (f x) (g x)) := by
-  -- Approach:
-  -- 1. Show `Rose.bind (f x) (g x) = Rose.fold ? (g x) (f x)`
-  -- 2. Show `IsHom fun x ↦ ?`
-  -- 3. Apply `fun_prop`
-  sorry
+  classical
+  let mkBind : A → B → List (Rose C) → Rose C :=
+    fun x b zs ↦ bindFoldAlg (f x) b zs
+  have hrewrite
+      : (fun x ↦ Rose.bind (f x) (g x))
+        = fun x ↦ Rose.fold (mkBind x) (g x) := by
+    funext x
+    have hx : ∀ t : Rose B, Rose.bind (f x) t = Rose.fold (mkBind x) t := by
+      intro t
+      induction t with
+      | mk label children ih =>
+          have hchild :
+              List.map (Rose.fold (mkBind x)) children
+                = List.map (Rose.bind (f x)) children := by
+            refine map_congr' ?_
+            intro child hmem
+            simpa [mkBind] using (ih child hmem).symm
+          simp [Rose.bind, mkBind, bindFoldAlg]
+    simpa using hx (g x)
+  have hmk : IsHom fun (x, y, z) ↦ mkBind x y z := by
+    dsimp [mkBind, bindFoldAlg]
+    fun_prop
+  have hfold : IsHom (fun x ↦ Rose.fold (mkBind x) (g x)) :=
+    isHom_fold' hmk hg
+  simpa [hrewrite] using hfold
 
 end QuasiBorelSpace.Rose
