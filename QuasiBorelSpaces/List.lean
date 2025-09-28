@@ -137,11 +137,50 @@ lemma isHom_getElem?
 
 @[fun_prop]
 lemma isHom_length : IsHom (List.length : List A → ℕ) := by
-  -- Approach:
-  -- 1. Show `List.length xs = List.foldr ? ? xs`
-  -- 2. Show `IsHom fun x ↦ ?` (for each `?`)
-  -- 2. Apply `fun_prop`
-  sorry
+  have hcons : IsHom fun p : A × ℕ ↦ p.2.succ := by
+    fun_prop
+  have hfold : IsHom (List.foldr (fun _ n ↦ n.succ) 0) :=
+    isHom_foldr (A := A) (B := ℕ) hcons 0
+  have hfun :
+      (fun xs : List A ↦ List.foldr (fun _ n ↦ n.succ) 0 xs)
+        = List.length := by
+    funext xs
+    induction xs with
+    | nil => simp
+    | cons head tail ih => simp [ih]
+  simpa [hfun] using hfold
+
+omit [QuasiBorelSpace B] in
+private lemma getOption_eq_some_get
+    {xs : List B} {n : ℕ} (h : n < xs.length)
+    : xs[n]? = some (xs[n]'(h)) := by
+  classical
+  revert n h
+  induction xs with
+  | nil =>
+      intro n h
+      cases h
+  | cons y ys ih =>
+      intro n h
+      cases n with
+      | zero =>
+          simp
+      | succ n =>
+          have h' : n < ys.length := by
+            simpa [List.length_cons, Nat.succ_lt_succ_iff] using h
+          simp [ih h']
+
+section Inhabited
+
+variable [Inhabited B]
+
+omit [QuasiBorelSpace B] in
+private lemma getOption_getD_eq_get
+    {xs : List B} {n : ℕ} (h : n < xs.length)
+    : (xs[n]?).getD (default : B) = xs[n]'(h) := by
+  classical
+  have : xs[n]? = some (xs[n]'(h)) := getOption_eq_some_get (B := B) (xs := xs) (n := n) h
+  simp [Option.getD, this]
 
 lemma isHom_get
     {f : A → List B} (hf : IsHom f)
@@ -149,18 +188,44 @@ lemma isHom_get
     (h : ∀ x, g x < (f x).length)
     : IsHom (fun x ↦ have := h x; (f x)[g x]) := by
   dsimp only [Lean.Elab.WF.paramLet]
-  -- Approach:
-  -- 1. Show `(f x)[g x] = List.foldr ? ? (f x) (g x) (h x)`
-  -- 2. Show `IsHom fun x ↦ ?` (for each `?`)
-  -- 2. Apply `fun_prop`
-  sorry
+  classical
+  have hoption : IsHom (fun x ↦ (f x)[g x]?) :=
+    isHom_getElem? hf hg
+  have hconst : IsHom fun (_ : A) ↦ (default : B) := by
+    fun_prop
+  have hgetD : IsHom (fun x ↦ ((f x)[g x]?).getD (default : B)) :=
+    QuasiBorelSpace.Option.isHom_getD hoption hconst
+  have hrepr :
+      (fun x ↦ (f x)[g x]'(h x))
+        = fun x ↦ ((f x)[g x]?).getD (default : B) := by
+    funext x
+    simp [getOption_getD_eq_get (B := B) (xs := f x) (n := g x) (h := h x)]
+  simpa [hrepr] using hgetD
+
+end Inhabited
 
 @[fun_prop]
 lemma isHom_ofFn
     {n} {f : A → Fin n → B} (hf : IsHom fun (x, y) ↦ f x y)
     : IsHom (fun x ↦ List.ofFn (f x)) := by
-  -- Approach: induction on n
-  sorry
+  classical
+  revert f
+  induction n with
+  | zero =>
+      intro f hf
+      simp
+  | succ n ih =>
+      intro f hf
+      have hhead : IsHom (fun x ↦ f x (0 : Fin (n + 1))) := by
+        fun_prop
+      have hf' : IsHom (fun p : A × Fin n ↦ f p.1 (Fin.succ p.2)) := by
+        fun_prop
+      have htail : IsHom (fun x ↦ List.ofFn fun i : Fin n ↦ f x (Fin.succ i)) :=
+        ih (f := fun x i => f x (Fin.succ i)) hf'
+      have hcons : IsHom
+          (fun x ↦ f x 0 :: List.ofFn fun i : Fin n ↦ f x (Fin.succ i)) :=
+        isHom_cons' (A := A) (B := B) hhead htail
+      simpa [List.ofFn_succ] using hcons
 
 instance
     [MeasurableSpace A] [MeasurableQuasiBorelSpace A]
