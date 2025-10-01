@@ -356,12 +356,15 @@ lemma lintegral_coin
 noncomputable def choose (p : I) (μ ν : ProbabilityMeasure A) : ProbabilityMeasure A :=
   bind (fun b ↦ if b then μ else ν) (coin p)
 
+@[inherit_doc choose]
+scoped notation:65 μ " ◃" p "▹ " ν:66 => choose p μ ν
+
 @[fun_prop]
 lemma isHom_choose
     (p : I)
     {f : A → ProbabilityMeasure B} (hf : IsHom f)
     {g : A → ProbabilityMeasure B} (hg : IsHom g)
-    : IsHom (fun x ↦ choose p (f x) (g x)) := by
+    : IsHom (fun x ↦ f x ◃p▹ g x) := by
   simp only [choose]
   apply isHom_bind'
   · unfold Function.uncurry
@@ -378,7 +381,7 @@ lemma isHom_choose
 lemma lintegral_choose
     {k : A → ENNReal} (hk : IsHom k)
     (p : I) (μ ν : ProbabilityMeasure A)
-    : lintegral k (choose p μ ν)
+    : lintegral k (μ ◃p▹ ν)
     = ENNReal.ofReal p * lintegral k μ + ENNReal.ofReal (σ p) * lintegral k ν := by
   simp (disch := fun_prop) only [choose, unitInterval.coe_symm_eq]
   rw [lintegral_bind, lintegral_coin]
@@ -389,19 +392,19 @@ lemma lintegral_choose
     · fun_prop
 
 @[simp]
-lemma choose_one (μ ν : ProbabilityMeasure A) : choose 1 μ ν = μ := by
+lemma choose_one (μ ν : ProbabilityMeasure A) : μ ◃ 1 ▹ ν = μ := by
   ext k hk
   simp (disch := fun_prop) only [lintegral_choose, Set.Icc.coe_one, ENNReal.ofReal_one, one_mul,
     unitInterval.symm_one, Set.Icc.coe_zero, ENNReal.ofReal_zero, zero_mul, add_zero]
 
 @[simp]
-lemma choose_zero (μ ν : ProbabilityMeasure A) : choose 0 μ ν = ν := by
+lemma choose_zero (μ ν : ProbabilityMeasure A) : μ ◃ 0 ▹ ν = ν := by
   ext k hk
   simp (disch := fun_prop) only [lintegral_choose, Set.Icc.coe_zero, ENNReal.ofReal_zero, zero_mul,
     unitInterval.symm_zero, Set.Icc.coe_one, ENNReal.ofReal_one, one_mul, zero_add]
 
 @[simp]
-lemma choose_eq (p : I) (μ : ProbabilityMeasure A) : choose p μ μ = μ := by
+lemma choose_eq (p : I) (μ : ProbabilityMeasure A) : μ ◃p▹ μ = μ := by
   rcases p with ⟨p, hp⟩
   simp only [Set.mem_Icc] at hp
   ext k hk
@@ -424,7 +427,7 @@ lemma choose_eq (p : I) (μ : ProbabilityMeasure A) : choose p μ μ = μ := by
     simp only [ENNReal.ofReal_le_one, hp]
   · simp only [ne_eq, hkμ, not_false_eq_true, implies_true]
 
-lemma choose_comm (p : I) (μ ν : ProbabilityMeasure A) : choose p μ ν = choose (σ p) ν μ := by
+lemma choose_comm (p : I) (μ ν : ProbabilityMeasure A) : μ ◃p▹ ν = ν ◃σ p▹ μ := by
   ext k hk
   simp (disch := fun_prop) only [lintegral_choose, unitInterval.coe_symm_eq, unitInterval.symm_symm]
   rw [add_comm]
@@ -456,15 +459,15 @@ private lemma choose_assoc_bound {p q : I}
 lemma choose_assoc {p q} {μ₁ μ₂ μ₃ : ProbabilityMeasure A}
     (hp₁ : 0 < p) (hp₂ : p < 1)
     (hq₁ : 0 < q) (hq₂ : q < 1)
-    : choose q (choose p μ₁ μ₂) μ₃
-    = choose (p * q) μ₁ (choose ⟨_, choose_assoc_bound hp₁ hp₂ hq₁ hq₂⟩ μ₂ μ₃) := by
+    : (μ₁ ◃p▹ μ₂) ◃q▹ μ₃
+    = μ₁ ◃p * q▹ (μ₂ ◃⟨_, choose_assoc_bound hp₁ hp₂ hq₁ hq₂⟩▹ μ₃) := by
   sorry
 
 @[simp]
 lemma bind_choose
     {f : A → ProbabilityMeasure B} (hf : IsHom f)
     (p : unitInterval) (μ ν : ProbabilityMeasure A)
-    : bind f (choose p μ ν) = choose p (bind f μ) (bind f ν) := by
+    : bind f (μ ◃p▹ ν) = bind f μ ◃p▹ bind f ν := by
   ext k hk
   simp (disch := fun_prop) only [lintegral_bind, lintegral_choose, unitInterval.coe_symm_eq]
 
@@ -472,7 +475,7 @@ lemma bind_choose
 lemma map_choose
     {f : A → B} (hf : IsHom f)
     (p : unitInterval) (μ ν : ProbabilityMeasure A)
-    : map f (choose p μ ν) = choose p (map f μ) (map f ν) := by
+    : map f (μ ◃p▹ ν) = map f μ ◃p▹ map f ν := by
   apply bind_choose
   fun_prop
 
@@ -481,7 +484,7 @@ lemma choose_bind
     {f : A → ProbabilityMeasure B} (hf : IsHom f)
     {g : A → ProbabilityMeasure B} (hg : IsHom g)
     (p : unitInterval) (μ : ProbabilityMeasure A)
-    : bind (fun x ↦ choose p (f x) (g x)) μ = choose p (bind f μ) (bind g μ) := by
+    : bind (fun x ↦ f x ◃p▹ g x) μ = bind f μ ◃p▹ bind g μ := by
   ext k hk
   simp (disch := fun_prop) only [
     lintegral_bind, lintegral_choose, unitInterval.coe_symm_eq,
