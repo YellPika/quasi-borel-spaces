@@ -68,42 +68,42 @@ lemma ext
 /--
 Converts a `ProbabilityMeasure` to the underlying `PreProbabilityMeasure`. This
 may or may not be the one passed to `mk`, but will always be equivalent
-(`(mk μ).toPreDist ≈ μ`).
+(`(mk μ).toPreProbabilityMeasure ≈ μ`).
 -/
-noncomputable def toPreDist (μ : ProbabilityMeasure A) : PreProbabilityMeasure A := μ.val.out
+noncomputable def toPreProbabilityMeasure (μ : ProbabilityMeasure A)
+    : PreProbabilityMeasure A :=
+  μ.val.out
 
-instance : QuasiBorelSpace (ProbabilityMeasure A) := lift toPreDist
+instance : QuasiBorelSpace (ProbabilityMeasure A) := lift toPreProbabilityMeasure
 
-lemma toPreDist_mk (μ : PreProbabilityMeasure A) : toPreDist (mk μ) ≈ μ := by
+lemma toPreProbabilityMeasure_mk (μ : PreProbabilityMeasure A)
+    : toPreProbabilityMeasure (mk μ) ≈ μ := by
   apply Quotient.exact
-  simp only [toPreDist, mk, Quotient.out_eq]
+  simp only [toPreProbabilityMeasure, mk, Quotient.out_eq]
 
 @[simp, fun_prop]
-lemma isHom_toPreDist : IsHom (toPreDist (A := A)) := by
+lemma isHom_toPreProbabilityMeasure : IsHom (toPreProbabilityMeasure (A := A)) := by
   apply isHom_of_lift
 
 @[simp, fun_prop]
 lemma isHom_mk : IsHom (mk (A := A)) := by
-  rw [isHom_to_lift, PreProbabilityMeasure.isHom_congr toPreDist_mk]
+  rw [isHom_to_lift, PreProbabilityMeasure.isHom_congr toPreProbabilityMeasure_mk]
   fun_prop
 
 @[simp]
-lemma lintegral_toPredist
+lemma lintegral_toPreProbabilityMeasure
     (μ : ProbabilityMeasure A) {k : A → ENNReal} (hk : IsHom k)
-    : μ.toPreDist.lintegral k = μ.lintegral k := by
+    : μ.toPreProbabilityMeasure.lintegral k = μ.lintegral k := by
   cases μ with | mk μ =>
   simp only [lintegral_mk, hk, ↓reduceIte]
-  apply toPreDist_mk μ hk
+  apply toPreProbabilityMeasure_mk μ hk
 
 @[fun_prop]
 lemma isHom_lintegral
     {k : A → B → ENNReal} (hk : IsHom fun (x, y) ↦ k x y)
     {f : A → ProbabilityMeasure B} (hf : IsHom f)
     : IsHom (fun x ↦ lintegral (k x) (f x)) := by
-  have hk' {x} : IsHom (k x) := by fun_prop
-  have {x} : lintegral (k x) (f x) = PreProbabilityMeasure.lintegral (k x) (f x).toPreDist := by
-    simp only [hk', lintegral_toPredist]
-  simp only [this]
+  simp (disch := fun_prop) only [← lintegral_toPreProbabilityMeasure]
   fun_prop
 
 lemma lintegral_add
@@ -143,6 +143,8 @@ lemma lintegral_mul_right
   simp only [lintegral_mk, this, ↓reduceIte, hf]
   simp (disch := fun_prop) only [PreProbabilityMeasure.lintegral_mul_right]
 
+lemma nonempty (μ : ProbabilityMeasure A) : Nonempty A := μ.toPreProbabilityMeasure.nonempty
+
 /-- The monadic `unit` operation. -/
 noncomputable def unit (x : A) : ProbabilityMeasure A := mk (PreProbabilityMeasure.unit x)
 
@@ -159,7 +161,7 @@ lemma lintegral_unit {k : A → ENNReal} (hk : IsHom k) (x : A) : lintegral k (u
 noncomputable def bind
     (f : A → ProbabilityMeasure B) (μ : ProbabilityMeasure A)
     : ProbabilityMeasure B :=
-  mk (PreProbabilityMeasure.bind (fun x ↦ (f x).toPreDist) μ.toPreDist)
+  mk (PreProbabilityMeasure.bind (fun x ↦ (f x).toPreProbabilityMeasure) μ.toPreProbabilityMeasure)
 
 @[simp, fun_prop]
 lemma isHom_bind {f : A → ProbabilityMeasure B} (hf : IsHom f) : IsHom (bind f) := by
@@ -176,13 +178,13 @@ lemma lintegral_bind
   have : IsHom fun x ↦ lintegral k (f x) := by fun_prop
   simp only [bind, lintegral_mk, hk, ↓reduceIte, this]
   rw [PreProbabilityMeasure.lintegral_bind]
-  · trans μ.lintegral (fun x ↦ (f x).toPreDist.lintegral k)
-    · apply toPreDist_mk
+  · trans μ.lintegral (fun x ↦ (f x).toPreProbabilityMeasure.lintegral k)
+    · apply toPreProbabilityMeasure_mk
       fun_prop
     · congr
       ext x
       cases f x with | mk ν =>
-      simp only [hk, lintegral_toPredist, lintegral_mk, ↓reduceIte]
+      simp only [hk, lintegral_toPreProbabilityMeasure, lintegral_mk, ↓reduceIte]
   · fun_prop
   · fun_prop
 
@@ -264,7 +266,7 @@ lemma bind_unit_eq_map {f : A → B} : bind (fun x ↦ unit (f x)) = map f := by
 
 /-- The functorial `str`ength operation. -/
 noncomputable def str (x : A) (μ : ProbabilityMeasure B) : ProbabilityMeasure (A × B) :=
-  mk (PreProbabilityMeasure.str x μ.toPreDist)
+  mk (PreProbabilityMeasure.str x μ.toPreProbabilityMeasure)
 
 @[simp]
 lemma lintegral_str
@@ -275,7 +277,7 @@ lemma lintegral_str
   have : IsHom fun y ↦ k (x, y) := by fun_prop
   simp only [
     str, lintegral_mk, hk, ↓reduceIte, PreProbabilityMeasure.lintegral_str,
-    this, lintegral_toPredist]
+    this, lintegral_toPreProbabilityMeasure]
 
 @[simp, local fun_prop]
 lemma isHom_str : IsHom (Function.uncurry (str (A := A) (B := B))) := by
