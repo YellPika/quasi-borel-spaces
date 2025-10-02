@@ -100,10 +100,10 @@ instance [SeparatesPoints A] [SeparatesPoints B] : SeparatesPoints (QuasiBorelHo
     exact h (fun k ↦ p (k x)) (by fun_prop) hfx
 
 instance
-  [MeasurableSpace A]
-  [MeasurableSpace.SeparatesPoints A]
-  [MeasurableQuasiBorelSpace A]
-  : SeparatesPoints A where
+    [MeasurableSpace A]
+    [MeasurableSpace.SeparatesPoints A]
+    [MeasurableQuasiBorelSpace A]
+    : SeparatesPoints A where
   separates x y h := by
     apply MeasurableSpace.separatesPoints_def
     intro X hX hx
