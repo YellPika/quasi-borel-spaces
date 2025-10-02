@@ -499,7 +499,13 @@ private lemma choose_assoc_bound {p q : I}
         assumption
       · rfl
     · simp only [Set.Icc.coe_mul, sub_pos]
-      sorry
+      have hp_pos : 0 < (p : ℝ) := by simpa using hp₁
+      have hq_lt_one : (q : ℝ) < 1 := by simpa using hq₂
+      have hp_lt_one : (p : ℝ) < 1 := by simpa using hp₂
+      have hmul : (p : ℝ) * (q : ℝ) < (p : ℝ) := by
+        have := mul_lt_mul_of_pos_left hq_lt_one hp_pos
+        simpa [one_mul] using this
+      exact lt_trans hmul hp_lt_one
 
 lemma choose_assoc {p q} {μ₁ μ₂ μ₃ : ProbabilityMeasure A}
     (hp₁ : 0 < p) (hp₂ : p < 1)
