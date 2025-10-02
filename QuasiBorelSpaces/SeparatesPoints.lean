@@ -99,4 +99,19 @@ instance [SeparatesPoints A] [SeparatesPoints B] : SeparatesPoints (QuasiBorelHo
     intro p hp hfx
     exact h (fun k ↦ p (k x)) (by fun_prop) hfx
 
+instance
+  [MeasurableSpace A]
+  [MeasurableSpace.SeparatesPoints A]
+  [MeasurableQuasiBorelSpace A]
+  : SeparatesPoints A where
+  separates x y h := by
+    apply MeasurableSpace.separatesPoints_def
+    intro X hX hx
+    apply h (· ∈ X) ?_ hx
+    rw [isHom_def]
+    intro φ hφ
+    simp only [isHom_iff_measurable] at ⊢ hφ
+    apply Measurable.comp' ?_ hφ
+    simp only [measurable_mem, hX]
+
 end QuasiBorelSpace
