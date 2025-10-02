@@ -5,7 +5,7 @@ import QuasiBorelSpaces.Sum
 
 variable
   {A B : Type*} [QuasiBorelSpace A] [QuasiBorelSpace B]
-  {I : Type*} [Countable I]
+  {I : Sort*} [Countable I]
 
 namespace QuasiBorelSpace.Prop
 
@@ -58,7 +58,6 @@ lemma isHom_iff
   fun_prop
 
 lemma isHom_forall
-    [QuasiBorelSpace I]
     {f : I → A → Prop} (hf : ∀ i, IsHom (f i))
     : IsHom (fun x ↦ ∀i, f i x) := by
   rw [isHom_def]
@@ -71,7 +70,6 @@ lemma isHom_forall
 
 @[fun_prop]
 lemma isHom_exists
-    [QuasiBorelSpace I]
     {f : I → A → Prop} (hf : ∀ i, IsHom (f i))
     : IsHom (fun x ↦ ∃i, f i x) := by
   rw [isHom_def]
