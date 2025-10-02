@@ -5,6 +5,7 @@ import QuasiBorelSpaces.Option
 import QuasiBorelSpaces.Nat
 import QuasiBorelSpaces.Pi
 import QuasiBorelSpaces.ProbabilityMeasure
+import QuasiBorelSpaces.SeparatesPoints
 import QuasiBorelSpaces.Sigma
 
 variable {A B C : Type*} [QuasiBorelSpace A] [QuasiBorelSpace B] [QuasiBorelSpace C]
@@ -227,6 +228,22 @@ lemma isHom_ofFn
         isHom_cons' (A := A) (B := B) hhead htail
       simpa [List.ofFn_succ] using hcons
 
+@[fun_prop]
+lemma isHom_tail : IsHom (List.tail : List A → List A) := by
+  have {xs : List A}
+      : (xs, List.tail xs)
+      = (List.foldr (fun x (ys, _) ↦ (x :: ys, ys)) ([], []) xs) := by
+    induction xs with
+    | nil => rfl
+    | cons head tail ih =>
+      simp only [Prod.ext_iff] at ih
+      simp only [List.tail_cons, List.foldr_cons, ← ih]
+  have : List.tail
+       = fun xs : List A ↦ (List.foldr (fun x (ys, _) ↦ (x :: ys, ys)) ([], []) xs).2 := by
+    grind
+  rw [this]
+  fun_prop
+
 instance
     [MeasurableSpace A] [MeasurableQuasiBorelSpace A]
     : MeasurableQuasiBorelSpace (List A) where
@@ -260,5 +277,29 @@ lemma lintegral_sequence
     simp (disch := fun_prop) only [
       sequence, ProbabilityMeasure.lintegral_bind,
       ProbabilityMeasure.lintegral_map, ih, lintegral]
+
+instance [SeparatesPoints A] : SeparatesPoints (List A) where
+  separates xs ys h := by
+    induction xs generalizing ys with
+    | nil =>
+      cases ys with
+      | nil => rfl
+      | cons head tail =>
+        specialize h (List.foldr (fun _ _ ↦ False) True) (by fun_prop)
+        simp only [List.foldr_nil, List.foldr_cons, imp_false, not_true_eq_false] at h
+    | cons head tail ih =>
+      cases ys with
+      | nil =>
+        specialize h (List.foldr (fun _ _ ↦ True) False) (by fun_prop)
+        simp only [List.foldr_cons, List.foldr_nil, imp_false, not_true_eq_false] at h
+      | cons head tail =>
+        simp only [List.cons.injEq]
+        apply And.intro
+        · apply separatesPoints_def
+          intro p hp hhead
+          apply h (List.foldr (fun x _ ↦ p x) False) (by fun_prop) hhead
+        · apply ih
+          intro p hp htail
+          apply h (p ∘ List.tail) (by fun_prop) htail
 
 end QuasiBorelSpace.List
