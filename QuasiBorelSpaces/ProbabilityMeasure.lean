@@ -1,5 +1,6 @@
-import QuasiBorelSpaces.PreProbabilityMeasure
 import QuasiBorelSpaces.ENNReal
+import QuasiBorelSpaces.PreProbabilityMeasure
+import QuasiBorelSpaces.SeparatesPoints
 
 open MeasureTheory
 open scoped unitInterval
