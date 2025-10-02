@@ -171,25 +171,36 @@ private lemma getOption_eq_some_get
             simpa [List.length_cons, Nat.succ_lt_succ_iff] using h
           simp [ih h']
 
-section Inhabited
-
-variable [Inhabited B]
-
 omit [QuasiBorelSpace B] in
-private lemma getOption_getD_eq_get
+private lemma getOption_getD_eq_get [Inhabited B]
     {xs : List B} {n : ℕ} (h : n < xs.length)
     : (xs[n]?).getD (default : B) = xs[n]'(h) := by
   classical
   have : xs[n]? = some (xs[n]'(h)) := getOption_eq_some_get (B := B) (xs := xs) (n := n) h
   simp [Option.getD, this]
 
+@[fun_prop]
 lemma isHom_get
     {f : A → List B} (hf : IsHom f)
     {g : A → ℕ} (hg : IsHom g)
     (h : ∀ x, g x < (f x).length)
-    : IsHom (fun x ↦ have := h x; (f x)[g x]) := by
-  dsimp only [Lean.Elab.WF.paramLet]
+    : IsHom (fun x ↦ (f x)[g x]'(h x)) := by
   classical
+  wlog hB : Nonempty B
+  · have {x} : f x = [] := by
+      cases f x with
+      | nil => rfl
+      | cons head tail =>
+        have : Nonempty B := ⟨head⟩
+        contradiction
+    simp only [this, List.length_nil, not_lt_zero'] at ⊢ h
+    rw [isHom_def]
+    intro φ
+    specialize φ 0
+    contradiction
+
+  replace hB : Inhabited B := ⟨hB.some⟩
+
   have hoption : IsHom (fun x ↦ (f x)[g x]?) :=
     isHom_getElem? hf hg
   have hconst : IsHom fun (_ : A) ↦ (default : B) := by
@@ -202,8 +213,6 @@ lemma isHom_get
     funext x
     simp [getOption_getD_eq_get (B := B) (xs := f x) (n := g x) (h := h x)]
   simpa [hrepr] using hgetD
-
-end Inhabited
 
 @[fun_prop]
 lemma isHom_ofFn
