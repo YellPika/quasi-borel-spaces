@@ -534,4 +534,20 @@ lemma choose_bind
     lintegral_bind, lintegral_choose, unitInterval.coe_symm_eq,
     lintegral_add', lintegral_mul_left]
 
+instance : SeparatesPoints (ProbabilityMeasure A) where
+  separates μ₁ μ₂ h := by
+    ext k
+    apply h _
+    · apply isHom_comp'
+      · rw [isHom_def]
+        intro φ hφ
+        simp only [isHom_ofMeasurableSpace] at ⊢ hφ
+        have : MeasurableSet { x | x ∈ φ ⁻¹' ({lintegral k μ₁} : Set _) } := by
+          apply hφ
+          apply measurableSet_eq
+        simp only [Set.mem_preimage, Set.mem_singleton_iff, measurableSet_setOf] at this
+        grind
+      · fun_prop
+    · rfl
+
 end QuasiBorelSpace.ProbabilityMeasure
