@@ -157,6 +157,50 @@ lemma isHom_unit : IsHom (unit (A := A)) := by
 lemma lintegral_unit {k : A → ENNReal} (hk : IsHom k) (x : A) : lintegral k (unit x) = k x := by
   simp only [unit, lintegral_mk, hk, ↓reduceIte, PreProbabilityMeasure.lintegral_unit]
 
+@[simp]
+lemma unit_injective [SeparatesPoints A] : Function.Injective (unit (A := A)) := by
+  intro x y h
+  simp only [ProbabilityMeasure.ext_iff] at h
+  apply separatesPoints_def
+  intro p hp hx
+  classical
+  have : IsHom fun x ↦ if p x then 1 else (0 : ENNReal) := by
+    apply Prop.isHom_ite <;> fun_prop
+  specialize h this
+  simp (disch := fun_prop) only [
+    lintegral_unit, hx, ↓reduceIte, left_eq_ite_iff, one_ne_zero,
+    imp_false, Decidable.not_not] at h
+  exact h
+
+@[simp]
+lemma unit_inj [SeparatesPoints A] (x y : A) : unit x = unit y ↔ x = y := by
+  apply Iff.intro
+  · apply unit_injective
+  · grind
+
+lemma separatesPoints_iff_unit_injective
+    : SeparatesPoints A ↔ Function.Injective (unit (A := A)) := by
+  apply Iff.intro
+  · intro _
+    apply unit_injective
+  · intro h
+    constructor
+    intro x y h'
+    apply h
+    ext k hk
+    apply h'
+    · simp only [hk, lintegral_unit]
+      apply isHom_comp' ?_ hk
+      rw [isHom_def]
+      intro φ hφ
+      simp only [isHom_ofMeasurableSpace] at ⊢ hφ
+      apply MeasurableSet.mem
+      have : MeasurableSet fun r ↦ r ∈ (φ ⁻¹' ({k x} : Set _)) := by
+        apply hφ
+        apply measurableSet_eq
+      grind
+    · rfl
+
 /-- The monadic `bind` operation. -/
 noncomputable def bind
     (f : A → ProbabilityMeasure B) (μ : ProbabilityMeasure A)
