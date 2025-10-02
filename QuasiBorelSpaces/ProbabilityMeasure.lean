@@ -481,31 +481,18 @@ private lemma choose_assoc_bound {p q : I}
     (hp₁ : 0 < p) (hp₂ : p < 1)
     (hq₁ : 0 < q) (hq₂ : q < 1)
     : (σ p * q : ℝ) / σ (p * q) ∈ I := by
-  have ⟨hq₃, hq₄⟩ := q.property
-  have ⟨hp₃, hp₄⟩ := p.property
-  simp only [unitInterval.coe_symm_eq, Set.mem_Icc] at ⊢ hp₃ hp₄ hq₃ hq₄
-  apply And.intro
-  · apply div_nonneg
-    · rw [mul_nonneg_iff_left_nonneg_of_pos]
-      · simp only [sub_nonneg]
-        assumption
-      · assumption
-    · grind
-  · rw [div_le_iff₀]
-    · simp only [Set.Icc.coe_mul, one_mul]
-      rw [sub_mul]
-      apply sub_le_sub
-      · simp only [one_mul]
-        assumption
-      · rfl
-    · simp only [Set.Icc.coe_mul, sub_pos]
-      have hp_pos : 0 < (p : ℝ) := by simpa using hp₁
-      have hq_lt_one : (q : ℝ) < 1 := by simpa using hq₂
-      have hp_lt_one : (p : ℝ) < 1 := by simpa using hp₂
-      have hmul : (p : ℝ) * (q : ℝ) < (p : ℝ) := by
-        have := mul_lt_mul_of_pos_left hq_lt_one hp_pos
-        simpa [one_mul] using this
-      exact lt_trans hmul hp_lt_one
+  have hp := p.property
+  have hq := q.property
+  simp only [unitInterval.coe_symm_eq, Set.mem_Icc, Set.Icc.coe_mul]
+  have hp_pos : 0 < (p : ℝ) := by simpa using hp₁
+  have hq_pos : 0 < (q : ℝ) := by simpa using hq₁
+  have hp_lt : (p : ℝ) < 1 := by simpa using hp₂
+  have hq_lt : (q : ℝ) < 1 := by simpa using hq₂
+  have h_denom_pos : 0 < 1 - (p : ℝ) * ↑q := by nlinarith
+  constructor
+  · apply div_nonneg <;> nlinarith
+  · rw [div_le_one h_denom_pos]
+    nlinarith
 
 lemma choose_assoc {p q} {μ₁ μ₂ μ₃ : ProbabilityMeasure A}
     (hp₁ : 0 < p) (hp₂ : p < 1)
