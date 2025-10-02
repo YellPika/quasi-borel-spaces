@@ -311,4 +311,30 @@ lemma isHom_bind
     isHom_fold' hmk hg
   simpa [hrewrite] using hfold
 
+instance [SeparatesPoints A] : SeparatesPoints (Rose A) where
+  separates t u ht := by
+    induction t generalizing u with | mk x xs ih =>
+    cases u with | mk y ys =>
+    simp only [Rose.mk.injEq]
+    apply And.intro
+    · apply separatesPoints_def
+      intro p hp hlabel
+      apply ht (p ∘ Rose.label) (by fun_prop) hlabel
+    · apply List.ext_get
+      · apply ht (fun t ↦ xs.length = t.children.length) ?_ rfl
+        apply isHom_cases (f := fun n _ ↦ xs.length = n) <;> fun_prop
+      · simp only [List.get_eq_getElem]
+        intro n h₁ h₂
+        apply ih
+        · simp only [List.getElem_mem]
+        · intro p hp hxs
+          specialize ht (fun t ↦ if h : _ then p (t.children.get ⟨n, h⟩) else False)
+          simp only [List.get_eq_getElem, h₁, ↓reduceDIte, h₂] at ht
+          apply ht ?_ hxs
+          apply Prop.isHom_dite
+          · fun_prop
+          · apply isHom_comp' hp
+            apply List.isHom_get <;> fun_prop
+          · fun_prop
+
 end QuasiBorelSpace.Rose
