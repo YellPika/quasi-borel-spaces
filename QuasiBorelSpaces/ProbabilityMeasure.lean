@@ -163,6 +163,30 @@ lemma lintegral_finset_sum {A}
   unfold lintegral
   apply PreProbabilityMeasure.lintegral_finset_sum s hf
 
+/-! ## Measures -/
+
+noncomputable instance : FunLike (ProbabilityMeasure A) (Set A) ENNReal where
+  coe μ s := μ.toPreProbabilityMeasure.measureOf s
+  coe_injective' := by
+    intro μ₁ μ₂ h
+    induction μ₁ with | mk μ₁ =>
+    induction μ₂ with | mk μ₂ =>
+    simp only [mk_eq_iff]
+    rw [PreProbabilityMeasure.equiv_def']
+    intro p hp
+    grw [←toPreProbabilityMeasure_mk μ₁, ←toPreProbabilityMeasure_mk μ₂]
+    · apply congr_fun h
+    · fun_prop
+    · fun_prop
+
+instance : OuterMeasureClass (ProbabilityMeasure A) A where
+  measure_empty _ := by
+    simp only [DFunLike.coe, PreProbabilityMeasure.measureOf_empty]
+  measure_mono _ _ _ h := by
+    apply PreProbabilityMeasure.measureOf_mono _ h
+  measure_iUnion_nat_le _ _ _ := by
+    apply PreProbabilityMeasure.measureOf_iUnion_le
+
 /-! ## Point Separation -/
 
 instance : SeparatesPoints (ProbabilityMeasure A) where

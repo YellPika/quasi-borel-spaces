@@ -39,6 +39,24 @@ noncomputable def lintegral (f : A → ENNReal) : PreProbabilityMeasure A → EN
 @[simp]
 alias lintegral_mk := PreProbabilityMeasure.lintegral.eq_1
 
+/-- TODO -/
+noncomputable def measureOf : PreProbabilityMeasure A → Set A → ENNReal
+  | ⟨φ, μ⟩, s => μ { x | φ x ∈ s }
+
+@[simp]
+alias measureOf_mk := PreProbabilityMeasure.measureOf.eq_1
+
+@[simp]
+lemma lintegral_eq_measureOf
+    (μ : PreProbabilityMeasure A) (s : Set A) (hp : IsHom (· ∈ s))
+    : lintegral (s.indicator 1) μ = measureOf μ s := by
+  rcases μ with ⟨φ, μ⟩
+  simp only [lintegral_mk, measureOf_mk, ProbabilityMeasure.ennreal_coeFn_eq_coeFn_toMeasure]
+  rw [←MeasureTheory.lintegral_indicator_one]
+  · simp only [Set.indicator, Set.mem_setOf_eq, Pi.one_apply]
+  · have := isHom_comp' hp φ.isHom_coe
+    simpa only [measurableSet_setOf, isHom_ofMeasurableSpace] using this
+
 /--
 A `PreProbabilityMeasure` can be constructed from any `ProbabilityMeasure` on a
 standard borel space.
@@ -159,6 +177,30 @@ lemma lintegral_finset_sum {A}
   simp only [isHom_ofMeasurableSpace] at this
   apply this
 
+@[simp]
+lemma measureOf_empty (μ : PreProbabilityMeasure B) : measureOf μ ∅ = 0 := by
+  rcases μ
+  simp only [
+    measureOf_mk, Set.mem_empty_iff_false, Set.setOf_false,
+    ProbabilityMeasure.coeFn_empty, ENNReal.coe_zero]
+
+@[simp]
+lemma measureOf_mono (μ : PreProbabilityMeasure B) : Monotone (measureOf μ) := by
+  intro p q h
+  rcases μ
+  simp only [measureOf_mk, ProbabilityMeasure.ennreal_coeFn_eq_coeFn_toMeasure]
+  apply measure_mono
+  intro r
+  apply h
+
+lemma measureOf_iUnion_le {ι : Type*} [Countable ι]
+    (μ : PreProbabilityMeasure A) (s : ι → Set A)
+    : μ.measureOf (⋃ i, s i) ≤ ∑' (i : ι), μ.measureOf (s i) := by
+  rcases μ
+  simp only [
+    measureOf_mk, Set.mem_iUnion, Set.setOf_exists,
+    ProbabilityMeasure.ennreal_coeFn_eq_coeFn_toMeasure]
+  apply measure_iUnion_le
 
 @[simp]
 lemma setoid_r (μ₁ μ₂ : PreProbabilityMeasure A) : (setoid A).r μ₁ μ₂ ↔ μ₁ ≈ μ₂ := by rfl
@@ -166,6 +208,54 @@ lemma setoid_r (μ₁ μ₂ : PreProbabilityMeasure A) : (setoid A).r μ₁ μ�
 lemma equiv_def (μ₁ μ₂ : PreProbabilityMeasure A)
     : μ₁ ≈ μ₂ ↔ (∀{f}, IsHom f → μ₁.lintegral f = μ₂.lintegral f) := by
   rfl
+
+lemma equiv_def' (μ₁ μ₂ : PreProbabilityMeasure A)
+    : μ₁ ≈ μ₂ ↔ (∀{p}, IsHom (· ∈ p) → μ₁.measureOf p = μ₂.measureOf p) := by
+  classical
+  apply Iff.intro
+  · intro h p hp
+    simp (disch := fun_prop) only [← lintegral_eq_measureOf]
+    apply h
+    simp +unfoldPartialApp only [Set.indicator, Pi.one_apply]
+    apply Prop.isHom_ite <;> fun_prop
+  · intro h k hk
+    rcases μ₁ with ⟨φ₁, μ₁⟩
+    rcases μ₂ with ⟨φ₂, μ₂⟩
+    simp only [
+      ProbabilityMeasure.ennreal_coeFn_eq_coeFn_toMeasure,
+      measureOf_mk, lintegral_mk] at ⊢ h
+    let := toMeasurableSpace (A := A)
+    have (φ : ℝ →𝒒 A) (μ : Measure ℝ)
+        : ∫⁻ (x : ℝ), k (φ x) ∂μ
+        = ∫⁻ (x : A), k x ∂(μ.map φ) := by
+      rw [lintegral_map]
+      · intro X hX φ hφ
+        have := isHom_comp' hk hφ
+        simp only [isHom_ofMeasurableSpace] at this
+        apply this hX
+      · intro X hX
+        apply hX
+        fun_prop
+    simp only [this]
+    have (p : Set A) (hp : IsHom (· ∈ p)) (φ : ℝ →𝒒 A) (μ : Measure ℝ)
+        : μ {x | φ x ∈ p}
+        = μ.map φ p := by
+      rw [Measure.map_apply]
+      · simp only [Set.preimage]
+      · intro X hX
+        apply hX
+        simp only [QuasiBorelHom.isHom_coe]
+      · intro φ hφ
+        have := isHom_comp' hp hφ
+        simpa only [Set.preimage, measurableSet_setOf, isHom_ofMeasurableSpace] using this
+    simp +contextual only [this] at h
+    congr 1
+    ext X hX
+    apply h
+    rw [isHom_def]
+    intro φ hφ
+    specialize hX hφ
+    simpa only [Set.preimage, measurableSet_setOf, isHom_ofMeasurableSpace] using hX
 
 lemma nonempty (μ : PreProbabilityMeasure A) : Nonempty A := ⟨μ.eval 0⟩
 
@@ -187,7 +277,7 @@ def apply : Var A → ℝ → PreProbabilityMeasure A
   | ⟨φ, μ, _⟩, r => ⟨φ, μ r⟩
 
 @[simp]
-alias apply_mk := apply.eq_1
+alias measureOf_mk := apply.eq_1
 
 instance : CoeFun (Var A) (fun _ ↦ ℝ → PreProbabilityMeasure A) where
   coe := apply
@@ -240,7 +330,7 @@ lemma apply_cases
     {ix : ℝ → ℕ} (hix : Measurable ix)
     (φ : ℕ → Var A) (r : ℝ)
     : apply (cases hix φ) r ≈ φ (ix r) r := by
-  simp only [cases, apply_mk, equiv_def, lintegral_mk, QuasiBorelHom.coe_mk]
+  simp only [cases, measureOf_mk, equiv_def, lintegral_mk, QuasiBorelHom.coe_mk]
   intro f hf
   simp only [ProbabilityMeasure.toMeasure_map]
   rw [lintegral_map]
@@ -360,6 +450,14 @@ lemma lintegral_congr
   apply hμ hk
 
 @[gcongr]
+lemma measureOf_congr
+    {p : Set A} (hk : IsHom (· ∈ p))
+    {μ₁ μ₂ : PreProbabilityMeasure A} (hμ : μ₁ ≈ μ₂)
+    : measureOf μ₁ p = measureOf μ₂ p := by
+  rw [equiv_def'] at hμ
+  apply hμ hk
+
+@[gcongr]
 lemma isHom_congr {f g : A → PreProbabilityMeasure B} (h : ∀ x, f x ≈ g x) : IsHom f ↔ IsHom g := by
   apply Iff.intro <;>
   · intro h'
@@ -397,7 +495,7 @@ lemma apply_unit
     {φ : ℝ → A} (hφ : IsHom φ) (r : ℝ)
     : apply (unit hφ) r ≈ PreProbabilityMeasure.unit (φ r) := by
   intro ψ hψ
-  simp only [unit, apply_mk, diracProba, lintegral_mk, ProbabilityMeasure.coe_mk,
+  simp only [unit, measureOf_mk, diracProba, lintegral_mk, ProbabilityMeasure.coe_mk,
     QuasiBorelHom.coe_mk, lintegral_dirac, lintegral_unit]
 
 end Var
@@ -467,7 +565,7 @@ noncomputable def bind (f : A → PreProbabilityMeasure B) (φ : Var A) : Var B 
 lemma apply_bind {f : A → PreProbabilityMeasure B} (hf : IsHom f) (φ : Var A) (r : ℝ)
     : apply (bind f φ) r ≈ PreProbabilityMeasure.bind f (φ r) := by
   intro k hk
-  simp only [bind, apply_mk, lintegral_mk]
+  simp only [bind, measureOf_mk, lintegral_mk]
   rw [lintegral_bind, ProbabilityMeasure.lintegral_bind]
   · congr 1
     ext x
@@ -530,11 +628,11 @@ lemma apply_str
     : apply (str hφ ψ) r ≈ PreProbabilityMeasure.str (φ r) (ψ r) := by
   intro χ hχ
   simp only [
-    str, apply_mk, lintegral_mk, ProbabilityMeasure.toMeasure_map,
+    str, measureOf_mk, lintegral_mk, ProbabilityMeasure.toMeasure_map,
     QuasiBorelHom.coe_mk, lintegral_str]
   rw [MeasureTheory.lintegral_map]
   · rcases ψ
-    simp only [apply_mk, unpack_pack, lintegral_mk]
+    simp only [measureOf_mk, unpack_pack, lintegral_mk]
   · apply measurable_of_isHom
     fun_prop
   · fun_prop
