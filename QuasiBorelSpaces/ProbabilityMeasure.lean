@@ -11,6 +11,8 @@ variable {A B C A' B' C' : Type*}
   [QuasiBorelSpace A] [QuasiBorelSpace B] [QuasiBorelSpace C]
   [QuasiBorelSpace A'] [QuasiBorelSpace B'] [QuasiBorelSpace C']
 
+/-! ## Basic Definitions -/
+
 /-- The type of _(quasi-borel) probability measures_. -/
 structure ProbabilityMeasure (A : Type*) [QuasiBorelSpace A] where
   private fromQuotient ::
@@ -44,12 +46,16 @@ noncomputable def toPreProbabilityMeasure (μ : ProbabilityMeasure A)
     : PreProbabilityMeasure A :=
   μ.val.out
 
-instance : QuasiBorelSpace (ProbabilityMeasure A) := lift toPreProbabilityMeasure
-
 lemma toPreProbabilityMeasure_mk (μ : PreProbabilityMeasure A)
     : toPreProbabilityMeasure (mk μ) ≈ μ := by
   apply Quotient.exact
   simp only [toPreProbabilityMeasure, mk, Quotient.out_eq]
+
+lemma nonempty (μ : ProbabilityMeasure A) : Nonempty A := μ.toPreProbabilityMeasure.nonempty
+
+/-! ## `QuasiBorelSpace` Instance -/
+
+instance : QuasiBorelSpace (ProbabilityMeasure A) := lift toPreProbabilityMeasure
 
 @[simp, fun_prop]
 lemma isHom_toPreProbabilityMeasure : IsHom (toPreProbabilityMeasure (A := A)) := by
@@ -59,6 +65,8 @@ lemma isHom_toPreProbabilityMeasure : IsHom (toPreProbabilityMeasure (A := A)) :
 lemma isHom_mk : IsHom (mk (A := A)) := by
   rw [isHom_to_lift, PreProbabilityMeasure.isHom_congr toPreProbabilityMeasure_mk]
   fun_prop
+
+/-! ## Integrals -/
 
 /-- The integral of a function over a `ProbabilityMeasure`. -/
 noncomputable def lintegral (k : A → ENNReal) (μ : ProbabilityMeasure A) : ENNReal :=
@@ -130,7 +138,27 @@ lemma lintegral_mul_right
   cases μ with | mk μ =>
   simp (disch := fun_prop) only [lintegral_mk, PreProbabilityMeasure.lintegral_mul_right]
 
-lemma nonempty (μ : ProbabilityMeasure A) : Nonempty A := μ.toPreProbabilityMeasure.nonempty
+/-! ## Point Separation -/
+
+instance : SeparatesPoints (ProbabilityMeasure A) where
+  separates μ₁ μ₂ h := by
+    ext k
+    apply h _
+    · apply isHom_comp'
+      · rw [isHom_def]
+        intro φ hφ
+        simp only [isHom_ofMeasurableSpace] at ⊢ hφ
+        have : MeasurableSet { x | x ∈ φ ⁻¹' ({lintegral k μ₁} : Set _) } := by
+          apply hφ
+          apply measurableSet_eq
+        simp only [Set.mem_preimage, Set.mem_singleton_iff, measurableSet_setOf] at this
+        grind
+      · fun_prop
+    · rfl
+
+/-! ## Operations -/
+
+/-! ### `unit` -/
 
 /-- The monadic `unit` operation. -/
 noncomputable def unit (x : A) : ProbabilityMeasure A := mk (PreProbabilityMeasure.unit x)
@@ -188,6 +216,8 @@ lemma separatesPoints_iff_unit_injective
       grind
     · rfl
 
+/-! ### `bind` -/
+
 /-- The monadic `bind` operation. -/
 noncomputable def bind
     (f : A → ProbabilityMeasure B) (μ : ProbabilityMeasure A)
@@ -232,6 +262,8 @@ lemma bind_bind
     : bind f (bind g μ) = bind (fun x ↦ bind f (g x)) μ := by
   ext k hk
   simp (disch := fun_prop) only [lintegral_bind]
+
+/-! ### `map` -/
 
 /-- The functorial `map` operation. -/
 noncomputable def map (f : A → B) (μ : ProbabilityMeasure A) : ProbabilityMeasure B :=
@@ -289,6 +321,8 @@ lemma map_unit {f : A → B} (hf : IsHom f) (x : A) : map f (unit x) = unit (f x
 lemma bind_unit_eq_map {f : A → B} : bind (fun x ↦ unit (f x)) = map f := by
   funext μ
   simp only [map]
+
+/-! ### `str` -/
 
 /-- The functorial `str`ength operation. -/
 noncomputable def str (x : A) (μ : ProbabilityMeasure B) : ProbabilityMeasure (A × B) :=
@@ -365,6 +399,8 @@ example
     str_eq_map, isHom_str, Prod.isHom_iff, isHom_const, isHom_id', and_self,
     bind_map, Function.uncurry_apply_pair, isHom_id, map_bind, id_eq]
 
+/-! ### `coin` -/
+
 /-- The Bernoulli measure. -/
 noncomputable def coin (p : I) : ProbabilityMeasure Bool :=
   mk (.coin p)
@@ -374,6 +410,8 @@ lemma lintegral_coin
     (k : Bool → ENNReal) (p : I)
     : lintegral k (coin p) = ENNReal.ofReal p * k true + ENNReal.ofReal (1 - p) * k false := by
   simp only [coin, isHom_of_discrete_countable, lintegral_mk, PreProbabilityMeasure.lintegral_coin]
+
+/-! ### `choose` -/
 
 /-- Probabilistic choice. -/
 noncomputable def choose (p : I) (μ ν : ProbabilityMeasure A) : ProbabilityMeasure A :=
@@ -505,21 +543,5 @@ lemma choose_bind
   simp (disch := fun_prop) only [
     lintegral_bind, lintegral_choose, unitInterval.coe_symm_eq,
     lintegral_add', lintegral_mul_left]
-
-instance : SeparatesPoints (ProbabilityMeasure A) where
-  separates μ₁ μ₂ h := by
-    ext k
-    apply h _
-    · apply isHom_comp'
-      · rw [isHom_def]
-        intro φ hφ
-        simp only [isHom_ofMeasurableSpace] at ⊢ hφ
-        have : MeasurableSet { x | x ∈ φ ⁻¹' ({lintegral k μ₁} : Set _) } := by
-          apply hφ
-          apply measurableSet_eq
-        simp only [Set.mem_preimage, Set.mem_singleton_iff, measurableSet_setOf] at this
-        grind
-      · fun_prop
-    · rfl
 
 end QuasiBorelSpace.ProbabilityMeasure
