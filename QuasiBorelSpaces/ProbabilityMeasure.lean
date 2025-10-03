@@ -559,12 +559,79 @@ private lemma choose_assoc_bound {p q : I}
   · rw [div_le_one h_denom_pos]
     nlinarith
 
+private lemma convex_assoc_coeffs
+    {p q : ℝ} (hp : p ∈ Set.Icc 0 1) (hq : q ∈ Set.Icc 0 1)
+    (hpq_ne : 1 - p * q ≠ 0)
+    {a b c : ENNReal}
+    : ENNReal.ofReal q * (ENNReal.ofReal p * a + ENNReal.ofReal (1 - p) * b)
+      + ENNReal.ofReal (1 - q) * c
+    = ENNReal.ofReal (p * q) * a
+      + ENNReal.ofReal (1 - p * q)
+        * (ENNReal.ofReal ((1 - p) * q / (1 - p * q)) * b
+           + ENNReal.ofReal (1 - (1 - p) * q / (1 - p * q)) * c) := by
+  set r' := (1 - p) * q / (1 - p * q)
+  have h₂ : (1 - p * q) * r' = (1 - p) * q := by
+    calc (1 - p * q) * r'
+      _ = (1 - p * q) * ((1 - p) * q / (1 - p * q)) := rfl
+      _ = (1 - p) * q := by field_simp [hpq_ne]
+  have h₃ : (1 - p * q) * (1 - r') = 1 - q := by
+    calc (1 - p * q) * (1 - r')
+      _ = (1 - p * q) * (1 - (1 - p) * q / (1 - p * q)) := rfl
+      _ = 1 - q := by field_simp [hpq_ne]; ring
+  have hp_nonneg : 0 ≤ p := hp.1
+  have hq_nonneg : 0 ≤ q := hq.1
+  have h1mpq_nonneg : 0 ≤ 1 - p * q := by nlinarith [hp.1, hp.2, hq.1, hq.2]
+  have hr'_nonneg : 0 ≤ r' := by
+    apply div_nonneg <;> nlinarith [hp.1, hp.2, hq.1, hq.2]
+  have h1mr'_nonneg : 0 ≤ 1 - r' := by
+    rw [sub_nonneg]
+    have h_num_le : (1 - p) * q ≤ 1 - p * q := by nlinarith [hp.1, hp.2, hq.1, hq.2]
+    have h_denom_ne : 1 - p * q ≠ 0 := hpq_ne
+    have h_denom_nonneg := h1mpq_nonneg
+    have h_denom_pos : 0 < 1 - p * q := lt_of_le_of_ne h_denom_nonneg (Ne.symm h_denom_ne)
+    calc r'
+      _ = (1 - p) * q / (1 - p * q) := rfl
+      _ ≤ (1 - p * q) / (1 - p * q) := by gcongr
+      _ = 1 := by field_simp [hpq_ne]
+  calc ENNReal.ofReal q * (ENNReal.ofReal p * a + ENNReal.ofReal (1 - p) * b)
+        + ENNReal.ofReal (1 - q) * c
+      _ = ENNReal.ofReal q * ENNReal.ofReal p * a
+          + ENNReal.ofReal q * ENNReal.ofReal (1 - p) * b
+          + ENNReal.ofReal (1 - q) * c := by ring
+      _ = ENNReal.ofReal (q * p) * a
+          + ENNReal.ofReal (q * (1 - p)) * b
+          + ENNReal.ofReal (1 - q) * c := by
+        rw [ENNReal.ofReal_mul hq_nonneg, ENNReal.ofReal_mul hq_nonneg]
+      _ = ENNReal.ofReal (p * q) * a
+          + ENNReal.ofReal ((1 - p) * q) * b
+          + ENNReal.ofReal (1 - q) * c := by ring_nf
+      _ = ENNReal.ofReal (p * q) * a
+          + ENNReal.ofReal ((1 - p * q) * r') * b
+          + ENNReal.ofReal ((1 - p * q) * (1 - r')) * c := by rw [h₂, h₃]
+      _ = ENNReal.ofReal (p * q) * a
+          + (ENNReal.ofReal (1 - p * q) * ENNReal.ofReal r' * b
+             + ENNReal.ofReal (1 - p * q) * ENNReal.ofReal (1 - r') * c) := by
+        rw [ENNReal.ofReal_mul h1mpq_nonneg, ENNReal.ofReal_mul h1mpq_nonneg]
+        ring
+      _ = ENNReal.ofReal (p * q) * a
+          + ENNReal.ofReal (1 - p * q)
+            * (ENNReal.ofReal r' * b + ENNReal.ofReal (1 - r') * c) := by ring
+
 lemma choose_assoc {p q} {μ₁ μ₂ μ₃ : ProbabilityMeasure A}
     (hp₁ : 0 < p) (hp₂ : p < 1)
     (hq₁ : 0 < q) (hq₂ : q < 1)
     : (μ₁ ◃p▹ μ₂) ◃q▹ μ₃
     = μ₁ ◃p * q▹ (μ₂ ◃⟨_, choose_assoc_bound hp₁ hp₂ hq₁ hq₂⟩▹ μ₃) := by
-  sorry
+  ext k hk
+  simp (disch := fun_prop) only [lintegral_choose, unitInterval.coe_symm_eq, Set.Icc.coe_mul]
+  have hp := p.property
+  have hq := q.property
+  have hp_pos : 0 < (p : ℝ) := by simpa using hp₁
+  have hq_pos : 0 < (q : ℝ) := by simpa using hq₁
+  have hp_lt : (p : ℝ) < 1 := by simpa using hp₂
+  have hq_lt : (q : ℝ) < 1 := by simpa using hq₂
+  have hpq_ne : 1 - (p : ℝ) * ↑q ≠ 0 := by nlinarith
+  exact convex_assoc_coeffs hp hq hpq_ne
 
 @[simp]
 lemma bind_choose
