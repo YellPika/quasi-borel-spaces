@@ -119,6 +119,48 @@ lemma lintegral_mul_right
   fun_prop
 
 @[simp]
+lemma lintegral_const
+    (c : ENNReal) (μ : PreProbabilityMeasure A)
+    : lintegral (fun _ ↦ c) μ = c := by
+  rcases μ with ⟨eval, base⟩
+  simp only [lintegral_mk, MeasureTheory.lintegral_const, measure_univ, mul_one]
+
+@[simp]
+lemma lintegral_mono
+    {f g : A → ENNReal} (h : f ≤ g) (μ : PreProbabilityMeasure A)
+    : lintegral f μ ≤ lintegral g μ := by
+  rcases μ with ⟨eval, base⟩
+  simp only [lintegral_mk]
+  apply MeasureTheory.lintegral_mono
+  intro a
+  apply h
+
+lemma lintegral_iSup
+    (f : ℕ → A → ENNReal) (hf₁ : Monotone f) (hf₂ : ∀ n, IsHom (f n)) (μ : PreProbabilityMeasure A)
+    : ⨆n, lintegral (f n) μ = lintegral (⨆n, f n) μ := by
+  rcases μ with ⟨eval, base⟩
+  simp only [lintegral_mk, iSup_apply]
+  rw [MeasureTheory.lintegral_iSup]
+  · intro n
+    have := isHom_comp' (hf₂ n) eval.isHom_coe
+    simpa only [isHom_ofMeasurableSpace] using this
+  · intro i j h x
+    apply hf₁ h
+
+lemma lintegral_finset_sum {A}
+    (s : Finset A) {f : A → B → ENNReal}
+    (hf : ∀ b ∈ s, IsHom (f b)) (μ : PreProbabilityMeasure B) :
+    lintegral (fun a ↦ ∑ b ∈ s, f b a) μ = ∑ b ∈ s, lintegral (f b) μ := by
+  rcases μ with ⟨eval, base⟩
+  simp only [lintegral_mk]
+  rw [MeasureTheory.lintegral_finset_sum]
+  intro b hb
+  have := isHom_comp' (hf b hb) eval.isHom_coe
+  simp only [isHom_ofMeasurableSpace] at this
+  apply this
+
+
+@[simp]
 lemma setoid_r (μ₁ μ₂ : PreProbabilityMeasure A) : (setoid A).r μ₁ μ₂ ↔ μ₁ ≈ μ₂ := by rfl
 
 lemma equiv_def (μ₁ μ₂ : PreProbabilityMeasure A)
@@ -336,7 +378,9 @@ noncomputable def unit (x : A) : PreProbabilityMeasure A where
 
 @[simp]
 lemma lintegral_unit (f : A → ENNReal) (x : A) : lintegral f (unit x) = f x := by
-  simp only [unit, lintegral_mk, QuasiBorelHom.coe_mk, lintegral_const, measure_univ, mul_one]
+  simp only [
+    unit, lintegral_mk, QuasiBorelHom.coe_mk,
+    MeasureTheory.lintegral_const, measure_univ, mul_one]
 
 namespace Var
 

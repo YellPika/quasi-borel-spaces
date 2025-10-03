@@ -138,6 +138,31 @@ lemma lintegral_mul_right
   cases μ with | mk μ =>
   simp (disch := fun_prop) only [lintegral_mk, PreProbabilityMeasure.lintegral_mul_right]
 
+@[simp]
+lemma lintegral_const (c : ENNReal) (μ : ProbabilityMeasure A) : lintegral (fun _ ↦ c) μ = c := by
+  cases μ with | mk μ =>
+  simp (disch := fun_prop) only [lintegral_mk, PreProbabilityMeasure.lintegral_const]
+
+@[simp]
+lemma lintegral_mono
+    {f g : A → ENNReal} (h : f ≤ g) (μ : ProbabilityMeasure A)
+    : lintegral f μ ≤ lintegral g μ := by
+  unfold lintegral
+  apply PreProbabilityMeasure.lintegral_mono h
+
+lemma lintegral_iSup
+    (f : ℕ → A → ENNReal) (hf₁ : Monotone f) (hf₂ : ∀ n, IsHom (f n)) (μ : ProbabilityMeasure A)
+    : ⨆n, lintegral (f n) μ = lintegral (⨆n, f n) μ := by
+  unfold lintegral
+  apply PreProbabilityMeasure.lintegral_iSup f hf₁ hf₂
+
+lemma lintegral_finset_sum {A}
+    (s : Finset A) {f : A → B → ENNReal}
+    (hf : ∀ b ∈ s, IsHom (f b)) (μ : ProbabilityMeasure B) :
+    lintegral (fun a ↦ ∑ b ∈ s, f b a) μ = ∑ b ∈ s, lintegral (f b) μ := by
+  unfold lintegral
+  apply PreProbabilityMeasure.lintegral_finset_sum s hf
+
 /-! ## Point Separation -/
 
 instance : SeparatesPoints (ProbabilityMeasure A) where
