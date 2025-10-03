@@ -35,37 +35,6 @@ lemma inductionOn
   rcases μ with ⟨α, hα, μ⟩
   apply mk
 
-/-- The integral of a function over a `ProbabilityMeasure`. -/
-noncomputable def lintegral (k : A → ENNReal) (μ : ProbabilityMeasure A) : ENNReal :=
-  open Classical in
-  if hk : IsHom k then
-    μ.val.liftOn' (PreProbabilityMeasure.lintegral k) (fun _ _ h ↦ by
-      apply h
-      apply hk)
-  else
-    0
-
-open Classical in
-@[simp]
-lemma lintegral_mk
-    (k : A → ENNReal) (μ : PreProbabilityMeasure A)
-    : lintegral k (mk μ)
-    = if IsHom k then μ.lintegral k else 0 := by
-  rfl
-
-@[ext]
-lemma ext
-    {μ₁ μ₂ : ProbabilityMeasure A}
-    (hμ : ∀ {k}, IsHom k → μ₁.lintegral k = μ₂.lintegral k)
-    : μ₁ = μ₂ := by
-  cases μ₁ with | mk μ =>
-  cases μ₂ with | mk ν =>
-  simp only [mk_eq_iff, PreProbabilityMeasure.equiv_def]
-  intro k hk
-  specialize hμ hk
-  simp only [lintegral_mk, hk, ↓reduceIte] at hμ
-  exact hμ
-
 /--
 Converts a `ProbabilityMeasure` to the underlying `PreProbabilityMeasure`. This
 may or may not be the one passed to `mk`, but will always be equivalent
@@ -91,13 +60,35 @@ lemma isHom_mk : IsHom (mk (A := A)) := by
   rw [isHom_to_lift, PreProbabilityMeasure.isHom_congr toPreProbabilityMeasure_mk]
   fun_prop
 
+/-- The integral of a function over a `ProbabilityMeasure`. -/
+noncomputable def lintegral (k : A → ENNReal) (μ : ProbabilityMeasure A) : ENNReal :=
+  μ.toPreProbabilityMeasure.lintegral k
+
+@[simp]
+lemma lintegral_mk
+    {k : A → ENNReal} (hk : IsHom k) (μ : PreProbabilityMeasure A)
+    : lintegral k (mk μ) = μ.lintegral k := by
+  apply PreProbabilityMeasure.lintegral_congr hk
+  apply toPreProbabilityMeasure_mk
+
 @[simp]
 lemma lintegral_toPreProbabilityMeasure
-    (μ : ProbabilityMeasure A) {k : A → ENNReal} (hk : IsHom k)
+    (μ : ProbabilityMeasure A) (k : A → ENNReal)
     : μ.toPreProbabilityMeasure.lintegral k = μ.lintegral k := by
-  cases μ with | mk μ =>
-  simp only [lintegral_mk, hk, ↓reduceIte]
-  apply toPreProbabilityMeasure_mk μ hk
+  rfl
+
+@[ext]
+lemma ext
+    {μ₁ μ₂ : ProbabilityMeasure A}
+    (hμ : ∀ {k}, IsHom k → μ₁.lintegral k = μ₂.lintegral k)
+    : μ₁ = μ₂ := by
+  cases μ₁ with | mk μ =>
+  cases μ₂ with | mk ν =>
+  simp only [mk_eq_iff, PreProbabilityMeasure.equiv_def]
+  intro k hk
+  specialize hμ hk
+  simp only [hk, lintegral_mk] at hμ
+  exact hμ
 
 @[fun_prop]
 lemma isHom_lintegral
@@ -113,11 +104,10 @@ lemma lintegral_add
     (μ : ProbabilityMeasure A)
     : lintegral (f + g) μ = lintegral f μ + lintegral g μ := by
   cases μ with | mk μ =>
-  simp only [lintegral_mk]
   have : IsHom (f + g) := by
     change IsHom (fun x ↦ f x + g x)
     fun_prop
-  simp only [hf, ↓reduceIte, hg, this]
+  simp (disch := fun_prop) only [lintegral_mk]
   apply PreProbabilityMeasure.lintegral_add_left
   exact hf
 
@@ -132,17 +122,13 @@ lemma lintegral_mul_left
     (c : ENNReal) {f : A → ENNReal} (hf : IsHom f) (μ : ProbabilityMeasure A)
     : lintegral (fun x ↦ c * f x) μ = c * lintegral f μ := by
   cases μ with | mk μ =>
-  have : IsHom fun x ↦ c * f x := by fun_prop
-  simp only [lintegral_mk, this, ↓reduceIte, hf]
-  simp  (disch := fun_prop) only [PreProbabilityMeasure.lintegral_mul_left]
+  simp (disch := fun_prop) only [lintegral_mk, PreProbabilityMeasure.lintegral_mul_left]
 
 lemma lintegral_mul_right
     (c : ENNReal) {f : A → ENNReal} (hf : IsHom f) (μ : ProbabilityMeasure A)
     : lintegral (fun x ↦ f x * c) μ = lintegral f μ * c := by
   cases μ with | mk μ =>
-  have : IsHom fun x ↦ f x * c := by fun_prop
-  simp only [lintegral_mk, this, ↓reduceIte, hf]
-  simp (disch := fun_prop) only [PreProbabilityMeasure.lintegral_mul_right]
+  simp (disch := fun_prop) only [lintegral_mk, PreProbabilityMeasure.lintegral_mul_right]
 
 lemma nonempty (μ : ProbabilityMeasure A) : Nonempty A := μ.toPreProbabilityMeasure.nonempty
 
@@ -156,7 +142,7 @@ lemma isHom_unit : IsHom (unit (A := A)) := by
 
 @[simp]
 lemma lintegral_unit {k : A → ENNReal} (hk : IsHom k) (x : A) : lintegral k (unit x) = k x := by
-  simp only [unit, lintegral_mk, hk, ↓reduceIte, PreProbabilityMeasure.lintegral_unit]
+  simp only [unit, hk, lintegral_mk, PreProbabilityMeasure.lintegral_unit]
 
 @[simp]
 lemma unit_injective [SeparatesPoints A] : Function.Injective (unit (A := A)) := by
@@ -221,15 +207,10 @@ lemma lintegral_bind
     : lintegral k (bind f μ) = lintegral (fun x ↦ lintegral k (f x)) μ := by
   cases μ with | mk μ =>
   have : IsHom fun x ↦ lintegral k (f x) := by fun_prop
-  simp only [bind, lintegral_mk, hk, ↓reduceIte, this]
+  simp only [bind, hk, lintegral_mk, this]
   rw [PreProbabilityMeasure.lintegral_bind]
-  · trans μ.lintegral (fun x ↦ (f x).toPreProbabilityMeasure.lintegral k)
-    · apply toPreProbabilityMeasure_mk
-      fun_prop
-    · congr
-      ext x
-      cases f x with | mk ν =>
-      simp only [hk, lintegral_toPreProbabilityMeasure, lintegral_mk, ↓reduceIte]
+  · apply toPreProbabilityMeasure_mk
+    fun_prop
   · fun_prop
   · fun_prop
 
@@ -319,10 +300,9 @@ lemma lintegral_str
     (x : A) (μ : ProbabilityMeasure B)
     : lintegral k (str x μ) = lintegral (fun y ↦ k (x, y)) μ := by
   cases μ with | mk μ =>
-  have : IsHom fun y ↦ k (x, y) := by fun_prop
-  simp only [
-    str, lintegral_mk, hk, ↓reduceIte, PreProbabilityMeasure.lintegral_str,
-    this, lintegral_toPreProbabilityMeasure]
+  simp (disch := fun_prop) only [
+    str, lintegral_mk, PreProbabilityMeasure.lintegral_str,
+    lintegral_toPreProbabilityMeasure]
 
 @[simp, local fun_prop]
 lemma isHom_str : IsHom (Function.uncurry (str (A := A) (B := B))) := by
@@ -393,9 +373,7 @@ noncomputable def coin (p : I) : ProbabilityMeasure Bool :=
 lemma lintegral_coin
     (k : Bool → ENNReal) (p : I)
     : lintegral k (coin p) = ENNReal.ofReal p * k true + ENNReal.ofReal (1 - p) * k false := by
-  simp only [
-    coin, lintegral_mk, isHom_of_discrete_countable,
-    ↓reduceIte, PreProbabilityMeasure.lintegral_coin]
+  simp only [coin, isHom_of_discrete_countable, lintegral_mk, PreProbabilityMeasure.lintegral_coin]
 
 /-- Probabilistic choice. -/
 noncomputable def choose (p : I) (μ ν : ProbabilityMeasure A) : ProbabilityMeasure A :=
