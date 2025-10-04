@@ -1,8 +1,11 @@
-import QuasiBorelSpaces.Basic
+import QuasiBorelSpaces.Hom
+import QuasiBorelSpaces.SeparatesPoints
 
 namespace QuasiBorelSpace.Quotient
 
-variable {A B : Type*} [QuasiBorelSpace A] [QuasiBorelSpace B] {S : Setoid A}
+variable
+  {A B C : Type*} [QuasiBorelSpace A] [QuasiBorelSpace B] [QuasiBorelSpace C]
+  {S : Setoid A} {S' : Setoid B}
 
 @[simps]
 instance : QuasiBorelSpace (Quotient S) where
@@ -39,7 +42,7 @@ lemma isHom_mk : IsHom (fun x ↦ (⟦x⟧ : Quotient S)) := by
   intro r
   rfl
 
-@[simp, fun_prop]
+@[simp, local fun_prop]
 lemma isHom_lift
     {f : A → B} (hf₁ : IsHom f) (hf₂ : ∀ x y, x ≈ y → f x = f y)
     : IsHom (Quotient.lift f hf₂ : Quotient S → B) := by
@@ -47,6 +50,25 @@ lemma isHom_lift
   simp only [isHom_def, forall_exists_index, and_imp]
   intro φ ψ hψ hφ
   simp only [hφ, Quotient.lift_mk]
+  fun_prop
+
+@[simp, fun_prop]
+lemma isHom_lift'
+    {f : C → A → B} (hf₁ : IsHom fun (x, y) ↦ f x y) (hf₂ : ∀ x y z, y ≈ z → f x y = f x z)
+    {g : C → Quotient S} (hg : IsHom g)
+    : IsHom (fun x ↦ Quotient.lift (f x) (hf₂ x) (g x)) := by
+  have {x}
+      : Quotient.lift (f x) (hf₂ x) (g x)
+      = Quotient.lift (β := C →𝒒 B)
+          (fun y ↦ .mk (f · y))
+          (by intro a b hab
+              ext c
+              apply hf₂
+              exact hab)
+          (g x) x := by
+    rcases g x with ⟨gx⟩
+    simp only [QuasiBorelHom.coe_mk]
+  simp only [this]
   fun_prop
 
 end QuasiBorelSpace.Quotient
