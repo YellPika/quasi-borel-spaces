@@ -1,4 +1,5 @@
 import QuasiBorelSpaces.Hom
+import QuasiBorelSpaces.IsHomDiagonal
 import QuasiBorelSpaces.List.Encoding
 import QuasiBorelSpaces.MeasureTheory.List
 import QuasiBorelSpaces.Option
@@ -251,6 +252,96 @@ lemma isHom_tail : IsHom (List.tail : List A → List A) := by
        = fun xs : List A ↦ (List.foldr (fun x (ys, _) ↦ (x :: ys, ys)) ([], []) xs).2 := by
     grind
   rw [this]
+  fun_prop
+
+@[fun_prop]
+lemma isHom_append : IsHom (fun x : List A × List A ↦ x.1 ++ x.2) := by
+  simp only [← List.foldr_cons_eq_append']
+  fun_prop
+
+@[fun_prop]
+lemma isHom_mem [IsHomDiagonal B]
+    {f : A → B} (hf : IsHom f)
+    {g : A → List B} (hg : IsHom g)
+    : IsHom (fun x ↦ f x ∈ g x) := by
+  have {x} {xs : List B}
+      : x ∈ xs
+      ↔ List.foldr (fun y p ↦ x = y ∨ p) False xs := by
+    induction xs with
+    | nil => simp only [List.not_mem_nil, List.foldr_nil]
+    | cons head tail ih => simp only [List.mem_cons, ih, List.foldr_cons]
+  simp only [this]
+  fun_prop
+
+@[fun_prop]
+lemma isHom_elem
+    [DecidableEq B] [IsHomDiagonal B] {f : A → B} (hf : IsHom f) {g : A → List B} (hg : IsHom g)
+    : IsHom (fun x ↦ List.elem (f x) (g x)) := by
+  simp only [List.elem_eq_mem]
+  fun_prop
+
+@[simp, fun_prop]
+lemma isHom_insert
+    [DecidableEq B] [IsHomDiagonal B]
+    {f : A → B} (hf : IsHom f)
+    {g : A → List B} (hg : IsHom g)
+    : IsHom (fun x ↦ insert (f x) (g x)) := by
+  apply Prop.isHom_ite
+  · fun_prop
+  · fun_prop
+  · fun_prop
+
+@[fun_prop]
+lemma isHom_union
+    [DecidableEq A] [IsHomDiagonal A]
+    : IsHom (fun x : List A × List A ↦ x.1.union x.2) := by
+  unfold List.union
+  apply isHom_foldr'
+  · apply isHom_insert <;> fun_prop
+  · fun_prop
+  · fun_prop
+
+@[fun_prop]
+lemma isHom_erase
+    [BEq A] [LawfulBEq A] [IsHomDiagonal A]
+    : IsHom (fun x : List A × A ↦ x.1.erase x.2) := by
+  classical
+  have {xs : List A} {x : A}
+      : (xs.erase x, xs)
+      = List.foldr
+          (fun y (zs, ws) ↦ (if x = y then ws else y :: zs, y :: ws))
+          ([], [])
+          xs := by
+    symm
+    simp only [Prod.ext_iff]
+    induction xs with
+    | nil => simp only [List.erase_nil, List.foldr_nil, and_self]
+    | cons head tail ih =>
+      by_cases h : head = x
+      · simp only [h, List.foldr_cons, ↓reduceIte, ih, List.erase_cons_head, and_self]
+      · have h' : x ≠ head := by grind
+        simp only [
+          List.foldr_cons, h', ↓reduceIte, ih, beq_iff_eq,
+          h, not_false_eq_true, List.erase_cons_tail, and_self]
+  simp only [Prod.ext_iff] at this
+  simp only [this.1]
+  fun_prop
+
+@[fun_prop]
+lemma isHom_diff
+    [BEq A] [LawfulBEq A] [IsHomDiagonal A]
+    : IsHom (fun x : List A × List A ↦ List.diff x.1 x.2) := by
+  have {xs ys : List A}
+      : xs.diff ys
+      = List.foldr (β := List A →𝒒 List A)
+        (fun x k ↦ .mk fun ys ↦ k (ys.erase x))
+        (.mk id)
+        ys
+        xs := by
+    induction ys generalizing xs with
+    | nil => simp only [List.diff_nil, List.foldr_nil, QuasiBorelHom.coe_mk, id_eq]
+    | cons head tail ih => simp only [List.diff_cons, ih, List.foldr_cons, QuasiBorelHom.coe_mk]
+  simp only [this]
   fun_prop
 
 instance
