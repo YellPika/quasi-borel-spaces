@@ -1,3 +1,4 @@
+import QuasiBorelSpaces.IsHomDiagonal
 import QuasiBorelSpaces.Sum
 import QuasiBorelSpaces.Unit
 
@@ -86,5 +87,15 @@ lemma isHom_getD
     cases f x <;> rfl
   simp only [this]
   fun_prop
+
+instance [IsHomDiagonal A] : IsHomDiagonal (Option A) where
+  isHom_eq := by
+    have {x y : Option A}
+        : x = y
+        ↔ x.elim (y.elim True (fun _ ↦ False)) (fun x ↦ y.elim False (x = ·)) := by
+      cases x <;> cases y <;>
+        simp only [reduceCtorEq, Option.elim_none, Option.elim_some, Option.some.injEq]
+    simp only [this]
+    fun_prop
 
 end QuasiBorelSpace.Option
