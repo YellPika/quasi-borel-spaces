@@ -3,7 +3,9 @@ import QuasiBorelSpaces.Bool
 import QuasiBorelSpaces.Defs
 import QuasiBorelSpaces.ENNReal
 import QuasiBorelSpaces.Empty
+import QuasiBorelSpaces.Finset
 import QuasiBorelSpaces.Hom
+import QuasiBorelSpaces.IsHomDiagonal
 import QuasiBorelSpaces.Lift
 import QuasiBorelSpaces.List
 import QuasiBorelSpaces.List.Encoding
@@ -14,6 +16,7 @@ import QuasiBorelSpaces.MeasureTheory.Map
 import QuasiBorelSpaces.MeasureTheory.Pack
 import QuasiBorelSpaces.MeasureTheory.ProbabilityMeasure
 import QuasiBorelSpaces.MeasureTheory.Sigma
+import QuasiBorelSpaces.Multiset
 import QuasiBorelSpaces.Nat
 import QuasiBorelSpaces.Option
 import QuasiBorelSpaces.Pi
