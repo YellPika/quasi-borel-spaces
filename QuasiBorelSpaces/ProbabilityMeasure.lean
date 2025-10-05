@@ -163,6 +163,14 @@ lemma lintegral_finset_sum {A}
   unfold lintegral
   apply PreProbabilityMeasure.lintegral_finset_sum s hf
 
+lemma lintegral_sub_le
+    (f : A → ENNReal)
+    {g : A → ENNReal} (hg : IsHom g)
+    (μ : ProbabilityMeasure A)
+    : lintegral f μ - lintegral g μ ≤ lintegral (f - g) μ := by
+  unfold lintegral
+  apply PreProbabilityMeasure.lintegral_sub_le f hg
+
 /-! ## Measures -/
 
 noncomputable instance : FunLike (ProbabilityMeasure A) (Set A) ENNReal where

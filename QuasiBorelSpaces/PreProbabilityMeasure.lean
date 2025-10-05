@@ -177,6 +177,16 @@ lemma lintegral_finset_sum {A}
   simp only [isHom_ofMeasurableSpace] at this
   apply this
 
+lemma lintegral_sub_le
+    (f : A → ENNReal)
+    {g : A → ENNReal} (hg : IsHom g)
+    (μ : PreProbabilityMeasure A)
+    : lintegral f μ - lintegral g μ ≤ lintegral (f - g) μ := by
+  simp only [lintegral, Pi.sub_apply]
+  apply MeasureTheory.lintegral_sub_le
+  have : IsHom fun x ↦ g (μ.eval x) := by fun_prop
+  simpa only [isHom_ofMeasurableSpace] using this
+
 @[simp]
 lemma measureOf_empty (μ : PreProbabilityMeasure B) : measureOf μ ∅ = 0 := by
   rcases μ
