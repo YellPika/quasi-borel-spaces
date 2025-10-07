@@ -186,34 +186,21 @@ lemma isHom_get
     {g : A → ℕ} (hg : IsHom g)
     (h : ∀ x, g x < (f x).length)
     : IsHom (fun x ↦ (f x)[g x]'(h x)) := by
-  classical
-  wlog hB : Nonempty B
-  · have {x} : f x = [] := by
+  by_cases hB : Nonempty B
+  · have : Inhabited B := ⟨hB.some⟩
+    have : (fun x ↦ (f x)[g x]'(h x)) = fun x ↦ ((f x)[g x]?).getD default := by
+      funext x
+      simp [getOption_getD_eq_get (h := h x)]
+    simp only [this]
+    exact QuasiBorelSpace.Option.isHom_getD (isHom_getElem? hf hg) (by fun_prop)
+  · rw [isHom_def]
+    intro p
+    have {x} : f x = [] := by
       cases f x with
       | nil => rfl
-      | cons head tail =>
-        have : Nonempty B := ⟨head⟩
-        contradiction
-    simp only [this, List.length_nil, not_lt_zero'] at ⊢ h
-    rw [isHom_def]
-    intro φ
-    specialize φ 0
-    contradiction
-
-  replace hB : Inhabited B := ⟨hB.some⟩
-
-  have hoption : IsHom (fun x ↦ (f x)[g x]?) :=
-    isHom_getElem? hf hg
-  have hconst : IsHom fun (_ : A) ↦ (default : B) := by
-    fun_prop
-  have hgetD : IsHom (fun x ↦ ((f x)[g x]?).getD (default : B)) :=
-    QuasiBorelSpace.Option.isHom_getD hoption hconst
-  have hrepr :
-      (fun x ↦ (f x)[g x]'(h x))
-        = fun x ↦ ((f x)[g x]?).getD (default : B) := by
-    funext x
-    simp [getOption_getD_eq_get (B := B) (xs := f x) (n := g x) (h := h x)]
-  simpa [hrepr] using hgetD
+      | cons head _ => exact absurd ⟨head⟩ hB
+    simp only [this, List.length_nil, not_lt_zero'] at h
+    exact absurd (h (p 0)) (by simp)
 
 @[fun_prop]
 lemma isHom_ofFn
