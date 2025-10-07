@@ -219,29 +219,18 @@ end
 
 @[simp, fun_prop]
 lemma isHom_children : IsHom (fun t : Rose C ↦ t.children) := by
-  have hfAlg :
-      IsHom (fun p : C × List (Rose C × List (Rose C)) ↦
-        childrenFoldAlg (C := C) p.1 p.2) := by
-    dsimp [childrenFoldAlg]
-    fun_prop
-  have hfoldRaw : IsHom (Rose.Encoding.fold (childrenFoldAlg (C := C))) := by
-    simpa[childrenFoldAlg] using Rose.Encoding.isHom_fold
-      (A := C) (B := Rose C × List (Rose C))
-      (mk := childrenFoldAlg (C := C)) (hmk := by simpa [childrenFoldAlg] using hfAlg)
-  have hprod : IsHom (fun p : Rose C × List (Rose C) ↦ p.2) := by
-    fun_prop
-  have hfold :
-      IsHom (fun e : Rose.Encoding C ↦
-        (Rose.Encoding.fold (childrenFoldAlg (C := C)) e).2) :=
-    isHom_comp' hprod hfoldRaw
-  have hencode : IsHom (Rose.Encoding.encode (A := C)) := isHom_encode (A := C)
-  have hcomp := isHom_comp' hfold hencode
-  have hfun : (fun t : Rose C ↦
+  have hfold : IsHom (Rose.Encoding.fold (childrenFoldAlg (C := C))) := by
+    have : IsHom (fun (x, xs) ↦ childrenFoldAlg (C := C) x xs) := by
+      dsimp [childrenFoldAlg]; fun_prop
+    simpa [childrenFoldAlg] using Rose.Encoding.isHom_fold (hmk := this)
+  have heq : (fun t : Rose C ↦
         (Rose.Encoding.fold (childrenFoldAlg (C := C)) (Rose.Encoding.encode t)).2)
       = fun t ↦ t.children := by
     funext t
     simp [fold_children_eq]
-  simpa [hfun] using hcomp
+  have : IsHom (fun e ↦ (Rose.Encoding.fold (childrenFoldAlg (C := C)) e).2) :=
+    isHom_comp' (by fun_prop) hfold
+  simpa [heq] using isHom_comp' this isHom_encode
 
 private def bindFoldAlg (f : B → Rose C) (b : B) (zs : List (Rose C)) : Rose C :=
   let t := f b
