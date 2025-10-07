@@ -139,38 +139,24 @@ lemma isHom_getElem?
 
 @[fun_prop]
 lemma isHom_length : IsHom (List.length : List A → ℕ) := by
-  have hcons : IsHom fun p : A × ℕ ↦ p.2.succ := by
-    fun_prop
-  have hfold : IsHom (List.foldr (fun _ n ↦ n.succ) 0) :=
-    isHom_foldr (A := A) (B := ℕ) hcons 0
-  have hfun :
-      (fun xs : List A ↦ List.foldr (fun _ n ↦ n.succ) 0 xs)
-        = List.length := by
+  have : (List.length : List A → ℕ) = List.foldr (fun _ n ↦ n.succ) 0 := by
     funext xs
     induction xs with
-    | nil => simp
-    | cons head tail ih => simp [ih]
-  simpa [hfun] using hfold
+    | nil => rfl
+    | cons _ _ ih => simp only [List.length_cons, List.foldr_cons, ih]
+  rw [this]
+  fun_prop
 
 omit [QuasiBorelSpace B] in
 private lemma getOption_eq_some_get
     {xs : List B} {n : ℕ} (h : n < xs.length)
     : xs[n]? = some (xs[n]'(h)) := by
-  classical
   revert n h
   induction xs with
-  | nil =>
-      intro n h
-      cases h
-  | cons y ys ih =>
-      intro n h
-      cases n with
-      | zero =>
-          simp
-      | succ n =>
-          have h' : n < ys.length := by
-            simpa [List.length_cons, Nat.succ_lt_succ_iff] using h
-          simp [ih h']
+  | nil => intro n h
+           cases h
+  | cons y ys ih => intro n h
+                    cases n <;> simp
 
 omit [QuasiBorelSpace B] in
 private lemma getOption_getD_eq_get [Inhabited B]
