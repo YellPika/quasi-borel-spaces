@@ -219,24 +219,14 @@ lemma isHom_get
 lemma isHom_ofFn
     {n} {f : A → Fin n → B} (hf : IsHom fun (x, y) ↦ f x y)
     : IsHom (fun x ↦ List.ofFn (f x)) := by
-  classical
   revert f
   induction n with
-  | zero =>
-      intro f hf
-      simp
+  | zero => intro; simp
   | succ n ih =>
       intro f hf
-      have hhead : IsHom (fun x ↦ f x (0 : Fin (n + 1))) := by
-        fun_prop
-      have hf' : IsHom (fun p : A × Fin n ↦ f p.1 (Fin.succ p.2)) := by
-        fun_prop
-      have htail : IsHom (fun x ↦ List.ofFn fun i : Fin n ↦ f x (Fin.succ i)) :=
-        ih (f := fun x i => f x (Fin.succ i)) hf'
-      have hcons : IsHom
-          (fun x ↦ f x 0 :: List.ofFn fun i : Fin n ↦ f x (Fin.succ i)) :=
-        isHom_cons' (A := A) (B := B) hhead htail
-      simpa [List.ofFn_succ] using hcons
+      have : IsHom (fun x ↦ List.ofFn fun i : Fin n ↦ f x (Fin.succ i)) :=
+        ih (by fun_prop)
+      simpa [List.ofFn_succ] using isHom_cons' (by fun_prop) this
 
 @[fun_prop]
 lemma isHom_tail : IsHom (List.tail : List A → List A) := by
