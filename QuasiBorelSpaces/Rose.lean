@@ -134,37 +134,17 @@ private lemma fold_pointwise
             (A := B)
             (mk := foldAlgHom mk hmk)
             (Rose.Encoding.encode (A := B) t) : A →𝒒 C) a := by
-  classical
   induction t with
   | mk label children ih =>
-      have hchild :
-          List.map (fun child ↦ Rose.fold (mk a) child) children
-            = List.map
-                (fun child ↦
-                  (Rose.Encoding.fold
-                      (A := B)
-                      (mk := foldAlgHom mk hmk)
-                      (Rose.Encoding.encode (A := B) child) : A →𝒒 C) a)
-                children := by
-        refine map_congr' ?_
+      have : List.map (fun child ↦ Rose.fold (mk a) child) children
+          = List.map ((fun k : A →𝒒 C ↦ k a) ∘
+              Rose.Encoding.fold (A := B) (mk := foldAlgHom mk hmk) ∘
+              Rose.Encoding.encode (A := B)) children := by
+        simp only [List.map_inj_left, Function.comp_apply]
         intro child hmem
         simpa using ih child hmem
-      have hchild' :
-          List.map
-              ((fun k : A →𝒒 C ↦ k a) ∘
-                Rose.Encoding.fold (A := B) (mk := foldAlgHom mk hmk) ∘
-                Rose.Encoding.encode (A := B))
-              children
-            = List.map
-                (fun child ↦
-                  (Rose.Encoding.fold
-                      (A := B)
-                      (mk := foldAlgHom mk hmk)
-                      (Rose.Encoding.encode (A := B) child) : A →𝒒 C) a)
-                children := by
-        simp [Function.comp]
       simp [Rose.fold.eq_1, Rose.Encoding.encode_mk, Rose.Encoding.fold_mk,
-        foldAlgHom, List.map_map, hchild, hchild']
+        foldAlgHom, List.map_map, this]
 
 private lemma fold_as_quasiBorelHom
     (mk : A → B → List C → C)
@@ -185,26 +165,12 @@ lemma isHom_fold'
     {mk : A → B → List C → C} (hmk : IsHom fun (x, y, z) ↦ mk x y z)
     {f : A → Rose B} (hf : IsHom f)
     : IsHom (fun x ↦ Rose.fold (mk x) (f x)) := by
-  classical
   have hrewrite := fold_as_quasiBorelHom (A := A) (B := B) (C := C) mk hmk f
-  have h_alg :
-      IsHom (fun p : B × List (A →𝒒 C) ↦
-        foldAlgHom mk hmk p.1 p.2) := by
-    dsimp [foldAlgHom]
-    fun_prop
-  have h_fold :
-      IsHom (Rose.Encoding.fold
-              (foldAlgHom mk hmk)) := by
-    simpa [foldAlgHom] using Rose.Encoding.isHom_fold (A := B) (B := A →𝒒 C)
-      (mk := foldAlgHom mk hmk) (hmk := by simpa using h_alg)
-  have h_apply :
-      IsHom (fun x ↦
-        (Rose.Encoding.fold
-            (A := B)
-            (mk := foldAlgHom mk hmk)
-            (Rose.Encoding.encode (A := B) (f x)) : A →𝒒 C) x) := by
-    fun_prop
-  simpa [hrewrite] using h_apply
+  have h_fold : IsHom (Rose.Encoding.fold (foldAlgHom mk hmk)) := by
+    have : IsHom (fun (b, ks) ↦ foldAlgHom mk hmk b ks) := by
+      dsimp [foldAlgHom]; fun_prop
+    simpa [foldAlgHom] using Rose.Encoding.isHom_fold (hmk := this)
+  simpa [hrewrite] using by fun_prop
 
 @[simp, fun_prop]
 lemma isHom_label : IsHom (fun t : Rose A ↦ t.label) := by
