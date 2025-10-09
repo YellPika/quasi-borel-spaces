@@ -1,4 +1,5 @@
 import QuasiBorelSpaces.Prop
+import Mathlib.MeasureTheory.Constructions.BorelSpace.Real
 
 namespace QuasiBorelSpace
 
@@ -43,5 +44,16 @@ instance [IsHomDiagonal A] [IsHomDiagonal B] : IsHomDiagonal (A ⊕ B) where
           Sum.inl.inj_iff, Sum.inr.inj_iff]
     simp only [this]
     fun_prop
+
+instance : IsHomDiagonal ℝ where
+  isHom_eq := by
+    rw [isHom_def]
+    intro φ hφ
+    simp only [Prod.isHom_iff, isHom_ofMeasurableSpace] at ⊢ hφ
+    rcases hφ with ⟨hφ₁, hφ₂⟩
+    rw [←measurableSet_setOf]
+    apply measurableSet_eq_fun
+    · fun_prop
+    · fun_prop
 
 end QuasiBorelSpace
