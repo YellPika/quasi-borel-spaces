@@ -2,6 +2,14 @@ import QuasiBorelSpaces.ENNReal
 import QuasiBorelSpaces.PreProbabilityMeasure
 import QuasiBorelSpaces.SeparatesPoints
 
+/-!
+# Probability Measures over Quasi-Borel Spaces
+
+This file defines probability measures over quasi-borel spaces.
+
+See [DBLP:conf/lics/HeunenKSY17], Section V-D.
+-/
+
 open MeasureTheory
 open scoped unitInterval
 

@@ -1,12 +1,21 @@
 import Mathlib.MeasureTheory.Constructions.BorelSpace.Basic
 import QuasiBorelSpaces.MeasureTheory.Cases
 
+/-!
+# Quasi-Borel Spaces
+
+This file defines the concept of a quasi-borel space, as given by
+[DBLP:conf/lics/HeunenKSY17].
+-/
+
 open scoped MeasureTheory
 
 /--
 A quasi‑borel space consists of a type `A` together with a set of "random
 variables" in `ℝ → A` satisfying closure under constants, measurable
 precomposition, and gluing along borel partitions.
+
+See [DBLP:conf/lics/HeunenKSY17], Definition 7.
 -/
 @[ext]
 class QuasiBorelSpace (A : Type*) where
@@ -43,6 +52,8 @@ attribute [simp] isVar_const
 /--
 A function `f : A → B` between `QuasiBorelSpace`s is a _morphism_ if it
 preserves variables under pre-composition.
+
+See [DBLP:conf/lics/HeunenKSY17], Definition 11.
 -/
 @[fun_prop]
 inductive IsHom (f : A → B) : Prop where
@@ -67,7 +78,11 @@ namespace ENNReal
 instance : QuasiBorelSpace ENNReal := ofMeasurableSpace
 end ENNReal
 
-/-- Every `QuasiBorelSpace` induces a `MeasurableSpace`. -/
+/--
+Every `QuasiBorelSpace` induces a `MeasurableSpace`.
+
+See [DBLP:conf/lics/HeunenKSY17], Proposition 14.
+-/
 def toMeasurableSpace [QuasiBorelSpace A] : MeasurableSpace A where
   MeasurableSet' X := ∀{φ : ℝ → A}, IsHom φ → MeasurableSet (φ ⁻¹' X)
   measurableSet_empty hφ := by

@@ -2,6 +2,15 @@ import QuasiBorelSpaces.Lift
 import QuasiBorelSpaces.Sigma
 import QuasiBorelSpaces.Hom
 
+/-!
+# Binary Coproducts of Quasi-Borel Spaces
+
+This file defines binary coproducts of quasi-borel spaces by giving a
+`QuasiBorelSpace` instance for the `· ⊕ ·` type.
+
+See [DBLP:conf/lics/HeunenKSY17], Proposition 17.
+-/
+
 namespace QuasiBorelSpace.Sum
 
 universe u v

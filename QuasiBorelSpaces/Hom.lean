@@ -1,6 +1,14 @@
 import QuasiBorelSpaces.Nat
 import QuasiBorelSpaces.Prod
 
+/-!
+# Exponentials of Quasi-Borel Spaces
+
+This file defines the exponential object in the category of quasi-borel spaces.
+
+See [DBLP:conf/lics/HeunenKSY17], Proposition 18.
+-/
+
 open QuasiBorelSpace
 
 /-- The type of morphisms between `QuasiBorelSpace`s. -/

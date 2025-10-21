@@ -1,6 +1,15 @@
 import QuasiBorelSpaces.Prod
 import QuasiBorelSpaces.MeasureTheory.Sigma
 
+/-!
+# Small Coproducts of Quasi-Borel Spaces
+
+This file defines small coproducts of quasi-borel spaces by giving a
+`QuasiBorelSpace` instance for the `Σ` type.
+
+See [DBLP:conf/lics/HeunenKSY17], Proposition 17.
+-/
+
 open scoped MeasureTheory
 
 namespace QuasiBorelSpace.Sigma

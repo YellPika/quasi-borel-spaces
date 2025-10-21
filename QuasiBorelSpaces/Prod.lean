@@ -1,5 +1,14 @@
 import QuasiBorelSpaces.Basic
 
+/-!
+# Binary Products of Quasi-Borel Spaces
+
+This file defines binary products of quasi-borel spaces by giving a
+`QuasiBorelSpace` instance for the `· × ·` type.
+
+See [DBLP:conf/lics/HeunenKSY17], Proposition 16.
+-/
+
 namespace QuasiBorelSpace.Prod
 
 variable
