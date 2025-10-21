@@ -80,23 +80,26 @@ lemma isHom_mk : IsHom (mk (A := A)) := by
 noncomputable def lintegral (k : A → ENNReal) (μ : ProbabilityMeasure A) : ENNReal :=
   μ.toPreProbabilityMeasure.lintegral k
 
+@[inherit_doc lintegral]
+scoped notation "∫⁻ " x ", " m " ∂" μ:70 => lintegral (fun x ↦ m) μ
+
 @[simp]
 lemma lintegral_mk
     {k : A → ENNReal} (hk : IsHom k) (μ : PreProbabilityMeasure A)
-    : lintegral k (mk μ) = μ.lintegral k := by
+    : ∫⁻ x, k x ∂mk μ = μ.lintegral k := by
   apply PreProbabilityMeasure.lintegral_congr hk
   apply toPreProbabilityMeasure_mk
 
 @[simp]
 lemma lintegral_toPreProbabilityMeasure
     (μ : ProbabilityMeasure A) (k : A → ENNReal)
-    : μ.toPreProbabilityMeasure.lintegral k = μ.lintegral k := by
+    : μ.toPreProbabilityMeasure.lintegral k = ∫⁻ x, k x ∂μ := by
   rfl
 
 @[ext]
 lemma ext
     {μ₁ μ₂ : ProbabilityMeasure A}
-    (hμ : ∀ {k}, IsHom k → μ₁.lintegral k = μ₂.lintegral k)
+    (hμ : ∀ {k}, IsHom k → ∫⁻ x, k x ∂μ₁ = ∫⁻ x, k x ∂μ₂)
     : μ₁ = μ₂ := by
   cases μ₁ with | mk μ =>
   cases μ₂ with | mk ν =>
@@ -110,64 +113,63 @@ lemma ext
 lemma isHom_lintegral
     {k : A → B → ENNReal} (hk : IsHom fun (x, y) ↦ k x y)
     {f : A → ProbabilityMeasure B} (hf : IsHom f)
-    : IsHom (fun x ↦ lintegral (k x) (f x)) := by
+    : IsHom (fun x ↦ ∫⁻ y, k x y ∂f x) := by
   simp (disch := fun_prop) only [← lintegral_toPreProbabilityMeasure]
   fun_prop
 
-lemma lintegral_add
+lemma lintegral_add_left
     {f : A → ENNReal} (hf : IsHom f)
-    {g : A → ENNReal} (hg : IsHom g)
+    (g : A → ENNReal)
     (μ : ProbabilityMeasure A)
-    : lintegral (f + g) μ = lintegral f μ + lintegral g μ := by
+    : ∫⁻ x, f x + g x ∂μ = ∫⁻ x, f x ∂μ + ∫⁻ x, g x ∂μ := by
   cases μ with | mk μ =>
-  have : IsHom (f + g) := by
-    change IsHom (fun x ↦ f x + g x)
-    fun_prop
-  simp (disch := fun_prop) only [lintegral_mk]
-  apply PreProbabilityMeasure.lintegral_add_left
-  exact hf
+  simp (disch := fun_prop) only [← lintegral_toPreProbabilityMeasure]
+  apply PreProbabilityMeasure.lintegral_add_left hf g
 
-lemma lintegral_add'
-    {f : A → ENNReal} (hf : IsHom f)
+lemma lintegral_add_right
+    (f : A → ENNReal)
     {g : A → ENNReal} (hg : IsHom g)
     (μ : ProbabilityMeasure A)
-    : lintegral (fun x ↦ f x + g x) μ = lintegral f μ + lintegral g μ := by
-  apply lintegral_add hf hg
+    : ∫⁻ x, f x + g x ∂μ = ∫⁻ x, f x ∂μ + ∫⁻ x, g x ∂μ := by
+  cases μ with | mk μ =>
+  simp (disch := fun_prop) only [← lintegral_toPreProbabilityMeasure]
+  apply PreProbabilityMeasure.lintegral_add_right f hg
 
 lemma lintegral_mul_left
     (c : ENNReal) {f : A → ENNReal} (hf : IsHom f) (μ : ProbabilityMeasure A)
-    : lintegral (fun x ↦ c * f x) μ = c * lintegral f μ := by
+    : ∫⁻ x, c * f x ∂μ = c * ∫⁻ x, f x ∂μ := by
   cases μ with | mk μ =>
   simp (disch := fun_prop) only [lintegral_mk, PreProbabilityMeasure.lintegral_mul_left]
 
 lemma lintegral_mul_right
     (c : ENNReal) {f : A → ENNReal} (hf : IsHom f) (μ : ProbabilityMeasure A)
-    : lintegral (fun x ↦ f x * c) μ = lintegral f μ * c := by
+    : ∫⁻ x, f x * c ∂μ = (∫⁻ x, f x ∂μ) * c := by
   cases μ with | mk μ =>
   simp (disch := fun_prop) only [lintegral_mk, PreProbabilityMeasure.lintegral_mul_right]
 
 @[simp]
-lemma lintegral_const (c : ENNReal) (μ : ProbabilityMeasure A) : lintegral (fun _ ↦ c) μ = c := by
+lemma lintegral_const (c : ENNReal) (μ : ProbabilityMeasure A) : ∫⁻ _, c ∂μ = c := by
   cases μ with | mk μ =>
   simp (disch := fun_prop) only [lintegral_mk, PreProbabilityMeasure.lintegral_const]
 
 @[simp]
 lemma lintegral_mono
     {f g : A → ENNReal} (h : f ≤ g) (μ : ProbabilityMeasure A)
-    : lintegral f μ ≤ lintegral g μ := by
+    : ∫⁻ x, f x ∂μ ≤ ∫⁻ x, g x ∂μ := by
   unfold lintegral
   apply PreProbabilityMeasure.lintegral_mono h
 
 lemma lintegral_iSup
     (f : ℕ → A → ENNReal) (hf₁ : Monotone f) (hf₂ : ∀ n, IsHom (f n)) (μ : ProbabilityMeasure A)
-    : ⨆n, lintegral (f n) μ = lintegral (⨆n, f n) μ := by
+    : ⨆n, ∫⁻ x, f n x ∂μ = ∫⁻ x, ⨆n, f n x ∂μ := by
   unfold lintegral
-  apply PreProbabilityMeasure.lintegral_iSup f hf₁ hf₂
+  have := PreProbabilityMeasure.lintegral_iSup f hf₁ hf₂ μ.toPreProbabilityMeasure
+  simpa only [lintegral_toPreProbabilityMeasure, iSup_apply] using this
 
 lemma lintegral_finset_sum {A}
     (s : Finset A) {f : A → B → ENNReal}
     (hf : ∀ b ∈ s, IsHom (f b)) (μ : ProbabilityMeasure B) :
-    lintegral (fun a ↦ ∑ b ∈ s, f b a) μ = ∑ b ∈ s, lintegral (f b) μ := by
+    ∫⁻ a, ∑ b ∈ s, f b a ∂μ = ∑ b ∈ s, ∫⁻ a, f b a ∂μ := by
   unfold lintegral
   apply PreProbabilityMeasure.lintegral_finset_sum s hf
 
@@ -175,7 +177,7 @@ lemma lintegral_sub_le
     (f : A → ENNReal)
     {g : A → ENNReal} (hg : IsHom g)
     (μ : ProbabilityMeasure A)
-    : lintegral f μ - lintegral g μ ≤ lintegral (f - g) μ := by
+    : ∫⁻ x, f x ∂μ - ∫⁻ x, g x ∂μ ≤ ∫⁻ x, f x - g x ∂μ := by
   unfold lintegral
   apply PreProbabilityMeasure.lintegral_sub_le f hg
 
@@ -213,7 +215,7 @@ instance : SeparatesPoints (ProbabilityMeasure A) where
       · rw [isHom_def]
         intro φ hφ
         simp only [isHom_ofMeasurableSpace] at ⊢ hφ
-        have : MeasurableSet { x | x ∈ φ ⁻¹' ({lintegral k μ₁} : Set _) } := by
+        have : MeasurableSet { x | x ∈ φ ⁻¹' ({∫⁻ x, k x ∂μ₁} : Set _) } := by
           apply hφ
           apply measurableSet_eq
         simp only [Set.mem_preimage, Set.mem_singleton_iff, measurableSet_setOf] at this
@@ -234,7 +236,7 @@ lemma isHom_unit : IsHom (unit (A := A)) := by
   fun_prop
 
 @[simp]
-lemma lintegral_unit {k : A → ENNReal} (hk : IsHom k) (x : A) : lintegral k (unit x) = k x := by
+lemma lintegral_unit {k : A → ENNReal} (hk : IsHom k) (x : A) : ∫⁻ x, k x ∂unit x = k x := by
   simp only [unit, hk, lintegral_mk, PreProbabilityMeasure.lintegral_unit]
 
 @[simp]
@@ -299,9 +301,9 @@ lemma lintegral_bind
     {k : B → ENNReal} (hk : IsHom k)
     {f : A → ProbabilityMeasure B} (hf : IsHom f)
     (μ : ProbabilityMeasure A)
-    : lintegral k (bind f μ) = lintegral (fun x ↦ lintegral k (f x)) μ := by
+    : ∫⁻ x, k x ∂bind f μ = ∫⁻ x, ∫⁻ y, k y ∂f x ∂μ := by
   cases μ with | mk μ =>
-  have : IsHom fun x ↦ lintegral k (f x) := by fun_prop
+  have : IsHom fun x ↦ ∫⁻ x, k x ∂f x := by fun_prop
   simp only [bind, hk, lintegral_mk, this]
   rw [PreProbabilityMeasure.lintegral_bind]
   · apply toPreProbabilityMeasure_mk
@@ -343,7 +345,7 @@ lemma isHom_map {f : A → B} (hf : IsHom f) : IsHom (map f) := by
 lemma lintegral_map
     {k : B → ENNReal} (hk : IsHom k)
     {f : A → B} (hf : IsHom f) (μ : ProbabilityMeasure A)
-    : lintegral k (map f μ) = lintegral (fun x ↦ k (f x)) μ := by
+    : ∫⁻ x, k x ∂map f μ = ∫⁻ x, k (f x) ∂μ := by
   simp (disch := fun_prop) only [map, lintegral_bind, lintegral_unit]
 
 @[simp]
@@ -397,7 +399,7 @@ noncomputable def str (x : A) (μ : ProbabilityMeasure B) : ProbabilityMeasure (
 lemma lintegral_str
     {k : A × B → ENNReal} (hk : IsHom k)
     (x : A) (μ : ProbabilityMeasure B)
-    : lintegral k (str x μ) = lintegral (fun y ↦ k (x, y)) μ := by
+    : ∫⁻ p, k p ∂str x μ = ∫⁻ y, k (x, y) ∂μ := by
   cases μ with | mk μ =>
   simp (disch := fun_prop) only [
     str, lintegral_mk, PreProbabilityMeasure.lintegral_str,
@@ -473,7 +475,7 @@ noncomputable def coin (p : I) : ProbabilityMeasure Bool :=
 @[simp]
 lemma lintegral_coin
     (k : Bool → ENNReal) (p : I)
-    : lintegral k (coin p) = ENNReal.ofReal p * k true + ENNReal.ofReal (1 - p) * k false := by
+    : ∫⁻ x, k x ∂coin p = ENNReal.ofReal p * k true + ENNReal.ofReal (1 - p) * k false := by
   simp only [coin, isHom_of_discrete_countable, lintegral_mk, PreProbabilityMeasure.lintegral_coin]
 
 /-! ### `choose` -/
@@ -507,8 +509,8 @@ lemma isHom_choose
 lemma lintegral_choose
     {k : A → ENNReal} (hk : IsHom k)
     (p : I) (μ ν : ProbabilityMeasure A)
-    : lintegral k (μ ◃p▹ ν)
-    = ENNReal.ofReal p * lintegral k μ + ENNReal.ofReal (σ p) * lintegral k ν := by
+    : ∫⁻ x, k x ∂(μ ◃p▹ ν)
+    = ENNReal.ofReal p * ∫⁻ x, k x ∂μ + ENNReal.ofReal (σ p) * ∫⁻ x, k x ∂ν := by
   simp (disch := fun_prop) only [choose, unitInterval.coe_symm_eq]
   rw [lintegral_bind, lintegral_coin]
   · simp only [↓reduceIte, Bool.false_eq_true]
@@ -537,7 +539,7 @@ lemma choose_eq (p : I) (μ : ProbabilityMeasure A) : μ ◃p▹ μ = μ := by
   simp (disch := fun_prop) [lintegral_choose, unitInterval.coe_symm_eq]
   simp only [hp, ENNReal.ofReal_sub, ENNReal.ofReal_one]
 
-  wlog hkμ : lintegral k μ ≠ ⊤
+  wlog hkμ : ∫⁻ x, k x ∂μ ≠ ⊤
   · simp only [ne_eq, Decidable.not_not] at hkμ
     simp only [hkμ, ENNReal.add_eq_top]
     by_cases h : p > 0
@@ -674,6 +676,6 @@ lemma choose_bind
   ext k hk
   simp (disch := fun_prop) only [
     lintegral_bind, lintegral_choose, unitInterval.coe_symm_eq,
-    lintegral_add', lintegral_mul_left]
+    lintegral_add_left, lintegral_mul_left]
 
 end QuasiBorelSpace.ProbabilityMeasure
