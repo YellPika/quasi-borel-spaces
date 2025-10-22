@@ -9,12 +9,33 @@ import QuasiBorelSpaces.ProbabilityMeasure
 import QuasiBorelSpaces.SeparatesPoints
 import QuasiBorelSpaces.Sigma
 
+/-!
+# Lists over Quasi-Borel Spaces
+
+This file defines the quasi-borel structure on lists and proves various operations
+on lists are homomorphisms.
+
+## Main definitions
+
+* `QuasiBorelSpace (List A)`: the quasi-borel structure on lists
+* `sequence`: converts a list of probability measures into a measure over lists
+
+## Main results
+
+* Basic list operations (`cons`, `tail`, `append`, `map`, etc.) are homomorphisms
+* List query operations (`mem`, `elem`, `length`, `get`, etc.) are homomorphisms
+* Set-like operations (`insert`, `union`, `erase`, `diff`) are homomorphisms
+-/
+
 variable {A B C : Type*} [QuasiBorelSpace A] [QuasiBorelSpace B] [QuasiBorelSpace C]
 
 namespace List.Encoding
 
 open QuasiBorelSpace
 
+/-! ## Encoding Homomorphisms -/
+
+/-- `cons` is a homomorphism. -/
 @[fun_prop]
 lemma isHom_cons : IsHom (fun x : A × List.Encoding A ↦ cons x.1 x.2) := by
   apply Sigma.isHom_distrib'
@@ -30,6 +51,7 @@ lemma isHom_cons : IsHom (fun x : A × List.Encoding A ↦ cons x.1 x.2) := by
     simp only [Fin.cases_succ]
     fun_prop
 
+/-- Folding over an encoded list is a homomorphism. -/
 @[fun_prop]
 lemma isHom_fold
       {cons : A → B → B} (hcons : IsHom fun (x, y) ↦ cons x y) (nil : B)
@@ -50,23 +72,32 @@ end List.Encoding
 
 namespace QuasiBorelSpace.List
 
+/-! ## QuasiBorel Structure -/
+
+/-- The `QuasiBorelSpace` structure on `List A`. -/
 instance : QuasiBorelSpace (List A) := lift List.Encoding.encode
 
+/-- `encode` is a homomorphism. -/
 @[simp, fun_prop]
 lemma isHom_encode : IsHom (List.Encoding.encode (A := A)) := by
   apply isHom_of_lift
 
+/-- List `cons` is a homomorphism. -/
 @[simp, fun_prop]
 lemma isHom_cons : IsHom (fun x : A × List A ↦ x.1 :: x.2) := by
   simp only [isHom_to_lift, List.Encoding.encode_cons]
   fun_prop
 
+/-- `cons` is a homomorphism when composed with other homomorphisms. -/
 lemma isHom_cons'
     {f : A → B} (hf : IsHom f)
     {g : A → List B} (hg : IsHom g)
     : IsHom (fun x ↦ f x :: g x) := by
   fun_prop
 
+/-! ## Basic List Operations -/
+
+/-- `foldr` is a homomorphism. -/
 @[local fun_prop]
 lemma isHom_foldr
     {cons : A → B → B} (hcons : IsHom fun (x, xs) ↦ cons x xs) (nil : B)
@@ -81,6 +112,7 @@ lemma isHom_foldr
   rw [this]
   fun_prop
 
+/-- `foldr` is a homomorphism when composed with other homomorphisms. -/
 @[fun_prop]
 lemma isHom_foldr'
     {cons : A → B → C → C} (hcons : IsHom fun (x, y, z) ↦ cons x y z)
@@ -96,6 +128,7 @@ lemma isHom_foldr'
   simp only [this]
   fun_prop
 
+/-- `map` is a homomorphism. -/
 @[fun_prop]
 lemma isHom_map
     {f : A → B → C} (hf : IsHom fun (x, y) ↦ f x y)
@@ -106,6 +139,9 @@ lemma isHom_map
   simp only [this]
   fun_prop
 
+/-! ## List Queries -/
+
+/-- `getElem?` is a homomorphism. -/
 @[fun_prop]
 lemma isHom_getElem?
     {f : A → List B} (hf : IsHom f)
@@ -137,6 +173,7 @@ lemma isHom_getElem?
   simp only [this]
   fun_prop
 
+/-- `length` is a homomorphism. -/
 @[fun_prop]
 lemma isHom_length : IsHom (List.length : List A → ℕ) := by
   have : (List.length : List A → ℕ) = List.foldr (fun _ n ↦ n.succ) 0 := by
@@ -148,6 +185,7 @@ lemma isHom_length : IsHom (List.length : List A → ℕ) := by
   fun_prop
 
 omit [QuasiBorelSpace B] in
+/-- Helper: `getElem?` equals `some` of `getElem` for valid indices. -/
 private lemma getOption_eq_some_get
     {xs : List B} {n : ℕ} (h : n < xs.length)
     : xs[n]? = some (xs[n]'(h)) := by
@@ -159,6 +197,7 @@ private lemma getOption_eq_some_get
                     cases n <;> simp
 
 omit [QuasiBorelSpace B] in
+/-- Helper: `getD` on `getElem?` equals `getElem` for valid indices. -/
 private lemma getOption_getD_eq_get [Inhabited B]
     {xs : List B} {n : ℕ} (h : n < xs.length)
     : (xs[n]?).getD (default : B) = xs[n]'(h) := by
@@ -166,6 +205,7 @@ private lemma getOption_getD_eq_get [Inhabited B]
   have : xs[n]? = some (xs[n]'(h)) := getOption_eq_some_get (B := B) (xs := xs) (n := n) h
   simp [Option.getD, this]
 
+/-- `get` is a homomorphism for valid indices. -/
 @[fun_prop]
 lemma isHom_get
     {f : A → List B} (hf : IsHom f)
@@ -188,6 +228,7 @@ lemma isHom_get
     simp only [this, List.length_nil, not_lt_zero'] at h
     exact absurd (h (p 0)) (by simp)
 
+/-- `ofFn` is a homomorphism. -/
 @[fun_prop]
 lemma isHom_ofFn
     {n} {f : A → Fin n → B} (hf : IsHom fun (x, y) ↦ f x y)
@@ -201,6 +242,7 @@ lemma isHom_ofFn
         ih (by fun_prop)
       simpa [List.ofFn_succ] using isHom_cons' (by fun_prop) this
 
+/-- `tail` is a homomorphism. -/
 @[fun_prop]
 lemma isHom_tail : IsHom (List.tail : List A → List A) := by
   have {xs : List A}
@@ -217,11 +259,15 @@ lemma isHom_tail : IsHom (List.tail : List A → List A) := by
   rw [this]
   fun_prop
 
+/-- List `append` is a homomorphism. -/
 @[fun_prop]
 lemma isHom_append : IsHom (fun x : List A × List A ↦ x.1 ++ x.2) := by
   simp only [← List.foldr_cons_eq_append']
   fun_prop
 
+/-! ## List Membership and Set Operations -/
+
+/-- List membership is a homomorphism. -/
 @[fun_prop]
 lemma isHom_mem [IsHomDiagonal B]
     {f : A → B} (hf : IsHom f)
@@ -236,6 +282,7 @@ lemma isHom_mem [IsHomDiagonal B]
   simp only [this]
   fun_prop
 
+/-- `elem` is a homomorphism. -/
 @[fun_prop]
 lemma isHom_elem
     [DecidableEq B] [IsHomDiagonal B] {f : A → B} (hf : IsHom f) {g : A → List B} (hg : IsHom g)
@@ -243,6 +290,7 @@ lemma isHom_elem
   simp only [List.elem_eq_mem]
   fun_prop
 
+/-- `insert` is a homomorphism. -/
 @[simp, fun_prop]
 lemma isHom_insert
     [DecidableEq B] [IsHomDiagonal B]
@@ -254,6 +302,7 @@ lemma isHom_insert
   · fun_prop
   · fun_prop
 
+/-- List `union` is a homomorphism. -/
 @[fun_prop]
 lemma isHom_union
     [DecidableEq A] [IsHomDiagonal A]
@@ -264,6 +313,7 @@ lemma isHom_union
   · fun_prop
   · fun_prop
 
+/-- `erase` is a homomorphism. -/
 @[fun_prop]
 lemma isHom_erase
     [BEq A] [LawfulBEq A] [IsHomDiagonal A]
@@ -290,6 +340,7 @@ lemma isHom_erase
   simp only [this.1]
   fun_prop
 
+/-- List `diff` is a homomorphism. -/
 @[fun_prop]
 lemma isHom_diff
     [BEq A] [LawfulBEq A] [IsHomDiagonal A]
@@ -307,11 +358,16 @@ lemma isHom_diff
   simp only [this]
   fun_prop
 
+/-! ## Measurable Structure -/
+
+/-- The `MeasurableQuasiBorelSpace` instance for `List A`. -/
 instance
     [MeasurableSpace A] [MeasurableQuasiBorelSpace A]
     : MeasurableQuasiBorelSpace (List A) where
   isHom_iff_measurable φ := by
     simp only [isHom_to_lift, isHom_iff_measurable, MeasureTheory.List.measurable_to_encode]
+
+/-! ## Probability Measures on Lists -/
 
 /--
 Converts a sequence of measures into a measure of sequences, where each element
@@ -328,6 +384,7 @@ noncomputable def lintegral (k : List A → ENNReal) : List (ProbabilityMeasure 
   | [] => k []
   | μ :: μs => μ.lintegral fun x ↦ lintegral (fun xs ↦ k (x :: xs)) μs
 
+/-- Computing the integral of a sequence. -/
 @[simp]
 lemma lintegral_sequence
     (μs : List (ProbabilityMeasure A))
@@ -341,6 +398,9 @@ lemma lintegral_sequence
       sequence, ProbabilityMeasure.lintegral_bind,
       ProbabilityMeasure.lintegral_map, ih, lintegral]
 
+/-! ## Point Separation -/
+
+/-- The `SeparatesPoints` instance for `List A`. -/
 instance [SeparatesPoints A] : SeparatesPoints (List A) where
   separates xs ys h := by
     induction xs generalizing ys with
