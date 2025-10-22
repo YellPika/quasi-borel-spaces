@@ -87,7 +87,7 @@ lemma measurable_eq_rec
     (p : ∀ x, ix x = i)
     (f : ∀ x, P (ix x)) (hf : Measurable fun x ↦ (⟨ix x, f x⟩ : Sigma P))
     : Measurable fun x : A ↦ p x ▸ f x := by
-  simp only [Eq.rec_eq_cast]
+  simp only [eqRec_eq_cast]
   apply measurable_cast
   · exact p
   · exact hf
