@@ -18,6 +18,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: leanprover/lean-action@v1
-      - uses: leanprover-community/docgen-action@v1
+      - uses: leanprover-community/docgen-action@9bac8404c6aaa222eaa32901302d85f5342294d5
         with:
           build-page: false
