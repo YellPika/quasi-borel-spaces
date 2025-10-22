@@ -8,7 +8,7 @@ import QuasiBorelSpaces.Hom
 This file defines binary coproducts of quasi-borel spaces by giving a
 `QuasiBorelSpace` instance for the `· ⊕ ·` type.
 
-See [DBLP:conf/lics/HeunenKSY17], Proposition 17.
+See [HeunenKSY17], Proposition 17.
 -/
 
 namespace QuasiBorelSpace.Sum

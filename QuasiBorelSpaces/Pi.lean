@@ -6,7 +6,7 @@ import QuasiBorelSpaces.Prod
 This file defines small products of quasi-borel spaces by giving a
 `QuasiBorelSpace` instance for the `· → ·` type.
 
-See [DBLP:conf/lics/HeunenKSY17], Proposition 16.
+See [HeunenKSY17], Proposition 16.
 -/
 
 namespace QuasiBorelSpace.Pi

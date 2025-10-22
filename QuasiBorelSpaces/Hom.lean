@@ -6,7 +6,7 @@ import QuasiBorelSpaces.Prod
 
 This file defines the exponential object in the category of quasi-borel spaces.
 
-See [DBLP:conf/lics/HeunenKSY17], Proposition 18.
+See [HeunenKSY17], Proposition 18.
 -/
 
 open QuasiBorelSpace

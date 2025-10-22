@@ -7,7 +7,7 @@ import QuasiBorelSpaces.SeparatesPoints
 
 This file defines probability measures over quasi-borel spaces.
 
-See [DBLP:conf/lics/HeunenKSY17], Section V-D.
+See [HeunenKSY17], Section V-D.
 -/
 
 open MeasureTheory
