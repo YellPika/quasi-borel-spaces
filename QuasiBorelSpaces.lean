@@ -32,3 +32,4 @@ import QuasiBorelSpaces.Sigma
 import QuasiBorelSpaces.Subtype
 import QuasiBorelSpaces.Sum
 import QuasiBorelSpaces.Unit
+import QuasiBorelSpaces.OmegaQBS
