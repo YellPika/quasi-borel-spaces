@@ -2,6 +2,15 @@
 
 This repository contains a formalization of _Quasi-Borel Spaces_[^1] in _Lean 4_[^2].
 
+## Usage
+
+```toml
+[[require]]
+name = "quasi-borel-spaces"
+git = "https://github.com/YellPika/quasi-borel-spaces"
+rev = "main"
+```
+
 ## Differences from the Paper
 
 We differ from the original paper[^1] in the following ways:
