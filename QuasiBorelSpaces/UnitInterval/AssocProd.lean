@@ -43,7 +43,7 @@ lemma mul_assocProd
 
   simp only [Set.Icc.coe_mul, coe_symm_eq, assocProd_coe, mul_div]
   rw [div_eq_iff]
-  · nlinarith
+  · ring_nf
   · suffices p * (q : ℝ) < 1 by grind
     apply lt_of_lt_of_le
     · change p * q < 1 * (q : ℝ)
@@ -84,6 +84,46 @@ lemma mul_symm_assocProd
   simp only [
     sub_mul, one_mul, isUnit_iff_ne_zero, ne_eq,
     hpq', not_false_eq_true, IsUnit.div_mul_cancel]
-  nlinarith
+  ring_nf
+
+@[simp]
+lemma mul_symm_assocProd'
+    (p q : I) (hpq : p < 1 ∨ q < 1)
+    : p * σ (p ⍟ q) = q ⍟ p := by
+  ext : 1
+
+  wlog hq : (q : ℝ) > 0
+  · simp only [gt_iff_lt, coe_pos, not_lt, le_zero_iff] at hq
+    simp only [
+      hq, Set.Icc.coe_mul, coe_symm_eq, assocProd_coe, Set.Icc.coe_zero, mul_zero,
+      symm_zero, Set.Icc.coe_one, div_one, sub_zero, mul_one, one_mul, zero_mul]
+
+  wlog hp : (p : ℝ) > 0
+  · simp only [gt_iff_lt, coe_pos, not_lt, le_zero_iff] at hp
+    simp only [
+      hp, zero_mul, Set.Icc.coe_zero, assocProd_coe,
+      coe_symm_eq, mul_zero, symm_zero, Set.Icc.coe_one, div_one]
+
+  have hpq : 1 - q * (p : ℝ) ≠ 0 := by
+    suffices q * (p : ℝ) < 1 by grind
+    cases hpq with
+    | inl hpq =>
+      apply lt_of_lt_of_le
+      · change q * p < q * (1 : ℝ)
+        simp only [hq, mul_lt_mul_iff_right₀, coe_lt_one, hpq]
+      · simp only [mul_one, q.property.2]
+    | inr hpq =>
+      apply lt_of_lt_of_le
+      · change q * p < 1 * (p : ℝ)
+        simp only [hp, mul_lt_mul_iff_left₀, coe_lt_one, hpq]
+      · simp only [one_mul, p.property.2]
+
+  simp only [Set.Icc.coe_mul, coe_symm_eq, assocProd_coe, mul_sub, mul_comm (p : ℝ) q]
+  rw [eq_div_iff, sub_mul]
+  · simp only [mul_one, mul_assoc]
+    rw [div_mul_cancel₀]
+    · ring_nf
+    · exact hpq
+  · exact hpq
 
 end unitInterval
