@@ -18,6 +18,7 @@ import QuasiBorelSpaces.MeasureTheory.ProbabilityMeasure
 import QuasiBorelSpaces.MeasureTheory.Sigma
 import QuasiBorelSpaces.Multiset
 import QuasiBorelSpaces.Nat
+import QuasiBorelSpaces.OmegaQBS
 import QuasiBorelSpaces.Option
 import QuasiBorelSpaces.Pi
 import QuasiBorelSpaces.PreProbabilityMeasure
@@ -32,4 +33,4 @@ import QuasiBorelSpaces.Sigma
 import QuasiBorelSpaces.Subtype
 import QuasiBorelSpaces.Sum
 import QuasiBorelSpaces.Unit
-import QuasiBorelSpaces.OmegaQBS
+import QuasiBorelSpaces.UnitInterval.AssocProd
