@@ -608,99 +608,267 @@ lemma choose_comm (p : I) (μ ν : ProbabilityMeasure A) : μ ◃p▹ ν = ν �
   simp (disch := fun_prop) only [lintegral_choose, unitInterval.coe_symm_eq, unitInterval.symm_symm]
   rw [add_comm]
 
-/-- Helper lemma: bound for associativity of `choose`. -/
-private lemma choose_assoc_bound {p q : I}
-    (hp₁ : 0 < p) (hp₂ : p < 1)
-    (hq₁ : 0 < q) (hq₂ : q < 1)
-    : (σ p * q : ℝ) / σ (p * q) ∈ I := by
-  have hp := p.property
-  have hq := q.property
-  simp only [unitInterval.coe_symm_eq, Set.mem_Icc, Set.Icc.coe_mul]
-  have hp_pos : 0 < (p : ℝ) := by simpa using hp₁
-  have hq_pos : 0 < (q : ℝ) := by simpa using hq₁
-  have hp_lt : (p : ℝ) < 1 := by simpa using hp₂
-  have hq_lt : (q : ℝ) < 1 := by simpa using hq₂
-  have h_denom_pos : 0 < 1 - (p : ℝ) * ↑q := by nlinarith
-  constructor
-  · apply div_nonneg <;> nlinarith
-  · rw [div_le_one h_denom_pos]
-    nlinarith
+namespace unitInterval
 
-/-- Helper lemma: convex combination coefficients for associativity. -/
-private lemma convex_assoc_coeffs
-    {p q : ℝ} (hp : p ∈ Set.Icc 0 1) (hq : q ∈ Set.Icc 0 1)
-    (hpq_ne : 1 - p * q ≠ 0)
-    {a b c : ENNReal}
-    : ENNReal.ofReal q * (ENNReal.ofReal p * a + ENNReal.ofReal (1 - p) * b)
-      + ENNReal.ofReal (1 - q) * c
-    = ENNReal.ofReal (p * q) * a
-      + ENNReal.ofReal (1 - p * q)
-        * (ENNReal.ofReal ((1 - p) * q / (1 - p * q)) * b
-           + ENNReal.ofReal (1 - (1 - p) * q / (1 - p * q)) * c) := by
-  set r' := (1 - p) * q / (1 - p * q)
-  have h₂ : (1 - p * q) * r' = (1 - p) * q := by
-    calc (1 - p * q) * r'
-      _ = (1 - p * q) * ((1 - p) * q / (1 - p * q)) := rfl
-      _ = (1 - p) * q := by field_simp [hpq_ne]
-  have h₃ : (1 - p * q) * (1 - r') = 1 - q := by
-    calc (1 - p * q) * (1 - r')
-      _ = (1 - p * q) * (1 - (1 - p) * q / (1 - p * q)) := rfl
-      _ = 1 - q := by field_simp [hpq_ne]; ring
-  have hp_nonneg : 0 ≤ p := hp.1
-  have hq_nonneg : 0 ≤ q := hq.1
-  have h1mpq_nonneg : 0 ≤ 1 - p * q := by nlinarith [hp.1, hp.2, hq.1, hq.2]
-  have hr'_nonneg : 0 ≤ r' := by
-    apply div_nonneg <;> nlinarith [hp.1, hp.2, hq.1, hq.2]
-  have h1mr'_nonneg : 0 ≤ 1 - r' := by
-    rw [sub_nonneg]
-    have h_num_le : (1 - p) * q ≤ 1 - p * q := by nlinarith [hp.1, hp.2, hq.1, hq.2]
-    have h_denom_ne : 1 - p * q ≠ 0 := hpq_ne
-    have h_denom_nonneg := h1mpq_nonneg
-    have h_denom_pos : 0 < 1 - p * q := lt_of_le_of_ne h_denom_nonneg (Ne.symm h_denom_ne)
-    calc r'
-      _ = (1 - p) * q / (1 - p * q) := rfl
-      _ ≤ (1 - p * q) / (1 - p * q) := by gcongr
-      _ = 1 := by field_simp [hpq_ne]
-  calc ENNReal.ofReal q * (ENNReal.ofReal p * a + ENNReal.ofReal (1 - p) * b)
-        + ENNReal.ofReal (1 - q) * c
-      _ = ENNReal.ofReal q * ENNReal.ofReal p * a
-          + ENNReal.ofReal q * ENNReal.ofReal (1 - p) * b
-          + ENNReal.ofReal (1 - q) * c := by ring
-      _ = ENNReal.ofReal (q * p) * a
-          + ENNReal.ofReal (q * (1 - p)) * b
-          + ENNReal.ofReal (1 - q) * c := by
-        rw [ENNReal.ofReal_mul hq_nonneg, ENNReal.ofReal_mul hq_nonneg]
-      _ = ENNReal.ofReal (p * q) * a
-          + ENNReal.ofReal ((1 - p) * q) * b
-          + ENNReal.ofReal (1 - q) * c := by ring_nf
-      _ = ENNReal.ofReal (p * q) * a
-          + ENNReal.ofReal ((1 - p * q) * r') * b
-          + ENNReal.ofReal ((1 - p * q) * (1 - r')) * c := by rw [h₂, h₃]
-      _ = ENNReal.ofReal (p * q) * a
-          + (ENNReal.ofReal (1 - p * q) * ENNReal.ofReal r' * b
-             + ENNReal.ofReal (1 - p * q) * ENNReal.ofReal (1 - r') * c) := by
-        rw [ENNReal.ofReal_mul h1mpq_nonneg, ENNReal.ofReal_mul h1mpq_nonneg]
-        ring
-      _ = ENNReal.ofReal (p * q) * a
-          + ENNReal.ofReal (1 - p * q)
-            * (ENNReal.ofReal r' * b + ENNReal.ofReal (1 - r') * c) := by ring
+/-- Helper function for `choose_assoc` -/
+@[simps]
+noncomputable def assocProdR (p q : I) : I where
+  val := (σ p * q) / σ (p * q)
+  property := by
+    have hp := p.property
+    have hq := q.property
+    simp only [Set.mem_Icc] at hp hq
+    simp only [unitInterval.coe_symm_eq, Set.Icc.coe_mul, Set.mem_Icc]
+    by_cases hpq : (p : ℝ) < 1 ∨ (q : ℝ) < 1
+    · apply And.intro
+      · rw [le_div_iff₀]
+        · nlinarith
+        · cases hpq <;> nlinarith
+      · rw [div_le_iff₀]
+        · nlinarith
+        · cases hpq <;> nlinarith
+    · simp only [not_or, not_lt] at hpq
+      have hp' : (p : ℝ) = 1 := by grind
+      have hq' : (q : ℝ) = 1 := by grind
+      simp only [hp', sub_self, hq', mul_one, div_zero, le_refl, zero_le_one, and_self]
+
+end unitInterval
 
 /-- Associativity of `choose` with appropriate probability adjustments. -/
 lemma choose_assoc {p q} {μ₁ μ₂ μ₃ : ProbabilityMeasure A}
     (hp₁ : 0 < p) (hp₂ : p < 1)
     (hq₁ : 0 < q) (hq₂ : q < 1)
     : (μ₁ ◃p▹ μ₂) ◃q▹ μ₃
-    = μ₁ ◃p * q▹ (μ₂ ◃⟨_, choose_assoc_bound hp₁ hp₂ hq₁ hq₂⟩▹ μ₃) := by
+    = μ₁ ◃p * q▹ (μ₂ ◃unitInterval.assocProdR p q▹ μ₃) := by
   ext k hk
-  simp (disch := fun_prop) only [lintegral_choose, unitInterval.coe_symm_eq, Set.Icc.coe_mul]
-  have hp := p.property
-  have hq := q.property
-  have hp_pos : 0 < (p : ℝ) := by simpa using hp₁
-  have hq_pos : 0 < (q : ℝ) := by simpa using hq₁
-  have hp_lt : (p : ℝ) < 1 := by simpa using hp₂
-  have hq_lt : (q : ℝ) < 1 := by simpa using hq₂
-  have hpq_ne : 1 - (p : ℝ) * ↑q ≠ 0 := by nlinarith
-  exact convex_assoc_coeffs hp hq hpq_ne
+  simp only [← Subtype.coe_lt_coe, Set.Icc.coe_zero, Set.Icc.coe_one] at hp₁ hp₂ hq₁ hq₂
+  have h₁ : 0 ≤ (p : ℝ) := p.property.1
+  have h₂ : 0 ≤ (q : ℝ) := q.property.1
+  have h₃ : 0 ≤ 1 - (p : ℝ) := (σ p).property.1
+  have h₄ : 0 < 1 - p * (q : ℝ) := by
+    simp only [sub_pos]
+    apply lt_of_le_of_lt
+    · change p * (q : ℝ) ≤ p * 1
+      gcongr
+    · simp only [mul_one, hp₂]
+  have h₅ : 0 ≤ (1 - p) * q / (1 - p * (q : ℝ)) := by
+    rw [le_div_iff₀]
+    · nlinarith
+    · exact h₄
+  have h₆ : 0 ≤ 1 - p * (q : ℝ) := by grind
+
+  have lemma₁ : ENNReal.ofReal ↑q * ENNReal.ofReal ↑p = ENNReal.ofReal (↑p * ↑q) := by
+    simp only [ENNReal.ofReal_mul, h₁]
+    ring_nf
+
+  have lemma₂
+      : ENNReal.ofReal ↑q * ENNReal.ofReal (1 - ↑p)
+      = ENNReal.ofReal (1 - ↑p * ↑q) * ENNReal.ofReal ((1 - ↑p) * ↑q / (1 - ↑p * ↑q)) := by
+    simp only [
+      ← ENNReal.ofReal_mul, mul_nonneg_iff_of_pos_left,
+      ENNReal.ofReal_eq_ofReal_iff, h₂, h₆, hq₁, h₃, h₄, h₅]
+    rw [mul_div_cancel₀]
+    · ring_nf
+    · grind
+
+  have lemma₃
+      : ENNReal.ofReal (1 - ↑q)
+      = ENNReal.ofReal (1 - ↑p * ↑q) * ENNReal.ofReal (1 - (1 - ↑p) * ↑q / (1 - ↑p * ↑q)) := by
+    simp only [← ENNReal.ofReal_mul, h₆, mul_sub]
+    congr 1
+    rw [mul_div_cancel₀]
+    · ring_nf
+    · grind
+
+  simp (disch := fun_prop) only [
+    lintegral_choose, unitInterval.coe_symm_eq, mul_add, ← mul_assoc,
+    add_assoc, Set.Icc.coe_mul, unitInterval.assocProdR_coe, lemma₁, lemma₂, lemma₃]
+
+namespace unitInterval
+
+/-- Helper function for `choose_assoc'` -/
+@[simps]
+noncomputable def assocProdL (p q : I) : I where
+  val := p / σ (σ p * σ q)
+  property := by
+    have ⟨hp₁, hp₂⟩ := p.property
+    have ⟨hq₁, hq₂⟩ := q.property
+    simp only [unitInterval.coe_symm_eq, Set.Icc.coe_mul, Set.mem_Icc]
+    by_cases hpq : (p : ℝ) > 0 ∨ (q : ℝ) > 0
+    · apply And.intro
+      · rw [le_div_iff₀]
+        · nlinarith
+        · cases hpq <;> nlinarith
+      · rw [div_le_iff₀]
+        · nlinarith
+        · cases hpq <;> nlinarith
+    · simp only [not_or, not_lt] at hpq
+      have hp' : (p : ℝ) = 0 := by grind
+      have hq' : (q : ℝ) = 0 := by grind
+      simp only [hp', sub_zero, hq', mul_one, sub_self, div_zero, le_refl, zero_le_one, and_self]
+
+@[simp]
+lemma zero_lt_assocProdL (p q : I) : 0 < unitInterval.assocProdL p q ↔ 0 < p := by
+  simp only [
+    ← Subtype.coe_lt_coe, Set.Icc.coe_zero, assocProdL_coe,
+    unitInterval.coe_symm_eq, Set.Icc.coe_mul]
+  apply Iff.intro
+  · intro h
+    by_contra! h'
+    have : (p : ℝ) = 0 := le_antisymm h' p.property.1
+    simp only [this, sub_zero, one_mul, sub_sub_cancel, zero_div, lt_self_iff_false] at h
+  · intro h
+    rw [lt_div_iff₀]
+    · simp only [zero_mul, h]
+    · ring_nf
+      suffices 0 < q * (1 - p) + (p : ℝ) by nlinarith
+      apply lt_of_lt_of_le
+      · apply h
+      · simp only [le_add_iff_nonneg_left]
+        exact (q * σ p).property.1
+
+@[simp]
+lemma lt_one_iff_ge_zero (p) : σ p < 1 ↔ 0 < p := by
+  simp only [← Subtype.coe_lt_coe]
+  simp only [
+    unitInterval.coe_symm_eq, Set.Icc.coe_one, sub_lt_self_iff,
+    unitInterval.coe_pos, Set.Icc.coe_zero]
+
+@[simp]
+lemma zero_lt_iff_lt_one (p) : 0 < σ p ↔ p < 1 := by
+  simp only [← Subtype.coe_lt_coe]
+  simp only [
+    Set.Icc.coe_zero, unitInterval.coe_symm_eq, sub_pos,
+    unitInterval.coe_lt_one, Set.Icc.coe_one]
+
+@[simp]
+lemma zero_le_mul_iff (p q : I) : 0 < p * q ↔ 0 < p ∧ 0 < q := by
+  simp only [← Subtype.coe_lt_coe, Set.Icc.coe_zero, Set.Icc.coe_mul]
+  apply Iff.intro
+  · intro h
+    apply And.intro
+    · apply lt_of_lt_of_le
+      · change 0 < p * (q : ℝ)
+        apply h
+      · trans (p : ℝ) * 1
+        · gcongr 1
+          · exact p.property.1
+          · exact q.property.2
+        · simp only [mul_one, le_refl]
+    · apply lt_of_lt_of_le
+      · change 0 < p * (q : ℝ)
+        apply h
+      · trans 1 * (q : ℝ)
+        · gcongr 1
+          · exact q.property.1
+          · exact p.property.2
+        · simp only [one_mul, le_refl]
+  · rintro ⟨h₁, h₂⟩
+    apply lt_of_le_of_lt
+    · change 0 ≤ 0 * (q : ℝ)
+      simp only [zero_mul, le_refl]
+    · gcongr 1
+
+@[simp]
+lemma mul_lt_one_iff (p q : I) : p * q < 1 ↔ p < 1 ∨ q < 1 := by
+  simp only [← Subtype.coe_lt_coe, Set.Icc.coe_mul, Set.Icc.coe_one]
+  by_contra! h
+  cases h with
+  | inl h =>
+    rcases h with ⟨h₁, h₂, h₃⟩
+    replace h₃ := le_antisymm q.property.2 h₃
+    replace h₂ := le_antisymm p.property.2 h₂
+    simp only [h₂, h₃, mul_one, lt_self_iff_false] at h₁
+  | inr h =>
+    rcases h with ⟨h₁, h₂⟩
+    have : 1 ≤ (p : ℝ) := by
+      trans p * (q : ℝ)
+      · exact h₁
+      · trans (p : ℝ) * 1
+        · gcongr 1
+          · exact p.property.1
+          · exact q.property.2
+        · simp only [mul_one, le_refl]
+    have : 1 ≤ (q : ℝ) := by
+      trans p * (q : ℝ)
+      · exact h₁
+      · trans 1 * (q : ℝ)
+        · gcongr 1
+          · exact q.property.1
+          · exact p.property.2
+        · simp only [one_mul, le_refl]
+    grind
+
+end unitInterval
+
+/-- Associativity of `choose` with appropriate probability adjustments (other direction). -/
+lemma choose_assoc' {p q} {μ₁ μ₂ μ₃ : ProbabilityMeasure A}
+    (hp₁ : 0 < p) (hp₂ : p < 1)
+    (hq₁ : 0 < q) (hq₂ : q < 1)
+    : μ₁ ◃p▹ (μ₂ ◃q▹ μ₃)
+    = (μ₁ ◃unitInterval.assocProdL p q▹ μ₂) ◃σ (σ p * σ q)▹ μ₃ := by
+  have lemma₀ : 0 < p - p * q + (q : ℝ) := by
+    suffices 0 < q * (1 - p) + (p : ℝ) by nlinarith
+    apply lt_of_lt_of_le
+    · exact hp₁
+    · simp only [le_add_iff_nonneg_left]
+      exact (q * σ p).property.1
+
+  have lemma₁ : unitInterval.assocProdL p q * σ (σ p * σ q) = p := by
+    ext : 1
+    simp only [Set.Icc.coe_mul, unitInterval.assocProdL_coe, unitInterval.coe_symm_eq]
+    apply mul_left_cancel₀ (a := (1 - (1 - p) * (1 - (q : ℝ))))
+    · ring_nf
+      grind
+    · rw [div_mul_cancel₀]
+      ring_nf
+      grind
+
+  have lemma₂ : unitInterval.assocProdR (unitInterval.assocProdL p q) (σ (σ p * σ q)) = q := by
+    ext : 1
+    simp only [
+      unitInterval.assocProdR_coe, unitInterval.coe_symm_eq,
+      unitInterval.assocProdL_coe, Set.Icc.coe_mul]
+    generalize hs : (1 - (1 - p) * (1 - (q : ℝ))) = s
+    generalize hr : (1 - p / s * s) = r
+    have hs' : 0 < s := by
+      rw [← hs]
+      ring_nf
+      grind
+    replace hr : (1 - p) = r := by
+      rw [← hr, div_mul_cancel₀]
+      grind
+    have hr' : 0 < r := by
+      simp only [← hr, sub_pos, unitInterval.coe_lt_one, hp₂]
+    simp only [sub_mul, one_mul, sub_div]
+    rw [div_mul_cancel₀]
+    · simp only [← sub_div]
+      apply mul_right_cancel₀ (b := r)
+      · grind
+      · rw [div_mul_cancel₀]
+        · rw [← hr, ← hs]
+          ring_nf
+        · grind
+    · grind
+
+  rw [choose_assoc, lemma₁, lemma₂]
+  · simp only [unitInterval.zero_lt_assocProdL, hp₁]
+  · rw [← Subtype.coe_lt_coe]
+    simp only [unitInterval.assocProdL_coe, unitInterval.coe_symm_eq, Set.Icc.coe_mul,
+      Set.Icc.coe_one]
+    rw [div_lt_iff₀]
+    · simp only [one_mul]
+      apply lt_of_add_lt_add_right (a := p * (q : ℝ))
+      ring_nf
+      simp only [
+        add_lt_add_iff_left, unitInterval.coe_pos, mul_lt_iff_lt_one_left,
+        unitInterval.coe_lt_one, hq₁, hp₂]
+    · ring_nf
+      exact lemma₀
+  · simp only [unitInterval.zero_lt_iff_lt_one, unitInterval.mul_lt_one_iff,
+    unitInterval.lt_one_iff_ge_zero, or_self, hp₁, hq₁]
+  · simp only [unitInterval.lt_one_iff_ge_zero, unitInterval.zero_le_mul_iff,
+    unitInterval.zero_lt_iff_lt_one, hp₂, hq₂, and_self]
 
 /-- `bind` distributes over `choose`. -/
 @[simp]
