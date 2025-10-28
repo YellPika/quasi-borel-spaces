@@ -18,8 +18,9 @@ noncomputable def assocProd (p q : I) : I where
       · cases h <;> nlinarith
       · cases h <;> nlinarith
     · simp only [not_or, not_lt] at h
-      have : (p : ℝ) = 1 ∧ (q : ℝ) = 1 := by grind
-      simp only [this, sub_self, mul_one, div_zero, le_refl, zero_le_one, and_self]
+      have h₁ : (p : ℝ) = 1 := le_antisymm p.property.2 h.1
+      have h₂ : (q : ℝ) = 1 := le_antisymm q.property.2 h.2
+      simp only [h₁, h₂, sub_self, mul_one, div_zero, le_refl, zero_le_one, and_self]
 
 @[inherit_doc]
 scoped infixr:80 " ⍟ " => assocProd
