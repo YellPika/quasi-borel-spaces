@@ -1,7 +1,7 @@
 import Mathlib.Order.OmegaCompletePartialOrder
 import QuasiBorelSpaces.Prod
 import QuasiBorelSpaces.Sum
-import QuasiBorelSpaces.OmegaCPO.Sum
+import QuasiBorelSpaces.OmegaCompletePartialOrder.Sum
 
 /-!
 # Omega quasi-borel spaces (ωQBS)

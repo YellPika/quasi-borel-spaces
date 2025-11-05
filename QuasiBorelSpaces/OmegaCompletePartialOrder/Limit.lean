@@ -1,13 +1,15 @@
 import Mathlib.Order.OmegaCompletePartialOrder
 
-namespace QuasiBorelSpaces.OmegaCPO
-open OmegaCompletePartialOrder
+namespace QuasiBorelSpaces.OmegaCompletePartialOrder
+open _root_.OmegaCompletePartialOrder
 
 universe u
-variable {α : Type u} [OmegaCompletePartialOrder α]
 
 /-- abbreviation for omega chain -/
-abbrev Chain (α : Type u) [OmegaCompletePartialOrder α] := OmegaCompletePartialOrder.Chain α
+abbrev Chain (α : Type u) [_root_.OmegaCompletePartialOrder α] :=
+  _root_.OmegaCompletePartialOrder.Chain α
+
+variable {α : Type u} [_root_.OmegaCompletePartialOrder α]
 
 /-- the omega-limit of a chain is its omega-supremum -/
 def omegaLimit {α : Type u} [OmegaCompletePartialOrder α] (c : Chain α) : α := ωSup c
@@ -22,4 +24,4 @@ lemma omegaLimit_unique (c : Chain α) {l : α}
   (hl : IsLUB (Set.range c) l) : l = omegaLimit c :=
   ωSup_eq_of_isLUB hl
 
-end QuasiBorelSpaces.OmegaCPO
+end QuasiBorelSpaces.OmegaCompletePartialOrder

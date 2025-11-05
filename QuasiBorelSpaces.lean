@@ -18,7 +18,7 @@ import QuasiBorelSpaces.MeasureTheory.ProbabilityMeasure
 import QuasiBorelSpaces.MeasureTheory.Sigma
 import QuasiBorelSpaces.Multiset
 import QuasiBorelSpaces.Nat
-import QuasiBorelSpaces.OmegaQBS
+import QuasiBorelSpaces.OmegaQuasiBorelSpace
 import QuasiBorelSpaces.Option
 import QuasiBorelSpaces.Pi
 import QuasiBorelSpaces.PreProbabilityMeasure

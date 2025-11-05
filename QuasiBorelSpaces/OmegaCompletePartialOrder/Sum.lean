@@ -1,6 +1,6 @@
 import Mathlib.Data.Sum.Order
 import Mathlib.Order.OmegaCompletePartialOrder
-import QuasiBorelSpaces.OmegaCPO.Chain.Sum
+import QuasiBorelSpaces.OmegaCompletePartialOrder.Chain.Sum
 
 /-!
 # ωCPO instance for coproducts
@@ -8,9 +8,9 @@ import QuasiBorelSpaces.OmegaCPO.Chain.Sum
 This file provides the `OmegaCompletePartialOrder` instance for `Sum α β`.
 -/
 
-namespace QuasiBorelSpaces.OmegaCPO
+namespace QuasiBorelSpaces.OmegaCompletePartialOrder
 
-open OmegaCompletePartialOrder
+open _root_.OmegaCompletePartialOrder
 
 universe u v
 variable {α : Type u} {β : Type v}
@@ -86,4 +86,4 @@ noncomputable instance instOmegaCompletePartialOrderSum :
             rw [hi0, hxX] at hcontr
             exact absurd hcontr Sum.not_inr_le_inl
 
-end QuasiBorelSpaces.OmegaCPO
+end QuasiBorelSpaces.OmegaCompletePartialOrder
