@@ -5,7 +5,7 @@ import Mathlib.Order.OmegaCompletePartialOrder
 
 This file defines:
 - Basic omega-limit operations
-- Pointwise ω-suprema for function spaces, used in the compatibility axiom for ωQBS
+- Pointwise ω-suprema for function spaces needed in the compatibility axiom for ωQBS
 -/
 
 namespace QuasiBorelSpaces.OmegaCompletePartialOrder
