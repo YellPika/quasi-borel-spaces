@@ -103,4 +103,14 @@ lemma isHom_of_uncurry
   · apply hf
   · fun_prop
 
+variable {α β : Type*} [QuasiBorelSpace α] [QuasiBorelSpace β]
+
+lemma isHom_fst_comp {f : ℝ → α × β} (hf : IsHom f) :
+    IsHom (fun r => (f r).1) :=
+  (isHom_iff f).mp hf |>.1
+
+lemma isHom_snd_comp {f : ℝ → α × β} (hf : IsHom f) :
+    IsHom (fun r => (f r).2) :=
+  (isHom_iff f).mp hf |>.2
+
 end QuasiBorelSpace.Prod

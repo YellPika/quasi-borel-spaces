@@ -114,7 +114,9 @@ end Helpers
     rw [QuasiBorelSpace.Prod.isHom_iff]
     constructor
     · let c₁ := c.map ⟨(fun f r => (f r).1), by intro f g h r; exact (h r).1⟩
-      have hc₁ : ∀ n, IsHom (c₁ n) := by intro n; sorry
+      have hc₁ : ∀ n, IsHom (c₁ n) := by
+        intro n
+        simpa using QuasiBorelSpace.Prod.isHom_fst_comp (hc n)
       have h₁ := hα.isHom_ωSup c₁ hc₁
       have eq₁ : ωSup c₁ = fun r => (ωSup c r).1 := by
         funext r
@@ -122,7 +124,9 @@ end Helpers
         rfl
       simpa [eq₁] using h₁
     · let c₂ := c.map ⟨(fun f r => (f r).2), by intro f g h r; exact (h r).2⟩
-      have hc₂ : ∀ n, IsHom (c₂ n) := by intro n; sorry
+      have hc₂ : ∀ n, IsHom (c₂ n) := by
+        intro n
+        simpa using QuasiBorelSpace.Prod.isHom_snd_comp (hc n)
       have h₂ := hβ.isHom_ωSup c₂ hc₂
       have eq₂ : ωSup c₂ = fun r => (ωSup c r).2 := by
         funext r
