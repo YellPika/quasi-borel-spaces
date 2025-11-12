@@ -1,9 +1,9 @@
 import Mathlib.MeasureTheory.Constructions.UnitInterval
 import Mathlib.MeasureTheory.Measure.DiracProba
-import QuasiBorelSpaces.Bool
 import QuasiBorelSpaces.Hom
 import QuasiBorelSpaces.MeasureTheory.Map
 import QuasiBorelSpaces.MeasureTheory.ProbabilityMeasure
+import QuasiBorelSpaces.Prop
 import QuasiBorelSpaces.Unit
 
 open MeasureTheory
@@ -664,7 +664,7 @@ noncomputable def coin (p : I) : PreProbabilityMeasure Bool where
   eval := {
     toFun := fun r ↦ r = 0
     property := by
-      apply Bool.isHom_decide
+      apply Prop.isHom_decide
       simp only [isHom_ofMeasurableSpace]
       change Measurable fun x ↦ x ∈ ({0} : Set ℝ)
       simp only [measurable_mem, MeasurableSet.singleton]

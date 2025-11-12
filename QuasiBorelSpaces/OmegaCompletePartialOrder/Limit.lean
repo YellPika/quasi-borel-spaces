@@ -8,14 +8,13 @@ This file defines:
 - Pointwise ω-suprema for function spaces needed in the compatibility axiom for ωQBS
 -/
 
-namespace QuasiBorelSpaces.OmegaCompletePartialOrder
-open _root_.OmegaCompletePartialOrder
+namespace OmegaCompletePartialOrder
 
 universe u v
 
-/-- abbreviation for omega chain -/
-abbrev Chain (α : Type u) [_root_.OmegaCompletePartialOrder α] :=
-  _root_.OmegaCompletePartialOrder.Chain α
+-- /-- abbreviation for omega chain -/
+-- abbrev Chain (α : Type u) [_root_.OmegaCompletePartialOrder α] :=
+--   _root_.OmegaCompletePartialOrder.Chain α
 
 variable {α : Type u} [_root_.OmegaCompletePartialOrder α]
 
@@ -65,4 +64,4 @@ lemma ωSup_eval (c : Chain (ι → α)) (x : ι) :
 
 end FunctionSpace
 
-end QuasiBorelSpaces.OmegaCompletePartialOrder
+end OmegaCompletePartialOrder

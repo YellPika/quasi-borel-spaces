@@ -1,3 +1,4 @@
+import QuasiBorelSpaces.Bool
 import QuasiBorelSpaces.Lift
 import QuasiBorelSpaces.Sigma
 import QuasiBorelSpaces.Hom
@@ -125,6 +126,14 @@ lemma isHom_map
     {h : A → B ⊕ C} (hh : IsHom h)
     : IsHom (fun x ↦ Sum.map (f x) (g x) (h x)) := by
   change IsHom fun x ↦ Sum.elim (Sum.inl ∘ f x) (Sum.inr ∘ g x) (h x)
+  fun_prop
+
+@[fun_prop, simp]
+lemma isHom_isLeft : IsHom (Sum.isLeft : A ⊕ B → Bool) := by
+  have : (Sum.isLeft : A ⊕ B → Bool) = Sum.elim (fun _ ↦ true) (fun _ ↦ false) := by
+    ext x
+    cases x <;> rfl
+  rw [this]
   fun_prop
 
 end QuasiBorelSpace.Sum

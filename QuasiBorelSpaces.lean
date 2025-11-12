@@ -18,6 +18,11 @@ import QuasiBorelSpaces.MeasureTheory.ProbabilityMeasure
 import QuasiBorelSpaces.MeasureTheory.Sigma
 import QuasiBorelSpaces.Multiset
 import QuasiBorelSpaces.Nat
+import QuasiBorelSpaces.OmegaCompletePartialOrder.Basic
+import QuasiBorelSpaces.OmegaCompletePartialOrder.Chain.Const
+import QuasiBorelSpaces.OmegaCompletePartialOrder.Chain.Sum
+import QuasiBorelSpaces.OmegaCompletePartialOrder.Limit
+import QuasiBorelSpaces.OmegaCompletePartialOrder.Sum
 import QuasiBorelSpaces.OmegaQuasiBorelSpace
 import QuasiBorelSpaces.Option
 import QuasiBorelSpaces.Pi
