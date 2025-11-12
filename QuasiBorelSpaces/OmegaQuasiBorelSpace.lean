@@ -111,7 +111,7 @@ lemma IsHom.caseRight
 end Helpers
 
 /-- Product of omega quasi-borel spaces is again an omega quasi-borel space. -/
-@[simp] instance instOmegaQuasiBorelSpaceProd
+instance instOmegaQuasiBorelSpaceProd
     [hα : OmegaQuasiBorelSpace α] [hβ : OmegaQuasiBorelSpace β] :
     OmegaQuasiBorelSpace (α × β) where
   isHom_ωSup c hc := by
@@ -139,7 +139,7 @@ end Helpers
       simpa [eq₂] using h₂
 
 /-- Coproduct of omega quasi-borel spaces is again an omega quasi-borel space. -/
-@[simp] noncomputable instance instOmegaQuasiBorelSpaceSum
+noncomputable instance instOmegaQuasiBorelSpaceSum
     [OmegaQuasiBorelSpace α] [OmegaQuasiBorelSpace β] :
     OmegaQuasiBorelSpace (α ⊕ β) where
   isHom_ωSup c hc := by
