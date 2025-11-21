@@ -2,6 +2,8 @@ import QuasiBorelSpaces.ENNReal
 import QuasiBorelSpaces.PreProbabilityMeasure
 import QuasiBorelSpaces.SeparatesPoints
 import QuasiBorelSpaces.UnitInterval.AssocProd
+import QuasiBorelSpaces.OmegaCompletePartialOrder.Basic
+import QuasiBorelSpaces.OmegaCompletePartialOrder.Limit
 
 /-!
 # Probability Measures over Quasi-Borel Spaces
@@ -26,6 +28,9 @@ variable {A B C A' B' C' : Type*}
 structure ProbabilityMeasure (A : Type*) [QuasiBorelSpace A] where
   private fromQuotient ::
   private val : Quotient (PreProbabilityMeasure.setoid A)
+
+/-- type synonym emphasising probability distributions as monadic values -/
+abbrev Prob (α : Type*) [QuasiBorelSpace α] := ProbabilityMeasure α
 
 namespace ProbabilityMeasure
 
@@ -650,4 +655,51 @@ lemma choose_bind
     lintegral_bind, lintegral_choose, unitInterval.coe_symm_eq,
     lintegral_add_left, lintegral_mul_left]
 
-end QuasiBorelSpace.ProbabilityMeasure
+/-! ### Monad Aliases -/
+
+/-- right identity for the Kleisli structure -/
+@[simp] lemma bind_unit_right (μ : ProbabilityMeasure A) : bind unit μ = μ :=
+  ProbabilityMeasure.unit_bind (μ := μ)
+
+/-- left identity for the Kleisli structure assuming a morphism -/
+@[simp]
+lemma unit_bind_left
+    {f : A → ProbabilityMeasure B} (hf : IsHom f) (x : A)
+    : bind f (unit x) = f x :=
+  ProbabilityMeasure.bind_unit (f := f) (x := x) (hf := hf)
+
+/-- associativity for the Kleisli structure assuming morphisms -/
+@[simp]
+lemma bind_assoc
+    {f : B → ProbabilityMeasure C} (hf : IsHom f)
+    {g : A → ProbabilityMeasure B} (hg : IsHom g)
+    (μ : ProbabilityMeasure A)
+    : bind f (bind g μ) = bind (fun x => bind f (g x)) μ :=
+  ProbabilityMeasure.bind_bind (f := f) (g := g) (μ := μ) (hf := hf) (hg := hg)
+
+end ProbabilityMeasure
+
+open OmegaCompletePartialOrder
+
+/-! ## Order Structure -/
+
+/-- the discrete order on `ProbabilityMeasure` -/
+instance : PartialOrder (ProbabilityMeasure A) where
+  le x y := x = y
+  le_refl := by simp
+  le_trans := by simp
+  le_antisymm := by simp
+
+/-- `ProbabilityMeasure` is an ωCPO with the discrete order -/
+instance : OmegaCompletePartialOrder (ProbabilityMeasure A) where
+  ωSup c := c 0
+  le_ωSup c := by
+    intro n
+    have := c.monotone' (zero_le n)
+    exact this.symm
+  ωSup_le c := by
+    intro x h
+    have h0 := h 0
+    exact h0
+
+end QuasiBorelSpace

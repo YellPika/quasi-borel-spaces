@@ -29,7 +29,6 @@ import QuasiBorelSpaces.Option
 import QuasiBorelSpaces.Pi
 import QuasiBorelSpaces.PreProbabilityMeasure
 import QuasiBorelSpaces.ProbabilityMeasure
--- import QuasiBorelSpaces.Prob (todo)
 import QuasiBorelSpaces.Prod
 import QuasiBorelSpaces.Prop
 import QuasiBorelSpaces.Quotient
@@ -41,4 +40,5 @@ import QuasiBorelSpaces.Subtype
 import QuasiBorelSpaces.Sum
 import QuasiBorelSpaces.Unit
 import QuasiBorelSpaces.UnitInterval.AssocProd
--- import QuasiBorelSpaces.CDist (todo)
+import QuasiBorelSpaces.CDist
+import QuasiBorelSpaces.OmegaCompletePartialOrder.Fix
