@@ -66,7 +66,7 @@ instance : OmegaCompletePartialOrder (X →ω𝒒 Y) :=
         exact hc (c n) ⟨n, rfl⟩
       let c_raw : Chain (X → Y) :=
         ⟨fun n x => c n x, by intro i j h x; exact c.monotone h x⟩
-      have hSup := isHom_ωSup_of_chain c_raw hc_hom
+      have hSup := OmegaQuasiBorelSpace.isHom_ωSup_of_chain c_raw hc_hom
       have h_eq : (ωSup c_raw : X → Y) = (ωSup c : X →𝒄 Y) := by
         funext x
         trans ωSup ((c.map ContinuousHom.toMono).map (OrderHom.apply x))
@@ -133,7 +133,7 @@ instance : OmegaQuasiBorelSpace (X →ω𝒒 Y) where
       specialize hc n
       rw [isHom_def] at hc
       exact hc
-    have hSup := isHom_ωSup_of_chain c_uncurry hc_uncurry
+    have hSup := OmegaQuasiBorelSpace.isHom_ωSup_of_chain c_uncurry hc_uncurry
     have eq : (fun p => (ωSup c p.1) p.2) = ωSup c_uncurry := by
       ext p
       simp only [c_uncurry]

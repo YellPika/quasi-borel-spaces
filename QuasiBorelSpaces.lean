@@ -23,7 +23,7 @@ import QuasiBorelSpaces.OmegaCompletePartialOrder.Chain.Const
 import QuasiBorelSpaces.OmegaCompletePartialOrder.Chain.Sum
 import QuasiBorelSpaces.OmegaCompletePartialOrder.Limit
 import QuasiBorelSpaces.OmegaCompletePartialOrder.Sum
-import QuasiBorelSpaces.OmegaExp
+import QuasiBorelSpaces.OmegaHom
 import QuasiBorelSpaces.OmegaQuasiBorelSpace
 import QuasiBorelSpaces.Option
 import QuasiBorelSpaces.Pi

@@ -110,6 +110,32 @@ lemma IsHom.caseRight
 
 end Helpers
 
+/--
+pointwise supremum of a chain of QBS morphisms is a QBS morphism
+(also known as the "Compatibility Axiom" for the exponential to be an ωQBS)
+-/
+lemma isHom_ωSup_of_chain
+    {X : Type u} {Y : Type v}
+    [QuasiBorelSpace X] [OmegaQuasiBorelSpace Y]
+    (c : Chain (X → Y)) (hc : ∀ n, IsHom (c n)) :
+    IsHom (ωSup c) := by
+  rw [QuasiBorelSpace.isHom_def]
+  intro α hα
+  let comp : (X → Y) →o (ℝ → Y) :=
+    { toFun := fun f r => f (α r)
+      monotone' := by intro f g h r; exact h (α r) }
+  let c' : Chain (ℝ → Y) := c.map comp
+  have hc' : ∀ n, IsHom (c' n) := by
+    intro n
+    exact isHom_comp (hf := hc n) (hg := hα)
+  have hSup := (OmegaQuasiBorelSpace.isHom_ωSup (α := Y) c' hc')
+  have h_eval : ωSup c' = fun r => ωSup c (α r) := by
+    funext r
+    have hω := OmegaCompletePartialOrder.ωSup_eval (c := c') (x := r)
+    have hchain : c'.map (evalOrderHom r) = c.map (evalOrderHom (α r)) := by ext n; rfl
+    simpa [hchain] using hω
+  simpa [h_eval] using hSup
+
 /-- Product of omega quasi-borel spaces is again an omega quasi-borel space. -/
 instance instOmegaQuasiBorelSpaceProd
     [hα : OmegaQuasiBorelSpace α] [hβ : OmegaQuasiBorelSpace β] :
