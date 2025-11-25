@@ -60,31 +60,35 @@ instance : PartialOrder R where
 /-- Trivial ωCPO on `R`: chains are constant by discreteness -/
 noncomputable instance : OmegaCompletePartialOrder R where
   ωSup c := c 0
-  le_ωSup c _ := by
-    sorry
-  ωSup_le c x _ := by
-    sorry
+  le_ωSup c n := by
+    rw [c.monotone (Nat.zero_le n)]
+  ωSup_le c x hx := by
+    rw [← hx 0]
 
 /-- ωQBS structure on `R` (compatibility axiom holds vacuously) -/
 noncomputable instance : OmegaQuasiBorelSpace R where
   isHom_ωSup := by
     intro c hc
-    sorry
+    exact hc 0
 
 /-- ωCPO on extended non-negative reals using the usual supremum of a chain -/
 noncomputable instance instOmegaCompletePartialOrderENNReal :
     OmegaCompletePartialOrder ENNReal where
   ωSup c := sSup (Set.range c)
-  le_ωSup c n := by
-    sorry
-  ωSup_le c x hx := by
-    sorry
+  le_ωSup c n := le_sSup ⟨n, rfl⟩
+  ωSup_le c x hx := sSup_le (by rintro _ ⟨n, rfl⟩; exact hx n)
 
 /-- ωQBS structure on `ENNReal` -/
 noncomputable instance : OmegaQuasiBorelSpace ENNReal where
   isHom_ωSup := by
     intro c hc
-    sorry
+    rw [isHom_iff_measurable]
+    have : ωSup c = fun r => ⨆ n, c n r := by ext; rfl
+    rw [this]
+    apply Measurable.iSup
+    intro n
+    rw [← isHom_iff_measurable]
+    exact hc n
 
 /-- Trivial ωQBS on the unit type -/
 instance : OmegaCompletePartialOrder Unit where
@@ -95,7 +99,7 @@ instance : OmegaCompletePartialOrder Unit where
 instance : OmegaQuasiBorelSpace Unit where
   isHom_ωSup := by
     intro c hc
-    sorry
+    apply isHom_const
 
 /-
 ## Ambient ωQBSes for the construction
@@ -136,7 +140,18 @@ def E_map (α : RX X) (w : X →ω𝒒 ENNReal) : ENNReal :=
 def E_op (α : RX X) : JX X :=
   ⟨{ toFun := fun w => E_map (X := X) α w
      monotone' := by
-       sorry
+       intro w1 w2 h
+       simp only [E_map]
+       apply lintegral_mono
+       intro r
+       dsimp
+       cases h_eq : α r with
+       | none =>
+         dsimp [liftWeight]
+         apply le_refl
+       | some x =>
+         dsimp [liftWeight]
+         exact h x
      map_ωSup' := by
        sorry
     }, by
@@ -160,9 +175,11 @@ def return_R (x : X) : RX X :=
        rfl
      map_ωSup' := by
        intro c
-       sorry
+       conv_lhs => rw [← OmegaCompletePartialOrder.ωSup_const (some x)]
+       congr 1
     }, by
-      sorry⟩
+      apply isHom_const
+    ⟩
 
 /-- A measurable splitting of randomness as in the transfer principle -/
 class RandomSplit where
@@ -222,9 +239,14 @@ def return_J (x : X) : JX X :=
        exact hw x
      map_ωSup' := by
        intro c
-       sorry
+       rfl
     }, by
-      sorry⟩
+      change IsHom ((fun p : (X →ω𝒒 ENNReal) × X => p.1 p.2) ∘ (fun w => (w, x)))
+      apply isHom_comp (hf := OmegaHom.isHom_eval)
+      apply Prod.isHom_mk
+      · exact isHom_id
+      · exact isHom_const x
+    ⟩
 
 /-- Monad bind on expectation operators -/
 def bind_J {Y} [OmegaQuasiBorelSpace Y] (μ : JX X) (k : X → JX Y) : JX Y :=
