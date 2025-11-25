@@ -40,5 +40,4 @@ import QuasiBorelSpaces.Subtype
 import QuasiBorelSpaces.Sum
 import QuasiBorelSpaces.Unit
 import QuasiBorelSpaces.UnitInterval.AssocProd
-import QuasiBorelSpaces.CDist
 import QuasiBorelSpaces.OmegaCompletePartialOrder.Fix
