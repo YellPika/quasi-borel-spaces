@@ -29,9 +29,6 @@ structure ProbabilityMeasure (A : Type*) [QuasiBorelSpace A] where
   private fromQuotient ::
   private val : Quotient (PreProbabilityMeasure.setoid A)
 
-/-- type synonym emphasising probability distributions as monadic values -/
-abbrev Prob (α : Type*) [QuasiBorelSpace α] := ProbabilityMeasure α
-
 namespace ProbabilityMeasure
 
 /-- Constructs a `ProbabilityMeasure` from a `PreProbabilityMeasure`. -/
@@ -654,28 +651,6 @@ lemma choose_bind
   simp (disch := fun_prop) only [
     lintegral_bind, lintegral_choose, unitInterval.coe_symm_eq,
     lintegral_add_left, lintegral_mul_left]
-
-/-! ### Monad Aliases -/
-
-/-- right identity for the Kleisli structure -/
-@[simp] lemma bind_unit_right (μ : ProbabilityMeasure A) : bind unit μ = μ :=
-  ProbabilityMeasure.unit_bind (μ := μ)
-
-/-- left identity for the Kleisli structure assuming a morphism -/
-@[simp]
-lemma unit_bind_left
-    {f : A → ProbabilityMeasure B} (hf : IsHom f) (x : A)
-    : bind f (unit x) = f x :=
-  ProbabilityMeasure.bind_unit (f := f) (x := x) (hf := hf)
-
-/-- associativity for the Kleisli structure assuming morphisms -/
-@[simp]
-lemma bind_assoc
-    {f : B → ProbabilityMeasure C} (hf : IsHom f)
-    {g : A → ProbabilityMeasure B} (hg : IsHom g)
-    (μ : ProbabilityMeasure A)
-    : bind f (bind g μ) = bind (fun x => bind f (g x)) μ :=
-  ProbabilityMeasure.bind_bind (f := f) (g := g) (μ := μ) (hf := hf) (hg := hg)
 
 end ProbabilityMeasure
 
