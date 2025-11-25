@@ -27,7 +27,7 @@ def fold (mk : A → List B → B) : Encoding A → B
     (List.ofFn fun i ↦ fold mk ⟨xs[i], fun is ↦ k (i :: is)⟩)
   decreasing_by
     simp only [Fin.getElem_fin, Sigma.mk.sizeOf_spec, sizeOf_default, Nat.add_zero, mk.sizeOf_spec,
-      Unit.sizeOf, Nat.reduceAdd, Nat.add_lt_add_iff_left, gt_iff_lt]
+      Unit.sizeOf, Nat.reduceAdd, Nat.add_lt_add_iff_left]
     induction xs with
     | nil => exact i.elim0
     | cons head tail ih =>

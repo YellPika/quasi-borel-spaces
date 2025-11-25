@@ -41,13 +41,13 @@ lemma foldr_cons {A B}
 @[simp]
 lemma nil_ne_cons (x : A) (xs : Encoding A) : nil ≠ cons x xs := by
   simp only [
-    nil, cons, ne_eq, Sigma.mk.injEq, Nat.right_eq_add, Nat.add_eq_zero,
+    nil, cons, ne_eq, Sigma.mk.injEq, Nat.right_eq_add, Nat.add_eq_zero_iff,
     Nat.succ_ne_self, and_false, false_and, not_false_eq_true]
 
 @[simp]
 lemma cons_ne_nil (x : A) (xs : Encoding A) : cons x xs ≠ nil := by
   simp only [
-    nil, cons, ne_eq, Sigma.mk.injEq, Nat.add_eq_zero,
+    nil, cons, ne_eq, Sigma.mk.injEq, Nat.add_eq_zero_iff,
     Nat.succ_ne_self, and_false, false_and, not_false_eq_true]
 
 @[simp]
