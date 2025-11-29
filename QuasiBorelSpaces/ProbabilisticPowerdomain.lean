@@ -6,6 +6,7 @@ import QuasiBorelSpaces.OmegaCompletePartialOrder.Option
 import QuasiBorelSpaces.OmegaCompletePartialOrder.Basic
 import QuasiBorelSpaces.Basic
 import QuasiBorelSpaces.Subtype
+import QuasiBorelSpaces.Prop
 import Mathlib.MeasureTheory.Integral.Lebesgue.Basic
 import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
 import Mathlib.MeasureTheory.Measure.Map
@@ -49,6 +50,15 @@ noncomputable instance : SigmaFinite (volume : Measure R) := by
   sorry
 
 instance : QuasiBorelSpace R := QuasiBorelSpace.ofMeasurableSpace
+
+instance : IsHom R.mk := isHom_of_measurable (f := R.mk) (by
+  intro s hs
+  rcases hs with ⟨t, ht, rfl⟩
+  exact ht)
+
+instance : IsHom R.val := isHom_of_measurable (f := R.val) (by
+  intro s hs
+  exact ⟨s, hs, rfl⟩)
 
 /-- Discrete order on the randomness carrier -/
 instance : PartialOrder R where
@@ -134,7 +144,7 @@ def dom (α : RX X) : Set R := {r | α r ≠ none}
 
 /-- Evaluate the expectation of a weight under a randomization -/
 def E_map (α : RX X) (w : X →ω𝒒 ENNReal) : ENNReal :=
-  ∫⁻ r in dom (X := X) α, (liftWeight (w := fun x => w x)) (α r)
+  ∫⁻ r, liftWeight X (fun x => w x) (α r)
 
 /-- Bundle the expectation operator arising from a randomization -/
 def E_op (α : RX X) : JX X :=
@@ -144,18 +154,82 @@ def E_op (α : RX X) : JX X :=
        simp only [E_map]
        apply lintegral_mono
        intro r
-       dsimp
+       dsimp [liftWeight]
        cases h_eq : α r with
-       | none =>
-         dsimp [liftWeight]
-         apply le_refl
-       | some x =>
-         dsimp [liftWeight]
-         exact h x
+       | none => apply le_refl
+       | some x => exact h x
      map_ωSup' := by
-       sorry
+       intro c
+       simp only [E_map]
+       have h_sup : ∀ r, liftWeight X (fun x =>
+        (ωSup c) x) (α r) = ⨆ n, liftWeight X (fun x => c n x) (α r) := by
+         intro r
+         dsimp [liftWeight]
+         cases α r with
+         | none =>
+           simp only [iSup_const]
+         | some x =>
+           have : (ωSup c) x = ⨆ n, c n x := rfl
+           simp only [this]
+       conv =>
+         lhs
+         arg 2
+         intro r
+         rw [h_sup]
+       rw [lintegral_iSup]
+       · congr
+       · intro n
+         have h_eq : (fun r => liftWeight X (fun x => c n x) (α r)) = (fun r =>
+          Option.elim (α r) 0 (fun x => c n x)) := by
+           ext r
+           dsimp [liftWeight, Option.elim]
+           cases α r <;> rfl
+         rw [h_eq]
+         have h_hom : IsHom (fun r => Option.elim (α r) 0 (fun x => c n x)) := by
+           apply QuasiBorelSpace.Option.isHom_elim α.2
+           · fun_prop
+           · apply isHom_comp (c n).2
+             fun_prop
+         sorry
+       · intro n m hnm r
+         dsimp [liftWeight]
+         cases α r with
+         | none => apply le_refl
+         | some x => apply c.monotone hnm
     }, by
-      sorry⟩
+     rw [QuasiBorelSpace.isHom_def]
+     intro β hβ
+     rw [isHom_iff_measurable]
+     dsimp
+
+     let F := fun (p : ℝ × R) => liftWeight X (β p.1) (α p.2)
+     change Measurable (fun r => ∫⁻ s, F (r, s) ∂volume)
+
+     apply Measurable.lintegral_prod_right
+
+     have hF_hom : IsHom F := by
+       have h_eq : F = (fun (p : ℝ × R) => Option.elim (α p.2) 0 (fun x => (β p.1) x)) := by
+         dsimp [F]
+         ext p
+         dsimp [liftWeight, Option.elim]
+         cases α p.2 <;> rfl
+       rw [h_eq]
+       apply QuasiBorelSpace.Option.isHom_elim
+       · apply isHom_comp α.2
+         exact Prod.isHom_snd
+       · fun_prop
+       · have h_uncurry : IsHom (Function.uncurry (fun r x => β r x)) := by
+           rw [OmegaHom.isHom_def] at hβ
+           exact hβ
+         change IsHom ((Function.uncurry fun r x ↦ (β r) x) ∘ (fun p : (ℝ × R) × X => (p.1.1, p.2)))
+         apply isHom_comp h_uncurry
+         apply Prod.isHom_mk
+         · apply isHom_comp Prod.isHom_fst
+           exact Prod.isHom_fst
+         · exact Prod.isHom_snd
+
+     sorry
+   ⟩
 
 /-- The expectation morphism `E : RX → JX` -/
 def E : RX X →ω𝒒 JX X :=
@@ -163,6 +237,9 @@ def E : RX X →ω𝒒 JX X :=
      monotone' := by
        sorry
      map_ωSup' := by
+       intro c
+       apply OmegaHom.ext
+       intro w
        sorry
     }, by
       sorry⟩
@@ -214,7 +291,8 @@ def bind_R {Y} [OmegaQuasiBorelSpace Y] (α : RX X) (k : X → RX Y) : RX Y :=
            | some x => k x r₂
      monotone' := by
        intro r s hrs
-       sorry
+       cases hrs
+       exact le_rfl
      map_ωSup' := by
        intro c
        sorry
@@ -297,10 +375,27 @@ noncomputable def E_rand (β : MRX X) : MSX X :=
   ⟨{ toFun := fun r => E_op (X := X) (β r)
      monotone' := by
        intro r s hrs
-       sorry
+       cases hrs
+       exact le_rfl
      map_ωSup' := by
        intro c
-       sorry
+       let f : OrderHom R (JX X) :=
+         { toFun := fun r => E_op (X := X) (β r)
+           monotone' := by
+             intro r s hrs
+             cases hrs
+             exact le_rfl }
+       have h_sup : ωSup c = c 0 := rfl
+       apply le_antisymm
+       · have : f (ωSup c) ≤ ωSup (c.map f) :=
+           le_ωSup (c.map f) 0
+         simpa [h_sup] using this
+       · apply ωSup_le
+         intro n
+         have hconst : c n = c 0 := by
+           have h' : c 0 = c n := c.monotone (Nat.zero_le n)
+           exact h'.symm
+         simp [h_sup, hconst]
     }, by
       sorry⟩
 
@@ -358,13 +453,16 @@ noncomputable instance : OmegaCompletePartialOrder (TX X) :=
           monotone' := by
             intro a b h
             exact h }
-      ⟨ωSup (c.map incl), sorry⟩
+      ⟨ωSup (c.map incl), InTX.sup (fun n => (c n).2)⟩
     le_ωSup := by
       intro c n
-      sorry
+      simpa using (le_ωSup (c.map ⟨Subtype.val, by intro a b h; exact h⟩) n)
     ωSup_le := by
       intro c x hx
-      sorry }
+      exact (ωSup_le (c := c.map ⟨Subtype.val, by intro a b h; exact h⟩) (x := x.1)
+        (by
+          intro n
+          exact hx n)) }
 
 /-- `TX` is an ωQBS as a full subobject of `JX` -/
 noncomputable instance : OmegaQuasiBorelSpace (TX X) :=
@@ -384,13 +482,16 @@ noncomputable instance : OmegaCompletePartialOrder (MTX X) :=
           monotone' := by
             intro a b h
             exact h }
-      ⟨ωSup (c.map incl), sorry⟩
+      ⟨ωSup (c.map incl), InMTX.sup (fun n => (c n).2)⟩
     le_ωSup := by
       intro c n
-      sorry
+      simpa using (le_ωSup (c.map ⟨Subtype.val, by intro a b h; exact h⟩) n)
     ωSup_le := by
       intro c x hx
-      sorry }
+      exact (ωSup_le (c := c.map ⟨Subtype.val, by intro a b h; exact h⟩) (x := x.1)
+        (by
+          intro n
+          exact hx n)) }
 
 /-- `MTX` is an ωQBS as a full subobject of `MSX` -/
 noncomputable instance : OmegaQuasiBorelSpace (MTX X) :=
@@ -424,25 +525,89 @@ def sample_map (_ : Unit) : RX R :=
   ⟨{ toFun := fun r => some r
      monotone' := by
        intro _ _ h
-       simpa [h]
+       cases h
+       rfl
      map_ωSup' := by
        intro c
-       sorry
+       let f : OrderHom R (Option R) :=
+         { toFun := some
+           monotone' := by
+             intro r s hrs
+             cases hrs
+             rfl }
+       have hconst : ∀ n, c n = c 0 := fun n => (c.monotone (Nat.zero_le n)).symm
+       have hmap_const : c.map f = Chain.const (some (c 0)) := by
+         ext n
+         simp [Chain.map_coe, f, hconst n]
+       calc
+         some (ωSup c) = some (c 0) := by rfl
+         _ = ωSup (Chain.const (some (c 0))) := by
+               simp only [ωSup_const]
+         _ = ωSup (c.map f) := by simp [hmap_const]
     }, by
-      sorry⟩
+      apply QuasiBorelSpace.Option.isHom_some
+      exact isHom_id
+    ⟩
 
 /-- `score : R → R⊥` truncates Lebesgue to an interval of length `|r|` -/
 noncomputable def score_map (r : R) : RX Unit :=
   ⟨{ toFun := fun t =>
        if ht : t.val ∈ Set.Icc (0 : ℝ) |r.val| then some () else none
      monotone' := by
-       intro _ _ _
-       sorry
+       intro t1 t2 h
+       rw [h]
      map_ωSup' := by
        intro c
-       sorry
+       dsimp
+       have h_eq : ∀ n, c n = c 0 := fun n => (c.monotone (Nat.zero_le n)).symm
+       have h_sup : ωSup c = c 0 := rfl
+       rw [h_sup]
+       let f : R →o Option Unit := {
+         toFun := fun t => if t.val ∈ Set.Icc 0 |r.val| then some () else none
+         monotone' := by intro t1 t2 h; rw [h]
+       }
+       change f (c 0) = ωSup (c.map f)
+       apply le_antisymm
+       · exact le_ωSup (c.map f) 0
+       · apply ωSup_le
+         try intro n
+         try dsimp
+         try rw [h_eq n]
+         try apply le_refl
     }, by
-      sorry⟩
+      change IsHom (fun (t : R) => if t.val ∈ Set.Icc 0 |r.val| then some () else none)
+      apply QuasiBorelSpace.Prop.isHom_ite
+      · change IsHom ((fun x => x ∈ Set.Icc 0 |r.val|) ∘ R.val)
+        apply QuasiBorelSpace.isHom_comp
+        · rw [isHom_iff_measurable]
+          intro t _
+          by_cases hT : True ∈ t <;> by_cases hF : False ∈ t
+          · suffices (fun x => x ∈ Set.Icc 0 |r.val|) ⁻¹' t = Set.univ by
+              rw [this]; exact MeasurableSet.univ
+            ext x; simp; by_cases h : x ∈ Set.Icc 0 |r.val|
+            · simp only [Set.mem_Icc] at h; rw [eq_true h]; exact hT
+            · simp only [Set.mem_Icc] at h; rw [eq_false h]; exact hF
+          · suffices (fun x => x ∈ Set.Icc 0 |r.val|) ⁻¹' t = Set.Icc 0 |r.val| by
+              rw [this]; exact measurableSet_Icc
+            ext x; simp; by_cases h : x ∈ Set.Icc 0 |r.val|
+            · simp only [Set.mem_Icc] at h; rw [eq_true h]; simp [hT]
+            · simp only [Set.mem_Icc] at h; rw [eq_false h]; simp [hF]
+          · suffices (fun x => x ∈ Set.Icc 0 |r.val|) ⁻¹' t = (Set.Icc 0 |r.val|)ᶜ by
+              rw [this]; exact MeasurableSet.compl measurableSet_Icc
+            ext x; simp; by_cases h : x ∈ Set.Icc 0 |r.val|
+            · simp only [Set.mem_Icc] at h; rw [eq_true h]; simp [hT]; assumption
+            · simp only [Set.mem_Icc] at h; rw [eq_false h]; simp [hF]
+              intro hx; simp [hx] at h; exact h
+          · suffices (fun x => x ∈ Set.Icc 0 |r.val|) ⁻¹' t = ∅ by
+              rw [this]; exact MeasurableSet.empty
+            ext x; simp; by_cases h : x ∈ Set.Icc 0 |r.val|
+            · simp only [Set.mem_Icc] at h; rw [eq_true h]; exact hT
+            · simp only [Set.mem_Icc] at h; rw [eq_false h]; exact hF
+        · apply isHom_of_measurable
+          exact Measurable.of_comap_le le_rfl
+      · apply isHom_const
+      · apply isHom_const
+    ⟩
 
 /-- Sampling lifted to the powerdomain -/
 noncomputable def sample_T (_ : Unit) : TX R :=
