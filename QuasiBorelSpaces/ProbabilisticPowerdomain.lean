@@ -235,7 +235,29 @@ def E_op (α : RX X) : JX X :=
 def E : RX X →ω𝒒 JX X :=
   ⟨{ toFun := fun α => E_op (X := X) α
      monotone' := by
-       sorry
+      intro x y hxy k
+      simp only [E_op, E_map, liftWeight, OrderHom.toFun_eq_coe, OrderHom.coe_mk]
+      apply lintegral_mono
+      intro z
+      simp only
+      cases hx : x z with
+      | none => simp only [zero_le]
+      | some xz =>
+        cases hy : y z with
+        | none =>
+          specialize hxy z
+          change x.val z = some xz at hx
+          change y.val z = none at hy
+          simp only [OrderHom.toFun_eq_coe, ContinuousHom.coe_toOrderHom, hx, hy] at hxy
+          cases hxy
+        | some yz =>
+          simp only
+          apply k.monotone
+          specialize hxy z
+          change x.val z = some xz at hx
+          change y.val z = some yz at hy
+          simp only [OrderHom.toFun_eq_coe, ContinuousHom.coe_toOrderHom, hx, hy] at hxy
+          apply hxy
      map_ωSup' := by
        intro c
        apply OmegaHom.ext
@@ -246,16 +268,19 @@ def E : RX X →ω𝒒 JX X :=
 
 /-- Monad unit on randomizations (Dirac) -/
 def return_R (x : X) : RX X :=
-  ⟨{ toFun := fun _ => some x
+  ⟨{ toFun := fun r => if r.val ∈ Set.Icc 0 1 then some x else none
      monotone' := by
        intro _ _ _
-       rfl
+       --  rfl
+       sorry
      map_ωSup' := by
        intro c
-       conv_lhs => rw [← OmegaCompletePartialOrder.ωSup_const (some x)]
-       congr 1
+       sorry
+      --  conv_lhs => rw [← OmegaCompletePartialOrder.ωSup_const (some x)]
+      --  congr 1
     }, by
-      apply isHom_const
+      sorry
+      -- apply isHom_const
     ⟩
 
 /-- A measurable splitting of randomness as in the transfer principle -/
@@ -282,22 +307,22 @@ attribute [instance] defaultRandomSplit
 variable [RandomSplit]
 
 /-- Monad bind on randomizations using the randomness splitting -/
-def bind_R {Y} [OmegaQuasiBorelSpace Y] (α : RX X) (k : X → RX Y) : RX Y :=
-  ⟨{ toFun := fun r =>
-       match RandomSplit.φ r with
-       | (r₁, r₂) =>
-           match α r₁ with
-           | none => none
-           | some x => k x r₂
-     monotone' := by
-       intro r s hrs
-       cases hrs
-       exact le_rfl
-     map_ωSup' := by
-       intro c
-       sorry
-    }, by
-      sorry⟩
+def bind_R {Y} [OmegaQuasiBorelSpace Y] (α : RX X) (k : X → RX Y) : RX Y where
+  val := {
+    toFun r :=
+      match RandomSplit.φ r with
+      | (r₁, r₂) => α r₁ >>= (k · r₂)
+    monotone' := by
+      intro r s hrs
+      cases hrs
+      exact le_rfl
+    map_ωSup' := by
+      intro c
+      sorry
+  }
+
+  property := by
+      sorry
 
 end
 
@@ -345,6 +370,20 @@ def bind_J {Y} [OmegaQuasiBorelSpace Y] (μ : JX X) (k : X → JX Y) : JX Y :=
        sorry
    }, by
      sorry⟩
+
+lemma return_bind_J {Y} [OmegaQuasiBorelSpace Y] {x : X} {f : X → JX Y}
+    : bind_J _ (return_J _ x) f = f x := by
+  sorry
+
+lemma bind_return_J {Y} [OmegaQuasiBorelSpace Y] {x : JX X}
+    : bind_J _ x (return_J _) = x := by
+  sorry
+
+lemma bind_bind_J
+    {Y Z} [OmegaQuasiBorelSpace Y] [OmegaQuasiBorelSpace Z]
+    {x : JX X} {f : X → JX Y} {g : Y → JX Z}
+    : bind_J _ (bind_J _ x f) g = bind_J _ x fun y ↦ bind_J _ (f y) g := by
+  sorry
 
 /-- Expectation preserves the monad structure on randomizations -/
 theorem E_preserves_return (x : X) :
@@ -521,8 +560,8 @@ theorem expectation_factorizes_monad :
 -/
 
 /-- `sample : 1 → R R` is the identity randomization on reals -/
-def sample_map (_ : Unit) : RX R :=
-  ⟨{ toFun := fun r => some r
+noncomputable def sample_map (_ : Unit) : RX R :=
+  ⟨{ toFun := fun r => if r.val ∈ Set.Icc 0 1 then some r else none
      monotone' := by
        intro _ _ h
        cases h
@@ -539,26 +578,27 @@ def sample_map (_ : Unit) : RX R :=
        have hmap_const : c.map f = Chain.const (some (c 0)) := by
          ext n
          simp [Chain.map_coe, f, hconst n]
-       calc
-         some (ωSup c) = some (c 0) := by rfl
-         _ = ωSup (Chain.const (some (c 0))) := by
-               simp only [ωSup_const]
-         _ = ωSup (c.map f) := by simp [hmap_const]
+       sorry
+      --  calc
+      --    some (ωSup c) = some (c 0) := by rfl
+      --    _ = ωSup (Chain.const (some (c 0))) := by
+      --          simp only [ωSup_const]
+      --    _ = ωSup (c.map f) := by simp [hmap_const]
     }, by
-      apply QuasiBorelSpace.Option.isHom_some
-      exact isHom_id
+      sorry
+      -- apply QuasiBorelSpace.Option.isHom_some
+      -- exact isHom_id
     ⟩
 
 /-- `score : R → R⊥` truncates Lebesgue to an interval of length `|r|` -/
 noncomputable def score_map (r : R) : RX Unit :=
   ⟨{ toFun := fun t =>
-       if ht : t.val ∈ Set.Icc (0 : ℝ) |r.val| then some () else none
+       if t.val ∈ Set.Icc (0 : ℝ) |r.val| then some () else none
      monotone' := by
        intro t1 t2 h
        rw [h]
      map_ωSup' := by
        intro c
-       dsimp
        have h_eq : ∀ n, c n = c 0 := fun n => (c.monotone (Nat.zero_le n)).symm
        have h_sup : ωSup c = c 0 := rfl
        rw [h_sup]
@@ -616,64 +656,6 @@ noncomputable def sample_T (_ : Unit) : TX R :=
 /-- Conditioning lifted to the powerdomain -/
 noncomputable def score_T (r : R) : TX Unit :=
   E_T (X := Unit) (score_map r)
-
-/-
-## Free monad viewpoint (See Section 4.4 of [VakarKS19])
--/
-
-universe u
-
-section FreeMonad
-
-variable (F : Type → Type) [Monad F]
-variable (sampleF : Unit → F R) (scoreF : R → F Unit)
-
-/-- A simple notion of monad morphism used for the free-monad statement -/
-structure MonadMorphismToT
-    (F : Type → Type) [Monad F]
-    (sampleF : Unit → F R) (scoreF : R → F Unit) where
-  /-- The morphism maps the free monad to `TX` -/
-  app :
-    ∀ {Y} [OmegaQuasiBorelSpace Y] [Inhabited Y], F Y → TX Y
-  /-- The morphism preserves the unit -/
-  map_pure :
-    ∀ {Y} [OmegaQuasiBorelSpace Y] [Inhabited Y] (y : Y),
-      app (pure y) = return_T (X := Y) y
-  /-- The morphism preserves the bind -/
-  map_bind :
-    ∀ {Y Z} [OmegaQuasiBorelSpace Y] [OmegaQuasiBorelSpace Z] [Inhabited Y] [Inhabited Z]
-      (fy : F Y) (k : Y → F Z),
-      app (fy >>= k) =
-        bind_T (X := Y) (Y := Z) (app fy) (fun y => app (k y))
-  /-- The morphism preserves the sample operation -/
-  preserves_sample : app (sampleF ()) = sample_T ()
-  /-- The morphism preserves the score operation -/
-  preserves_score : ∀ r, app (scoreF r) = score_T r
-
-/-- The monad morphism interpreting the free sampling/conditioning monad into `T` -/
-noncomputable def m_T : MonadMorphismToT F sampleF scoreF :=
-  { app := by
-      intro Y _ _ fy
-      exact ⟨return_J (X := Y) default, sorry⟩
-    map_pure := by
-      intro Y _ _ y
-      sorry
-    map_bind := by
-      intro Y Z _ _ _ _ fy k
-      sorry
-    preserves_sample := by
-      sorry
-    preserves_score := by
-      intro r
-      sorry }
-
-/-- The morphism `m_T` is component-wise densely strong epi (Lemma 4.4 placeholder) -/
-theorem m_T_dense {Y} [OmegaQuasiBorelSpace Y] [Inhabited Y] :
-    True := by
-  trivial
-
-end FreeMonad
-
 
 end ExpectationMonad
 end QuasiBorelSpaces
