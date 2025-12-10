@@ -373,22 +373,91 @@ def bind_J {Y} [OmegaQuasiBorelSpace Y] (μ : JX X) (k : X → JX Y) : JX Y :=
 
 lemma return_bind_J {Y} [OmegaQuasiBorelSpace Y] {x : X} {f : X → JX Y}
     : bind_J _ (return_J _ x) f = f x := by
-  sorry
+  apply OmegaHom.ext
+  intro w
+  rfl
 
 lemma bind_return_J {Y} [OmegaQuasiBorelSpace Y] {x : JX X}
     : bind_J _ x (return_J _) = x := by
-  sorry
+  apply OmegaHom.ext
+  intro w
+  rfl
 
 lemma bind_bind_J
     {Y Z} [OmegaQuasiBorelSpace Y] [OmegaQuasiBorelSpace Z]
     {x : JX X} {f : X → JX Y} {g : Y → JX Z}
     : bind_J _ (bind_J _ x f) g = bind_J _ x fun y ↦ bind_J _ (f y) g := by
-  sorry
+  apply OmegaHom.ext
+  intro w
+  rfl
 
 /-- Expectation preserves the monad structure on randomizations -/
 theorem E_preserves_return (x : X) :
     E (X := X) (return_R (X := X) x) = return_J (X := X) x := by
-  sorry
+  apply OmegaHom.ext
+  intro w
+  change E_map X (return_R X x) w = w x
+  unfold E_map return_R
+  dsimp [liftWeight]
+
+  let e : R ≃ᵐ ℝ := {
+    toFun := R.val
+    invFun := R.mk
+    left_inv := fun r => rfl
+    right_inv := fun y => rfl
+    measurable_toFun := Measurable.of_comap_le le_rfl
+    measurable_invFun := by
+      intro s hs
+      rcases hs with ⟨t, ht, rfl⟩
+      simpa using ht
+  }
+
+  have h_vol_def : (volume : Measure R) = Measure.comap R.val volume := rfl
+  have h_vol : (volume : Measure R) = Measure.map e.symm volume := by
+    rw [h_vol_def]
+    ext s hs
+    rw [Measure.map_apply e.symm.measurable hs]
+    rw [Measure.comap_apply]
+    · congr
+      ext y
+      simp
+      constructor
+      · rintro ⟨r, hr, rfl⟩
+        exact hr
+      · intro hy
+        use R.mk y
+        constructor
+        · exact hy
+        · rfl
+    · exact e.injective
+    · intro s' hs'
+      change MeasurableSet (e '' s')
+      rw [MeasurableEquiv.image_eq_preimage_symm]
+      exact e.symm.measurable hs'
+    · exact hs
+
+  simp [h_vol]
+  let g := fun r => liftWeight X (fun x => w x) (return_R X x r)
+  have h_eq : ∫⁻ r, g r ∂(Measure.map e.symm volume) = ∫⁻ y, g (e.symm y) ∂volume := by
+    exact lintegral_map_equiv g e.symm
+
+  change ∫⁻ r, g r ∂(Measure.map e.symm volume) = w x
+  rw [h_eq]
+  have h_int : (fun y => g (e.symm y)) =
+      (fun y => w x * Set.indicator (Set.Icc 0 1) (fun _ => 1) y) := by
+    ext y
+    simp only [g, return_R, liftWeight, Set.indicator]
+    change (match (if (e.symm y).val ∈ Set.Icc 0 1 then some x else none) with
+      | some x => w x | none => 0) = _
+    have : (e.symm y).val = y := rfl
+    rw [this]
+    split_ifs <;> simp
+  rw [h_int]
+  rw [lintegral_const_mul]
+  · rw [lintegral_indicator_const measurableSet_Icc 1]
+    rw [Real.volume_Icc]
+    simp
+  · exact Measurable.indicator measurable_const measurableSet_Icc
 
 theorem E_preserves_bind {Y} [OmegaQuasiBorelSpace Y] (α : RX X) (k : X → RX Y) :
     E (X := Y) (bind_R (X := X) (Y := Y) α k) =
@@ -543,7 +612,8 @@ noncomputable instance : OmegaQuasiBorelSpace (MTX X) :=
 /-- Monad unit on `T` obtained by restriction -/
 def return_T (x : X) : TX X :=
   ⟨return_J (X := X) x, by
-    sorry⟩
+    rw [←E_preserves_return]
+    apply InTX.randomizable⟩
 
 /-- Monad bind on `T`, restricting the `J` bind -/
 def bind_T {Y} [OmegaQuasiBorelSpace Y] (t : TX X) (k : X → TX Y) : TX Y :=
