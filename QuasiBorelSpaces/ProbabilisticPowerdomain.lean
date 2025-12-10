@@ -190,7 +190,20 @@ def E_op (α : RX X) : JX X :=
            · fun_prop
            · apply isHom_comp (c n).2
              fun_prop
-         sorry
+         let f := fun r => Option.elim (α r) 0 (fun x => c n x)
+         change Measurable f
+         let f' := f ∘ R.mk
+         have h_mk : IsHom R.mk := isHom_of_measurable (f := R.mk) (by
+           intro s hs
+           rcases hs with ⟨t, ht, rfl⟩
+           exact ht)
+         have : IsHom f' := isHom_comp h_hom h_mk
+         have hf' : Measurable f' := measurable_of_isHom _ this
+         have h_val : Measurable R.val := by
+           intro s hs
+           exact ⟨s, hs, rfl⟩
+         rw [show f = f' ∘ R.val by ext; rfl]
+         exact Measurable.comp hf' h_val
        · intro n m hnm r
          dsimp [liftWeight]
          cases α r with
@@ -228,7 +241,27 @@ def E_op (α : RX X) : JX X :=
            exact Prod.isHom_fst
          · exact Prod.isHom_snd
 
-     sorry
+     let f' : ℝ × ℝ → ENNReal := F ∘ (Prod.map (id : ℝ → ℝ) R.mk)
+     have h_mk : IsHom R.mk := isHom_of_measurable (f := R.mk) (by
+       intro s hs
+       rcases hs with ⟨t, ht, rfl⟩
+       exact ht)
+     have h_map : IsHom (Prod.map (id : ℝ → ℝ) R.mk) := by
+       apply Prod.isHom_mk
+       · apply isHom_comp isHom_id Prod.isHom_fst
+       · apply isHom_comp h_mk Prod.isHom_snd
+     have : IsHom f' := isHom_comp hF_hom h_map
+     have hf' : Measurable f' := by sorry
+     have h_val : Measurable R.val := by
+       intro s hs
+       exact ⟨s, hs, rfl⟩
+     have h_map_val : Measurable (Prod.map (id : ℝ → ℝ) R.val) := by
+       apply Measurable.prodMk
+       · apply Measurable.comp measurable_id measurable_fst
+       · apply Measurable.comp h_val measurable_snd
+     rw [show F = f' ∘ (Prod.map (id : ℝ → ℝ) R.val) by ext; rfl]
+     have : MeasurableSpace (ℝ × R) := inferInstance
+     exact sorry
    ⟩
 
 /-- The expectation morphism `E : RX → JX` -/
@@ -270,17 +303,68 @@ def E : RX X →ω𝒒 JX X :=
 def return_R (x : X) : RX X :=
   ⟨{ toFun := fun r => if r.val ∈ Set.Icc 0 1 then some x else none
      monotone' := by
-       intro _ _ _
-       --  rfl
-       sorry
+       intro r s hrs
+       rw [hrs]
      map_ωSup' := by
        intro c
-       sorry
-      --  conv_lhs => rw [← OmegaCompletePartialOrder.ωSup_const (some x)]
-      --  congr 1
+       let f : R →o Option X := {
+         toFun := fun r => if r.val ∈ Set.Icc 0 1 then some x else none
+         monotone' := by
+           intro r s hrs
+           rw [hrs]
+       }
+       have h_const : ∀ n, c n = c 0 := fun n => (c.monotone (Nat.zero_le n)).symm
+       have h_map : c.map f = Chain.const (f (c 0)) := by
+         ext n
+         simp [h_const n]
+       rw [h_map]
+       simp only [ωSup_const]
+       congr 1
     }, by
-      sorry
-      -- apply isHom_const
+      classical
+      change IsHom (fun (r : R) => if r.val ∈ Set.Icc 0 1 then some x else none)
+      apply QuasiBorelSpace.Prop.isHom_ite
+      · change IsHom ((fun (v : ℝ) => v ∈ Set.Icc 0 1) ∘ R.val)
+        apply QuasiBorelSpace.isHom_comp
+        · rw [isHom_iff_measurable]
+          intro s _
+          let S : Set ℝ := {v | (v ∈ Set.Icc (0:ℝ) 1) ∈ s}
+          have hS : MeasurableSet S := by
+            by_cases hT : True ∈ s <;> by_cases hF : False ∈ s
+            · suffices S = Set.univ by rw [this]; exact MeasurableSet.univ
+              dsimp [S]
+              ext v
+              simp only [Set.mem_Icc]
+              by_cases hv : 0 ≤ v ∧ v ≤ 1
+              · simp [hv, hT]
+              · simp [hv, hF]
+            · suffices S = Set.Icc 0 1 by rw [this]; exact measurableSet_Icc
+              dsimp [S]
+              ext v
+              simp only [Set.mem_Icc]
+              by_cases hv : 0 ≤ v ∧ v ≤ 1
+              · simp [hv, hT]
+              · simp [hv, hF]
+            · suffices S = (Set.Icc 0 1)ᶜ by rw [this]; exact MeasurableSet.compl measurableSet_Icc
+              dsimp [S]
+              ext v
+              simp only [Set.mem_Icc]
+              by_cases hv : 0 ≤ v ∧ v ≤ 1
+              · simp [hv, hT]
+              · simp [hv, hF]
+            · suffices S = ∅ by rw [this]; exact MeasurableSet.empty
+              dsimp [S]
+              ext v
+              simp only [Set.mem_Icc]
+              by_cases hv : 0 ≤ v ∧ v ≤ 1
+              · simp [hv, hT]
+              · simp [hv, hF]
+          exact hS
+        · apply isHom_of_measurable
+          intro s hs
+          exact ⟨s, hs, rfl⟩
+      · apply isHom_const
+      · apply isHom_const
     ⟩
 
 /-- A measurable splitting of randomness as in the transfer principle -/
@@ -318,7 +402,22 @@ def bind_R {Y} [OmegaQuasiBorelSpace Y] (α : RX X) (k : X → RX Y) : RX Y wher
       exact le_rfl
     map_ωSup' := by
       intro c
-      sorry
+      have hc : ∀ n, c n = c 0 := fun n => (c.monotone (Nat.zero_le n)).symm
+      rw [show ωSup c = c 0 from rfl]
+      symm
+      let f : R →o Option Y := {
+        toFun := fun r => match RandomSplit.φ r with | (r₁, r₂) => α r₁ >>= (k · r₂)
+        monotone' := by
+          intro r s hrs
+          cases hrs
+          exact le_rfl
+      }
+      change ωSup (c.map f) = f (c 0)
+      have : c.map f = Chain.const (f (c 0)) := by
+        ext n
+        simp [hc]
+      rw [this]
+      apply ωSup_const
   }
 
   property := by
