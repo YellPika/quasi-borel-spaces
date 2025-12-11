@@ -295,9 +295,236 @@ def E : RX X →ω𝒒 JX X :=
        intro c
        apply OmegaHom.ext
        intro w
-       sorry
+       dsimp [E_op, E_map]
+       have h_pointwise : ∀ r, liftWeight X w ((ωSup c) r) = ⨆ n, liftWeight X w (c n r) := by
+         intro r
+         let f : Option X →o ENNReal := {
+           toFun := liftWeight X w
+           monotone' := by
+             intro a b hab
+             cases a with
+             | none =>
+               dsimp [liftWeight]
+               apply zero_le
+             | some x =>
+               cases b with
+               | none =>
+                 cases hab
+               | some y =>
+                 dsimp [liftWeight]
+                 apply w.monotone
+                 change x ≤ y at hab
+                 exact hab
+         }
+         have h_cont : ∀ d, f (ωSup d) = ωSup (d.map f) := by
+           intro d
+           by_cases h : ∃ n x, d n = some x
+           · change f (optionωSup d) = ωSup (d.map f)
+             rw [optionωSup]
+             simp [h]
+             dsimp [f, liftWeight]
+             let w_val := w.val
+             trans ωSup ((tailChain d h).map w_val)
+             · apply w.val.map_ωSup'
+             let shift_c : Chain ENNReal := {
+               toFun := fun n => (d.map f) (n + firstSomeIndex d h)
+               monotone' := fun _ _ h => (d.map f).monotone (Nat.add_le_add_right h _)
+             }
+             have h_shift : shift_c = (tailChain d h).map w_val := by
+               ext n
+               change f (d (n + firstSomeIndex d h)) = w_val (tailChain d h n)
+               rw [Nat.add_comm]
+               dsimp [tailChain]
+               cases h_dn : d (firstSomeIndex d h + n) with
+               | none =>
+                 have h_idx := firstSome_spec d h
+                 have h_mono := d.monotone (Nat.le_add_right (firstSomeIndex d h) n)
+                 rw [h_idx] at h_mono
+                 rw [h_dn] at h_mono
+                 have : some (firstSomeValue d h) ≤ none := h_mono
+                 cases this
+               | some x =>
+                 simp [w_val]
+                 change f (some x) = w ((tailChain d h) n)
+                 have h_eq_x : (tailChain d h n) = x := by
+                   change (match d (firstSomeIndex d h + n) with
+                    | some x => x | none => firstSomeValue d h) = x
+                   rw [h_dn]
+                 rw [h_eq_x]
+                 rfl
+             rw [← h_shift]
+             have h_omegaSup_shift : ωSup shift_c = ωSup (d.map f) := by
+               apply le_antisymm
+               · apply ωSup_le
+                 intro n
+                 apply le_ωSup (d.map f) (n + firstSomeIndex d h)
+               · apply ωSup_le
+                 intro n
+                 trans (d.map f) (n + firstSomeIndex d h)
+                 · apply (d.map f).monotone
+                   apply Nat.le_add_right
+                 · apply le_ωSup shift_c n
+             rw [h_omegaSup_shift]
+           · change f (optionωSup d) = ωSup (d.map f)
+             rw [optionωSup]
+             rw [dif_neg h]
+             have h_all_none : ∀ n, d n = none := by
+               intro n
+               cases h_dn : d n with
+               | none => rfl
+               | some val =>
+                 have : ∃ n x, d n = some val := ⟨n, val, h_dn⟩
+                 exfalso
+                 exact h ⟨n, val, h_dn⟩
+             have h_map_zero : d.map f = Chain.const 0 := by
+               ext n
+               dsimp [f, liftWeight]
+               rw [h_all_none n]
+             rw [h_map_zero]
+             dsimp [f, liftWeight]
+             simp
+         let d : Chain (Option X) :=
+            { toFun := fun n => c n r, monotone' := fun i j h => c.monotone h r }
+         convert h_cont d
+       trans ∫⁻ r, ⨆ n, liftWeight X w (c n r)
+       · apply lintegral_congr
+         intro r
+         rw [h_pointwise]
+       rw [lintegral_iSup]
+       · unfold E_op E_map
+         rfl
+       · intro n
+         let g := fun r => liftWeight X w (c n r)
+         change Measurable g
+         have h_hom : IsHom g := by
+           dsimp [g, liftWeight]
+           have h_eq : (fun r => match (c n) r with | some x => w x | none => 0) =
+            ((fun o => Option.elim o 0 w) ∘ (c n)) := by
+             funext r
+             dsimp
+             let val := (c n) r
+             change (match val with | some x => w x | none => 0) = val.elim 0 w
+             cases val <;> rfl
+           rw [h_eq]
+           apply QuasiBorelSpace.isHom_comp _ (c n).2
+           apply QuasiBorelSpace.Option.isHom_elim
+           · apply isHom_id
+           · apply isHom_const
+           · apply QuasiBorelSpace.isHom_comp w.2 QuasiBorelSpace.Prod.isHom_snd
+
+         let f' := g ∘ R.mk
+         have h_mk : IsHom R.mk := isHom_of_measurable (f := R.mk) (by
+           intro s hs
+           rcases hs with ⟨t, ht, rfl⟩
+           exact ht)
+         have : IsHom f' := isHom_comp h_hom h_mk
+         have hf' : Measurable f' := measurable_of_isHom _ this
+         have h_val : Measurable R.val := by
+           intro s hs
+           exact ⟨s, hs, rfl⟩
+         rw [show g = f' ∘ R.val by ext; rfl]
+         exact Measurable.comp hf' h_val
+
+       · intro n m hnm r
+         dsimp [liftWeight]
+         let val_n := (c n) r
+         change (match val_n with | some x => w x | none => 0) ≤
+          match (c m) r with | some x => w x | none => 0
+         cases h_cn : val_n with
+         | none =>
+           dsimp
+           apply zero_le
+         | some x =>
+           let val_m := (c m) r
+           change w x ≤ match val_m with | some x => w x | none => 0
+           cases h_cm : val_m with
+           | none =>
+             have h_mono_val : (instOmegaQuasiBorelSpaceOption X).toLE.le val_n val_m :=
+              c.monotone hnm r
+             rw [h_cn, h_cm] at h_mono_val
+             dsimp [instOmegaQuasiBorelSpaceOption] at h_mono_val
+             cases h_mono_val
+           | some y =>
+             dsimp
+             apply w.monotone
+             have h_mono_val : (instOmegaQuasiBorelSpaceOption X).toLE.le val_n val_m :=
+             c.monotone hnm r
+             rw [h_cn, h_cm] at h_mono_val
+             dsimp [instOmegaQuasiBorelSpaceOption] at h_mono_val
+             exact h_mono_val
     }, by
-      sorry⟩
+      rw [QuasiBorelSpace.isHom_def]
+      intro β hβ
+      rw [OmegaHom.isHom_def]
+      rw [QuasiBorelSpace.isHom_def]
+      intro γ hγ
+      rw [isHom_iff_measurable]
+      dsimp
+
+      let H := fun (tr : ℝ × R) => liftWeight X (fun x => (γ tr.1).2 x) (β (γ tr.1).1 tr.2)
+
+      have hH : IsHom H := by
+        unfold H liftWeight
+        have h_eq : (fun (tr : ℝ × R) =>
+        match β (γ tr.1).1 tr.2 with | some x => (γ tr.1).2 x | none => 0) =
+                    (fun tr => Option.elim (β (γ tr.1).1 tr.2) 0 (γ tr.1).2) := by
+          ext tr
+          cases β (γ tr.1).1 tr.2 <;> simp [Option.elim]
+        rw [h_eq]
+        apply QuasiBorelSpace.Option.isHom_elim
+        · change IsHom ((fun p : (R →ω𝒒 Option X) × R =>
+           p.1 p.2) ∘ (fun (tr : ℝ × R) => (β (γ tr.1).1, tr.2)))
+          apply isHom_comp (hf := OmegaHom.isHom_eval)
+          apply Prod.isHom_mk
+          · apply isHom_comp (hf := hβ)
+            apply isHom_comp (hf := Prod.isHom_fst)
+            apply isHom_comp (hf := hγ)
+            exact Prod.isHom_fst
+          · exact Prod.isHom_snd
+        · fun_prop
+        · change IsHom ((fun p :
+          (X →ω𝒒 ENNReal) × X => p.1 p.2) ∘ (fun p : (ℝ × R) × X => ((γ p.1.1).2, p.2)))
+          apply isHom_comp (hf := OmegaHom.isHom_eval)
+          apply Prod.isHom_mk
+          · apply isHom_comp (hf := Prod.isHom_snd)
+            apply isHom_comp (hf := hγ)
+            exact isHom_comp Prod.isHom_fst Prod.isHom_fst
+          · exact Prod.isHom_snd
+
+      have hH_meas : Measurable H := by
+        let H' : ℝ × ℝ → ENNReal := fun p => H (p.1, R.mk p.2)
+        have hH' : IsHom H' := by
+          dsimp [H']
+          apply isHom_comp hH
+          apply Prod.isHom_mk Prod.isHom_fst
+          apply isHom_comp (hf := (isHom_of_measurable R.mk
+          (by intro s hs; rcases hs with ⟨t, ht, rfl⟩; exact ht)))
+          exact Prod.isHom_snd
+
+        have hH'_meas : Measurable H' := by
+          let f := H' ∘ MeasureTheory.unpack (A := ℝ × ℝ)
+          have hf : IsHom f := by
+            apply isHom_comp hH'
+            apply isHom_of_measurable
+            exact MeasureTheory.measurable_unpack
+          have hf_meas : Measurable f := by
+            rw [← isHom_iff_measurable]
+            exact hf
+          have h_eq : H' = f ∘ MeasureTheory.pack := by
+            ext x
+            simp [f, MeasureTheory.unpack_pack]
+          rw [h_eq]
+          apply Measurable.comp hf_meas
+          exact MeasureTheory.measurable_pack
+
+        change Measurable (fun p : ℝ × R => H' (p.1, p.2.val))
+        apply Measurable.comp hH'_meas
+        apply Measurable.prodMk measurable_fst
+        apply Measurable.comp _ measurable_snd
+        intro s hs
+        exact ⟨s, hs, rfl⟩
+
+      apply Measurable.lintegral_prod_right hH_meas⟩
 
 /-- Monad unit on randomizations (Dirac) -/
 def return_R (x : X) : RX X :=
@@ -561,7 +788,43 @@ theorem E_preserves_return (x : X) :
 theorem E_preserves_bind {Y} [OmegaQuasiBorelSpace Y] (α : RX X) (k : X → RX Y) :
     E (X := Y) (bind_R (X := X) (Y := Y) α k) =
       bind_J (X := X) (Y := Y) (E (X := X) α) (fun x => E (X := Y) (k x)) := by
-  sorry
+  apply OmegaHom.ext
+  intro w
+  change E_map Y (bind_R X α k) w = bind_J X (E X α) (fun x => E Y (k x)) w
+  unfold bind_J
+  dsimp
+  unfold E_map
+
+  let f := fun (p : R × R) => liftWeight Y w (α p.1 >>= (k · p.2))
+  have h_meas_f : Measurable f := sorry
+
+  have h_lhs : ∫⁻ r, liftWeight Y w (bind_R X α k r) ∂volume = ∫⁻ p, f p ∂(volume.prod volume) := by
+    simp only [bind_R]
+    change ∫⁻ r, liftWeight Y w (match RandomSplit.φ r with
+      | (r₁, r₂) => α r₁ >>= (k · r₂)) ∂volume = _
+    have : (fun r => liftWeight Y w (match RandomSplit.φ r with
+        | (r₁, r₂) => α r₁ >>= (k · r₂))) = f ∘ RandomSplit.φ := by
+      ext r
+      simp [f]
+      dsimp [RandomSplit.φ, defaultRandomSplit]
+    rw [this]
+    rw [← RandomSplit.preserves_volume]
+    rw [lintegral_map h_meas_f RandomSplit.measurable_φ]
+    rfl
+
+  rw [h_lhs]
+  have h_fubini : ∫⁻ p, f p ∂(volume.prod volume) =
+      ∫⁻ r1, ∫⁻ r2, f (r1, r2) ∂volume ∂volume := lintegral_prod f h_meas_f.aemeasurable
+  rw [h_fubini]
+  apply lintegral_congr
+  intro r1
+  simp [f]
+  cases h : α r1 with
+  | none =>
+    simp [liftWeight]
+  | some x =>
+    simp [liftWeight]
+    rfl
 
 /-
 ## Randomizable operators and ω-closures (See Section 4.2 of [VakarKS19])
