@@ -47,7 +47,43 @@ instance : MeasureSpace R where
   volume := Measure.comap R.val volume
 
 noncomputable instance : SigmaFinite (volume : Measure R) := by
-  sorry
+  let e : ℝ ≃ᵐ R := {
+    toFun := R.mk
+    invFun := R.val
+    left_inv := fun _ => rfl
+    right_inv := fun _ => rfl
+    measurable_toFun := by
+      intro s hs
+      rcases hs with ⟨t, ht, rfl⟩
+      exact ht
+    measurable_invFun := Measurable.of_comap_le le_rfl
+  }
+  have h_eq : (volume : Measure R) = volume.map e := by
+    ext s hs
+    rw [Measure.map_apply e.measurable hs]
+    have h_preimage : e ⁻¹' s = R.val '' s := by
+      ext x
+      simp only [Set.mem_preimage, Set.mem_image]
+      constructor
+      · intro hx
+        use R.mk x
+        exact ⟨hx, rfl⟩
+      · rintro ⟨r, hr, rfl⟩
+        exact hr
+    rw [h_preimage]
+    have h_inj : Function.Injective R.val := fun a b h => by
+      cases a; cases b; congr
+    have h_meas_image : ∀ t, MeasurableSet t → MeasurableSet (R.val '' t) := by
+      intro t ht
+      rcases ht with ⟨u, hu, rfl⟩
+      simp only [Set.image_preimage_eq_inter_range]
+      have : Set.range R.val = Set.univ := by ext x; simp
+      rw [this, Set.inter_univ]
+      exact hu
+    change (Measure.comap R.val volume) s = volume (R.val '' s)
+    rw [Measure.comap_apply R.val h_inj h_meas_image volume hs]
+  rw [h_eq]
+  exact e.sigmaFinite_map
 
 instance : QuasiBorelSpace R := QuasiBorelSpace.ofMeasurableSpace
 
@@ -251,7 +287,15 @@ def E_op (α : RX X) : JX X :=
        · apply isHom_comp isHom_id Prod.isHom_fst
        · apply isHom_comp h_mk Prod.isHom_snd
      have : IsHom f' := isHom_comp hF_hom h_map
-     have hf' : Measurable f' := by sorry
+     have hf' : Measurable f' := by
+       have h_unpack : IsHom (MeasureTheory.unpack (A := ℝ × ℝ)) :=
+         isHom_of_measurable _ MeasureTheory.measurable_unpack
+       have h_comp : IsHom (f' ∘ MeasureTheory.unpack) := isHom_comp this h_unpack
+       have h_meas_comp : Measurable (f' ∘ MeasureTheory.unpack) := measurable_of_isHom _ h_comp
+       have h_eq : f' = (f' ∘ MeasureTheory.unpack) ∘ MeasureTheory.pack := by
+         ext x; simp only [Function.comp_apply, MeasureTheory.unpack_pack]
+       rw [h_eq]
+       exact h_meas_comp.comp MeasureTheory.measurable_pack
      have h_val : Measurable R.val := by
        intro s hs
        exact ⟨s, hs, rfl⟩
@@ -260,8 +304,7 @@ def E_op (α : RX X) : JX X :=
        · apply Measurable.comp measurable_id measurable_fst
        · apply Measurable.comp h_val measurable_snd
      rw [show F = f' ∘ (Prod.map (id : ℝ → ℝ) R.val) by ext; rfl]
-     have : MeasurableSpace (ℝ × R) := inferInstance
-     exact sorry
+     exact hf'.comp h_map_val
    ⟩
 
 /-- The expectation morphism `E : RX → JX` -/
