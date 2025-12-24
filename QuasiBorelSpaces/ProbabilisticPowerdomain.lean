@@ -785,7 +785,7 @@ theorem E_preserves_return (x : X) :
     simp
   · exact Measurable.indicator measurable_const measurableSet_Icc
 
-theorem E_preserves_bind {Y} [OmegaQuasiBorelSpace Y] (α : RX X) (k : X → RX Y) :
+theorem E_preserves_bind {Y} [OmegaQuasiBorelSpace Y] (α : RX X) (k : X →ω𝒒 RX Y) :
     E (X := Y) (bind_R (X := X) (Y := Y) α k) =
       bind_J (X := X) (Y := Y) (E (X := X) α) (fun x => E (X := Y) (k x)) := by
   apply OmegaHom.ext
@@ -794,9 +794,67 @@ theorem E_preserves_bind {Y} [OmegaQuasiBorelSpace Y] (α : RX X) (k : X → RX 
   unfold bind_J
   dsimp
   unfold E_map
-
   let f := fun (p : R × R) => liftWeight Y w (α p.1 >>= (k · p.2))
-  have h_meas_f : Measurable f := sorry
+  have h_meas_f : Measurable f := by
+    let H : ℝ × ℝ → ENNReal := fun p => f (R.mk p.1, R.mk p.2)
+    have hH : IsHom H := by
+      dsimp [H, f]
+      change IsHom (fun (p : ℝ × ℝ) => liftWeight Y w (α (R.mk p.1) >>= (fun x => k x (R.mk p.2))))
+      have h_eq : (fun p => liftWeight Y w (α (R.mk p.1) >>= (fun x => k x (R.mk p.2)))) =
+                  (fun (p : ℝ × ℝ) =>
+                  Option.elim (Option.elim (α (R.mk p.1)) none (fun x => k x (R.mk p.2))) 0 w) := by
+        ext p
+        dsimp [liftWeight, Option.bind, Option.elim]
+        cases α (R.mk p.1) with
+        | none => rfl
+        | some x =>
+          dsimp
+          cases (k x) (R.mk p.2) <;> rfl
+      rw [h_eq]
+      apply QuasiBorelSpace.Option.isHom_elim
+      · apply QuasiBorelSpace.Option.isHom_elim
+        · change IsHom (α ∘ R.mk ∘ Prod.fst)
+          apply isHom_comp α.2
+          apply isHom_comp (isHom_of_measurable (f := R.mk)
+          (by intro s hs; rcases hs with ⟨t, ht, rfl⟩; exact ht))
+          exact Prod.isHom_fst
+        · fun_prop
+        · change IsHom ((fun p : (RX Y) × R => p.1 p.2) ∘ (fun q : (ℝ × ℝ) × X =>
+           (k q.2, R.mk q.1.2)))
+          apply isHom_comp OmegaHom.isHom_eval
+          apply Prod.isHom_mk
+          · apply isHom_comp k.2
+            exact Prod.isHom_snd
+          · apply isHom_comp (isHom_of_measurable (f := R.mk)
+            (by intro s hs; rcases hs with ⟨t, ht, rfl⟩; exact ht))
+            apply isHom_comp Prod.isHom_snd
+            exact Prod.isHom_fst
+      · fun_prop
+      · change IsHom (w ∘ Prod.snd)
+        apply isHom_comp w.2
+        exact Prod.isHom_snd
+
+    have hH_meas : Measurable H := by
+      let F := H ∘ MeasureTheory.unpack (A := ℝ × ℝ)
+      have hF : IsHom F := by
+        apply isHom_comp hH
+        apply isHom_of_measurable
+        exact MeasureTheory.measurable_unpack
+      have hF_meas : Measurable F := by
+        rw [← isHom_iff_measurable]
+        exact hF
+      have h_eq : H = F ∘ MeasureTheory.pack := by
+        ext x
+        simp [F, MeasureTheory.unpack_pack]
+      rw [h_eq]
+      apply Measurable.comp hF_meas
+      exact MeasureTheory.measurable_pack
+
+    change Measurable (fun p : R × R => H (p.1.val, p.2.val))
+    apply Measurable.comp hH_meas
+    apply Measurable.prodMk
+    · apply Measurable.comp (Measurable.of_comap_le le_rfl) measurable_fst
+    · apply Measurable.comp (Measurable.of_comap_le le_rfl) measurable_snd
 
   have h_lhs : ∫⁻ r, liftWeight Y w (bind_R X α k r) ∂volume = ∫⁻ p, f p ∂(volume.prod volume) := by
     simp only [bind_R]
@@ -867,7 +925,9 @@ noncomputable def E_rand (β : MRX X) : MSX X :=
            exact h'.symm
          simp [h_sup, hconst]
     }, by
-      sorry⟩
+      have hE : IsHom (fun α => E_op (X := X) α) := (E (X := X)).2
+      have hβ : IsHom β := β.2
+      exact isHom_comp hE hβ⟩
 
 /-- Membership in the ω-sup-closure of randomizable operators -/
 inductive InTX : JX X → Prop
@@ -940,8 +1000,20 @@ noncomputable instance : OmegaQuasiBorelSpace (TX X) :=
   (inferInstance : QuasiBorelSpace (TX X)) with
     isHom_ωSup := by
       intro c hc
-      -- compatibility inherited from `JX`
-      sorry }
+      rw [QuasiBorelSpace.Subtype.isHom_def]
+      let c' : Chain (ℝ → JX X) := {
+        toFun := fun n r => (c n r).val
+        monotone' := fun i j h r => c.monotone h r
+      }
+      have h_eq : (fun r => (ωSup c r).val) = ωSup c' := by
+        ext r
+        rfl
+      rw [h_eq]
+      apply OmegaQuasiBorelSpace.isHom_ωSup c'
+      intro n
+      have hcn := hc n
+      rw [QuasiBorelSpace.Subtype.isHom_def] at hcn
+      exact hcn }
 
 /-- `MTX` inherits an ωCPO structure from `MSX` -/
 noncomputable instance : OmegaCompletePartialOrder (MTX X) :=
@@ -969,7 +1041,20 @@ noncomputable instance : OmegaQuasiBorelSpace (MTX X) :=
   (inferInstance : QuasiBorelSpace (MTX X)) with
     isHom_ωSup := by
       intro c hc
-      sorry }
+      rw [QuasiBorelSpace.Subtype.isHom_def]
+      let c' : Chain (ℝ → MSX X) := {
+        toFun := fun n r => (c n r).val
+        monotone' := fun i j h r => c.monotone h r
+      }
+      have h_eq : (fun r => (ωSup c r).val) = ωSup c' := by
+        ext r
+        rfl
+      rw [h_eq]
+      apply OmegaQuasiBorelSpace.isHom_ωSup c'
+      intro n
+      have hcn := hc n
+      rw [QuasiBorelSpace.Subtype.isHom_def] at hcn
+      exact hcn }
 
 /-- Monad unit on `T` obtained by restriction -/
 def return_T (x : X) : TX X :=
@@ -1000,26 +1085,53 @@ noncomputable def sample_map (_ : Unit) : RX R :=
        rfl
      map_ωSup' := by
        intro c
-       let f : OrderHom R (Option R) :=
-         { toFun := some
-           monotone' := by
-             intro r s hrs
-             cases hrs
-             rfl }
-       have hconst : ∀ n, c n = c 0 := fun n => (c.monotone (Nat.zero_le n)).symm
-       have hmap_const : c.map f = Chain.const (some (c 0)) := by
-         ext n
-         simp [Chain.map_coe, f, hconst n]
-       sorry
-      --  calc
-      --    some (ωSup c) = some (c 0) := by rfl
-      --    _ = ωSup (Chain.const (some (c 0))) := by
-      --          simp only [ωSup_const]
-      --    _ = ωSup (c.map f) := by simp [hmap_const]
+       have h_eq : ∀ n, c n = c 0 := fun n => (c.monotone (Nat.zero_le n)).symm
+       have h_sup : ωSup c = c 0 := rfl
+       rw [h_sup]
+       let f : R →o Option R := {
+         toFun := fun r => if r.val ∈ Set.Icc 0 1 then some r else none
+         monotone' := by intro r s hrs; cases hrs; rfl
+       }
+       change f (c 0) = ωSup (c.map f)
+       apply le_antisymm
+       · exact le_ωSup (c.map f) 0
+       · apply ωSup_le
+         intro n
+         simp only [Chain.map_coe, Function.comp_apply]
+         rw [h_eq n]
     }, by
-      sorry
-      -- apply QuasiBorelSpace.Option.isHom_some
-      -- exact isHom_id
+      change IsHom (fun (r : R) => if r.val ∈ Set.Icc 0 1 then some r else none)
+      apply QuasiBorelSpace.Prop.isHom_ite
+      · change IsHom ((fun (v : ℝ) => v ∈ Set.Icc 0 1) ∘ R.val)
+        apply QuasiBorelSpace.isHom_comp
+        · rw [isHom_iff_measurable]
+          intro s _
+          by_cases hT : True ∈ s <;> by_cases hF : False ∈ s
+          · suffices (fun x => x ∈ Set.Icc (0:ℝ) 1) ⁻¹' s = Set.univ by
+              rw [this]; exact MeasurableSet.univ
+            ext x; simp; by_cases h : x ∈ Set.Icc (0:ℝ) 1
+            · simp only [Set.mem_Icc] at h; rw [eq_true h]; exact hT
+            · simp only [Set.mem_Icc] at h; rw [eq_false h]; exact hF
+          · suffices (fun x => x ∈ Set.Icc (0:ℝ) 1) ⁻¹' s = Set.Icc 0 1 by
+              rw [this]; exact measurableSet_Icc
+            ext x; simp; by_cases h : x ∈ Set.Icc (0:ℝ) 1
+            · simp only [Set.mem_Icc] at h; rw [eq_true h]; simp [hT]
+            · simp only [Set.mem_Icc] at h; rw [eq_false h]; simp [hF]
+          · suffices (fun x => x ∈ Set.Icc (0:ℝ) 1) ⁻¹' s = (Set.Icc 0 1)ᶜ by
+              rw [this]; exact MeasurableSet.compl measurableSet_Icc
+            ext x; simp; by_cases h : x ∈ Set.Icc (0:ℝ) 1
+            · simp only [Set.mem_Icc] at h; rw [eq_true h]; simp [hT]; assumption
+            · simp only [Set.mem_Icc] at h; rw [eq_false h]; simp [hF]
+              intro hx; simp [hx] at h; exact h
+          · suffices (fun x => x ∈ Set.Icc (0:ℝ) 1) ⁻¹' s = ∅ by
+              rw [this]; exact MeasurableSet.empty
+            ext x; simp; by_cases h : x ∈ Set.Icc (0:ℝ) 1
+            · simp only [Set.mem_Icc] at h; rw [eq_true h]; exact hT
+            · simp only [Set.mem_Icc] at h; rw [eq_false h]; exact hF
+        · apply isHom_of_measurable
+          exact Measurable.of_comap_le le_rfl
+      · apply QuasiBorelSpace.Option.isHom_some isHom_id
+      · apply isHom_const
     ⟩
 
 /-- `score : R → R⊥` truncates Lebesgue to an interval of length `|r|` -/
