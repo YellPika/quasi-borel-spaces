@@ -1,5 +1,6 @@
 import QuasiBorelSpaces.Prod
 import QuasiBorelSpaces.MeasureTheory.Sigma
+import QuasiBorelSpaces.OmegaCompletePartialOrder.Sigma
 
 /-!
 # Small Coproducts of Quasi-Borel Spaces
@@ -149,6 +150,16 @@ lemma distrib_apply
     {φ₁ : ℝ → A} (hφ₁ : IsHom φ₁) (φ₂ : Var I P) (r : ℝ)
     : apply (distrib hφ₁ φ₂) r = ⟨(φ₂ r).1, φ₁ r, (φ₂ r).2⟩ :=
   rfl
+
+instance [∀ i, LE (P i)] : LE (Var I P) where
+  le φ₁ φ₂ := ∀x, apply φ₁ x ≤ apply φ₂ x
+
+instance [∀ i, Preorder (P i)] : Preorder (Var I P) where
+  le_refl φ x := by simp only [le_refl]
+  le_trans φ₁ φ₂ φ₃ h₁ h₂ x := by
+    apply le_trans
+    · apply h₁
+    · apply h₂
 
 end Var
 

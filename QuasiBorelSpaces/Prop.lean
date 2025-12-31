@@ -2,7 +2,6 @@ import QuasiBorelSpaces.Basic
 import QuasiBorelSpaces.Bool
 import QuasiBorelSpaces.Pi
 import QuasiBorelSpaces.Subtype
-import QuasiBorelSpaces.Sum
 
 variable
   {A B : Type*} [QuasiBorelSpace A] [QuasiBorelSpace B]

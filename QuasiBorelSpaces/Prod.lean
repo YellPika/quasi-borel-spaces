@@ -1,4 +1,5 @@
 import QuasiBorelSpaces.Basic
+import QuasiBorelSpaces.OmegaQuasiBorelSpace
 
 /-!
 # Binary Products of Quasi-Borel Spaces
@@ -114,3 +115,25 @@ lemma isHom_snd_comp {f : ℝ → α × β} (hf : IsHom f) :
   (isHom_iff f).mp hf |>.2
 
 end QuasiBorelSpace.Prod
+
+namespace OmegaQuasiBorelSpace.Prod
+
+open QuasiBorelSpace
+open OmegaCompletePartialOrder
+
+variable {A B : Type*} [OmegaQuasiBorelSpace A] [OmegaQuasiBorelSpace B]
+
+instance : OmegaQuasiBorelSpace (A × B) where
+  isHom_ωSup' c hc := by
+    rw [Prod.isHom_iff]
+    constructor
+    · let c₁ := c.map ⟨(fun f r ↦ (f r).1), by intro f g h r; exact (h r).1⟩
+      apply isHom_ωSup c₁ fun n ↦ ?_
+      simp only [Chain.map_coe, OrderHom.coe_mk, Function.comp_apply, c₁]
+      fun_prop
+    · let c₂ := c.map ⟨(fun f r ↦ (f r).2), by intro f g h r; exact (h r).2⟩
+      apply isHom_ωSup c₂ fun n ↦ ?_
+      simp only [Chain.map_coe, OrderHom.coe_mk, Function.comp_apply, c₂]
+      fun_prop
+
+end OmegaQuasiBorelSpace.Prod

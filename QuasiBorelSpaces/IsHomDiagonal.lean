@@ -1,4 +1,5 @@
 import QuasiBorelSpaces.Prop
+import QuasiBorelSpaces.Sum
 import Mathlib.MeasureTheory.Constructions.BorelSpace.Real
 
 namespace QuasiBorelSpace

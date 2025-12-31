@@ -1,4 +1,5 @@
 import QuasiBorelSpaces.Prod
+import QuasiBorelSpaces.OmegaQuasiBorelSpace
 
 /-!
 # Small Products of Quasi-Borel Spaces
@@ -59,3 +60,21 @@ instance
       fun_prop
 
 end QuasiBorelSpace.Pi
+
+namespace OmegaQuasiBorelSpace.Pi
+
+open QuasiBorelSpace
+open OmegaCompletePartialOrder
+
+variable {I : Type*} {P : I → Type*} [∀ i, OmegaQuasiBorelSpace (P i)]
+
+instance : OmegaQuasiBorelSpace (∀i, P i) where
+  isHom_ωSup' c hc := by
+    rw [Pi.isHom_iff]
+    intro i
+    let c' := c.map ⟨(fun f r ↦ f r i), by intro f g h r; exact h r i⟩
+    apply isHom_ωSup c' fun n ↦ ?_
+    simp only [Chain.map_coe, OrderHom.coe_mk, Function.comp_apply, c']
+    fun_prop
+
+end OmegaQuasiBorelSpace.Pi

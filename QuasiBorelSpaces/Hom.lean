@@ -13,9 +13,7 @@ open QuasiBorelSpace
 
 /-- The type of morphisms between `QuasiBorelSpace`s. -/
 structure QuasiBorelHom (A B : Type*) [QuasiBorelSpace A] [QuasiBorelSpace B] where
-  /-- The underlying function. -/
-  toFun : A → B
-  /-- The underlying function is a morphism. -/
+  private toFun : A → B
   private property : IsHom toFun := by fun_prop
 
 namespace QuasiBorelHom
@@ -119,9 +117,6 @@ lemma isHom_mk
 @[simps coe]
 def curry (f : A × B →𝒒 C) : A →𝒒 B →𝒒 C where
   toFun x := { toFun y := f (x, y) }
-  property := by
-    simp only [isHom_iff, coe_mk, Prod.mk.eta]
-    fun_prop
 
 /-- Uncurrying for `QuasiBorelHom`s. -/
 @[simps coe]

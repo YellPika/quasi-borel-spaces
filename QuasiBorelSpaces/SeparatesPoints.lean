@@ -1,4 +1,6 @@
 import QuasiBorelSpaces.Prop
+import QuasiBorelSpaces.Sigma
+import QuasiBorelSpaces.Sum
 
 variable
   {A : Type*} [QuasiBorelSpace A]
