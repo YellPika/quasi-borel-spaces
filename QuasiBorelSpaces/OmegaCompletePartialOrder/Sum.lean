@@ -11,9 +11,7 @@ This file provides the `OmegaCompletePartialOrder` instance for `Sum α β`.
 
 namespace OmegaCompletePartialOrder.Sum
 
-universe u v
-variable {α : Type u} {β : Type v}
-variable [OmegaCompletePartialOrder α] [OmegaCompletePartialOrder β]
+variable {α β : Type*} [OmegaCompletePartialOrder α] [OmegaCompletePartialOrder β]
 
 @[simps! -isSimp]
 noncomputable instance : OmegaCompletePartialOrder (Sum α β) where
