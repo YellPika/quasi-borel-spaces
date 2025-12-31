@@ -1,6 +1,5 @@
 import QuasiBorelSpaces.Hom
 import QuasiBorelSpaces.OmegaCompletePartialOrder.Basic
-import QuasiBorelSpaces.OmegaCompletePartialOrder.Limit
 import QuasiBorelSpaces.OmegaQuasiBorelSpace
 import QuasiBorelSpaces.Prod
 

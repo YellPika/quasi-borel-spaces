@@ -21,7 +21,6 @@ import QuasiBorelSpaces.Nat
 import QuasiBorelSpaces.OmegaCompletePartialOrder.Basic
 import QuasiBorelSpaces.OmegaCompletePartialOrder.Chain.Const
 import QuasiBorelSpaces.OmegaCompletePartialOrder.Chain.Sum
-import QuasiBorelSpaces.OmegaCompletePartialOrder.Limit
 import QuasiBorelSpaces.OmegaCompletePartialOrder.Sum
 import QuasiBorelSpaces.OmegaCompletePartialOrder.Option
 import QuasiBorelSpaces.OmegaHom

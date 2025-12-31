@@ -3,7 +3,6 @@ import QuasiBorelSpaces.PreProbabilityMeasure
 import QuasiBorelSpaces.SeparatesPoints
 import QuasiBorelSpaces.UnitInterval.AssocProd
 import QuasiBorelSpaces.OmegaCompletePartialOrder.Basic
-import QuasiBorelSpaces.OmegaCompletePartialOrder.Limit
 
 /-!
 # Probability Measures over Quasi-Borel Spaces
