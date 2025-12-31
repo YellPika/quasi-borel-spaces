@@ -184,27 +184,6 @@ lemma isHom_length : IsHom (List.length : List A → ℕ) := by
   rw [this]
   fun_prop
 
-omit [QuasiBorelSpace B] in
-/-- Helper: `getElem?` equals `some` of `getElem` for valid indices. -/
-private lemma getOption_eq_some_get
-    {xs : List B} {n : ℕ} (h : n < xs.length)
-    : xs[n]? = some (xs[n]'(h)) := by
-  revert n h
-  induction xs with
-  | nil => intro n h
-           cases h
-  | cons y ys ih => intro n h
-                    cases n <;> simp
-
-omit [QuasiBorelSpace B] in
-/-- Helper: `getD` on `getElem?` equals `getElem` for valid indices. -/
-private lemma getOption_getD_eq_get [Inhabited B]
-    {xs : List B} {n : ℕ} (h : n < xs.length)
-    : (xs[n]?).getD (default : B) = xs[n]'(h) := by
-  classical
-  have : xs[n]? = some (xs[n]'(h)) := getOption_eq_some_get (B := B) (xs := xs) (n := n) h
-  simp [Option.getD, this]
-
 /-- `get` is a homomorphism for valid indices. -/
 @[fun_prop]
 lemma isHom_get
@@ -216,7 +195,9 @@ lemma isHom_get
   · have : Inhabited B := ⟨hB.some⟩
     have : (fun x ↦ (f x)[g x]'(h x)) = fun x ↦ ((f x)[g x]?).getD default := by
       funext x
-      simp [getOption_getD_eq_get (h := h x)]
+      rw [List.getElem?_eq_getElem]
+      · simp only [Option.getD_some]
+      · apply h
     simp only [this]
     exact QuasiBorelSpace.Option.isHom_getD (isHom_getElem? hf hg) (by fun_prop)
   · rw [isHom_def]
