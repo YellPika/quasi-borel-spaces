@@ -117,30 +117,11 @@ noncomputable instance : OmegaQuasiBorelSpace R where
     intro c hc
     exact hc 0
 
-/-- ωCPO on extended non-negative reals using the usual supremum of a chain -/
-noncomputable instance instOmegaCompletePartialOrderENNReal :
-    OmegaCompletePartialOrder ENNReal where
-  ωSup c := sSup (Set.range c)
-  le_ωSup c n := le_sSup ⟨n, rfl⟩
-  ωSup_le c x hx := sSup_le (by rintro _ ⟨n, rfl⟩; exact hx n)
-
 /-- ωQBS structure on `ENNReal` -/
 noncomputable instance : OmegaQuasiBorelSpace ENNReal where
-  isHom_ωSup' := by
-    intro c hc
-    rw [isHom_iff_measurable]
-    have : ωSup c = fun r => ⨆ n, c n r := by ext; rfl
-    rw [this]
-    apply Measurable.iSup
-    intro n
-    rw [← isHom_iff_measurable]
-    exact hc n
-
-/-- Trivial ωQBS on the unit type -/
-instance : OmegaCompletePartialOrder Unit where
-  ωSup _ := ()
-  le_ωSup _ _ := trivial
-  ωSup_le _ _ _ := trivial
+  isHom_ωSup' c hc := by
+    change IsHom fun r ↦ ⨆ n, c n r
+    fun_prop
 
 instance : OmegaQuasiBorelSpace Unit where
   isHom_ωSup' := by
