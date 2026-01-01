@@ -134,13 +134,6 @@ instance : OmegaQuasiBorelSpace Unit where
 
 variable (X : Type*) [OmegaQuasiBorelSpace X]
 
-/-- ωQBS structure on lifted values -/
-noncomputable instance instOmegaQuasiBorelSpaceOption :
-    OmegaQuasiBorelSpace (Option X) where
-  isHom_ωSup' := by
-    intro c hc
-    sorry
-
 /-
 ## Randomizations and expectation operators (Section 4.1)
 -/
@@ -307,166 +300,70 @@ def E : RX X →ω𝒒 JX X where
           change y z = some yz at hy
           simp only [hx, hy] at hxy
           apply hxy
-    · apply OmegaQuasiBorelHom.ext
-      intro w
-      dsimp [E_op, E_map]
-      have h_pointwise : ∀ r, liftWeight X w ((ωSup c) r) = ⨆ n, liftWeight X w (c n r) := by
-        intro r
-        let f : Option X →o ENNReal := {
-          toFun := liftWeight X w
-          monotone' := by
-            intro a b hab
-            cases a with
+    · ext f
+      simp only [
+        E_op, E_map, liftWeight, ωSup, Chain.map_coe, Pi.evalOrderHom_coe,
+        OrderHom.coe_mk, Function.comp_apply, Function.eval, OmegaQuasiBorelHom.coe_mk]
+      rw [← MeasureTheory.lintegral_iSup]
+      · congr 1
+        ext r
+        by_cases h : ∃n x, (c n) r = some x
+        · simp only [h, ↓reduceDIte]
+          rw [f.ωScottContinuous_coe.map_ωSup]
+          simp only [
+            ωSup, Chain, Chain.map, OrderHom.mk_comp_mk,
+            OrderHom.coe_mk, Function.comp_apply]
+          classical
+          apply le_antisymm
+          · simp only [iSup_le_iff]
+            intro i
+            apply le_iSup_of_le (Nat.find h + i)
+            cases hc : c (Nat.find h + i) r with
+            | some x => simp only [Option.getD_some, le_refl]
             | none =>
-              dsimp [liftWeight]
-              apply zero_le
+              have := c.monotone (by grind : Nat.find h ≤ Nat.find h + i) r
+              rw [(Nat.find_spec h).choose_spec, hc] at this
+              contradiction
+          · simp only [iSup_le_iff]
+            intro i
+            apply le_iSup_of_le i
+            cases hc : (c i) r with
+            | none => simp only [zero_le]
             | some x =>
-              cases b with
-              | none =>
-                cases hab
-              | some y =>
-                dsimp only [liftWeight]
-                apply w.monotone_coe
-                change x ≤ y at hab
-                exact hab
-        }
-        have h_cont : ∀ d, f (ωSup d) = ωSup (d.map f) := by
-          intro d
-          by_cases h : ∃ n x, d n = some x
-          · change f (optionωSup d) = ωSup (d.map f)
-            rw [optionωSup]
-            simp [h]
-            dsimp [f, liftWeight]
-            let w_val := w.toOrderHom
-            trans ωSup ((tailChain d h).map w_val)
-            · apply w.ωScottContinuous_coe.map_ωSup
-            let shift_c : Chain ENNReal := {
-              toFun := fun n => (d.map f) (n + firstSomeIndex d h)
-              monotone' := fun _ _ h => (d.map f).monotone (Nat.add_le_add_right h _)
-            }
-            have h_shift : shift_c = (tailChain d h).map w_val := by
-              ext n
-              change f (d (n + firstSomeIndex d h)) = w_val (tailChain d h n)
-              rw [Nat.add_comm]
-              dsimp [tailChain]
-              cases h_dn : d (firstSomeIndex d h + n) with
-              | none =>
-                have h_idx := firstSome_spec d h
-                have h_mono := d.monotone (Nat.le_add_right (firstSomeIndex d h) n)
-                rw [h_idx] at h_mono
-                rw [h_dn] at h_mono
-                have : some (firstSomeValue d h) ≤ none := h_mono
-                cases this
-              | some x =>
-                simp [w_val]
-                change f (some x) = w ((tailChain d h) n)
-                have h_eq_x : (tailChain d h n) = x := by
-                  change (match d (firstSomeIndex d h + n) with
-                  | some x => x | none => firstSomeValue d h) = x
-                  rw [h_dn]
-                rw [h_eq_x]
-                rfl
-            rw [← h_shift]
-            have h_omegaSup_shift : ωSup shift_c = ωSup (d.map f) := by
-              apply le_antisymm
-              · apply ωSup_le
-                intro n
-                apply le_ωSup (d.map f) (n + firstSomeIndex d h)
-              · apply ωSup_le
-                intro n
-                trans (d.map f) (n + firstSomeIndex d h)
-                · apply (d.map f).monotone
-                  apply Nat.le_add_right
-                · apply le_ωSup shift_c n
-            rw [h_omegaSup_shift]
-          · change f (optionωSup d) = ωSup (d.map f)
-            rw [optionωSup]
-            rw [dif_neg h]
-            have h_all_none : ∀ n, d n = none := by
-              intro n
-              cases h_dn : d n with
-              | none => rfl
-              | some val =>
-                have : ∃ n x, d n = some val := ⟨n, val, h_dn⟩
-                exfalso
-                exact h ⟨n, val, h_dn⟩
-            have h_map_zero : d.map f = Chain.const 0 := by
-              ext n
-              dsimp [f, liftWeight]
-              rw [h_all_none n]
-            rw [h_map_zero]
-            dsimp [f, liftWeight]
-            simp
-        let d : Chain (Option X) :=
-          { toFun := fun n => c n r, monotone' := fun i j h => c.monotone h r }
-        convert h_cont d
-      trans ∫⁻ r, ⨆ n, liftWeight X w (c n r)
-      · apply lintegral_congr
-        intro r
-        simp only [OmegaQuasiBorelHom.ωSup_coe] at h_pointwise
-        rw [h_pointwise]
-      rw [lintegral_iSup]
-      · unfold E_op E_map
-        rfl
+              apply f.monotone_coe
+              have := c.monotone (by grind : i ≤ Nat.find h + i) r
+              cases hc' : c (Nat.find h + i) r <;> grind
+        · simp only [h, ↓reduceDIte]
+          have (n : ℕ) : (c n) r = none := by cases h : (c n) r <;> grind
+          simp only [this, ciSup_const]
       · intro n
-        let g := fun r => liftWeight X w (c n r)
-        change Measurable g
-        have h_hom : IsHom g := by
-          dsimp [g, liftWeight]
-          have h_eq : (fun r => match (c n) r with | some x => w x | none => 0) =
-          ((fun o => Option.elim o 0 w) ∘ (c n)) := by
-            funext r
-            dsimp
-            let val := (c n) r
-            change (match val with | some x => w x | none => 0) = val.elim 0 w
-            cases val <;> rfl
-          rw [h_eq]
-          apply QuasiBorelSpace.isHom_comp _ (c n).isHom_coe
-          apply QuasiBorelSpace.Option.isHom_elim
-          · apply isHom_id
-          · apply isHom_const
-          · apply QuasiBorelSpace.isHom_comp w.isHom_coe QuasiBorelSpace.Prod.isHom_snd
-
-        let f' := g ∘ R.mk
-        have h_mk : IsHom R.mk := isHom_of_measurable (f := R.mk) (by
-          intro s hs
-          rcases hs with ⟨t, ht, rfl⟩
-          exact ht)
-        have : IsHom f' := isHom_comp h_hom h_mk
-        have hf' : Measurable f' := measurable_of_isHom _ this
-        have h_val : Measurable R.val := by
-          intro s hs
-          exact ⟨s, hs, rfl⟩
-        rw [show g = f' ∘ R.val by ext; rfl]
-        exact Measurable.comp hf' h_val
-
-      · intro n m hnm r
-        dsimp [liftWeight]
-        let val_n := (c n) r
-        change (match val_n with | some x => w x | none => 0) ≤
-        match (c m) r with | some x => w x | none => 0
-        cases h_cn : val_n with
-        | none =>
-          dsimp
-          apply zero_le
+        change Measurable ((fun r : ℝ ↦ match (c n) ⟨r⟩ with | some x => f x | none => 0) ∘ R.val)
+        apply Measurable.comp
+        · apply measurable_of_isHom
+          have {r}
+              : (match c n ⟨r⟩ with | some x => f x | none => 0)
+              = Option.elim (c n ⟨r⟩) 0 f := by
+            cases c n ⟨r⟩ <;> rfl
+          simp only [this]
+          apply Option.isHom_elim
+          · apply isHom_comp'
+            · fun_prop
+            · simp only [isHom_ofMeasurableSpace, measurable_comap_iff]
+              apply measurable_id
+          · fun_prop
+          · fun_prop
+        · apply comap_measurable
+      · intro i j h r
+        cases hc : (c i) r with
+        | none => simp only [hc, zero_le]
         | some x =>
-          let val_m := (c m) r
-          change w x ≤ match val_m with | some x => w x | none => 0
-          cases h_cm : val_m with
-          | none =>
-            have h_mono_val : (instOmegaQuasiBorelSpaceOption X).toLE.le val_n val_m :=
-            c.monotone hnm r
-            rw [h_cn, h_cm] at h_mono_val
-            dsimp [instOmegaQuasiBorelSpaceOption] at h_mono_val
-            cases h_mono_val
+          have := c.monotone h r
+          simp only [hc, ge_iff_le]
+          cases hc' : (c j) r with
+          | none => simp only [hc, hc', Option.le_none, reduceCtorEq] at this
           | some y =>
-            dsimp
-            apply w.monotone_coe
-            have h_mono_val : (instOmegaQuasiBorelSpaceOption X).toLE.le val_n val_m :=
-            c.monotone hnm r
-            rw [h_cn, h_cm] at h_mono_val
-            dsimp [instOmegaQuasiBorelSpaceOption] at h_mono_val
-            exact h_mono_val
+            simp only [hc, hc', Option.some_le_some] at this
+            apply f.monotone_coe this
   isHom' := by
     rw [QuasiBorelSpace.isHom_def]
     intro β hβ

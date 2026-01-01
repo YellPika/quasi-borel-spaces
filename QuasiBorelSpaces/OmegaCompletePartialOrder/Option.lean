@@ -1,4 +1,5 @@
 import Mathlib.Order.OmegaCompletePartialOrder
+import Mathlib.Data.Nat.Find
 import QuasiBorelSpaces.OmegaCompletePartialOrder.Sum
 
 /-
@@ -33,36 +34,40 @@ noncomputable instance [OmegaCompletePartialOrder A] : OmegaCompletePartialOrder
   ωSup c :=
     open Classical in
     if h : ∃n x, c n = some x
-    then some (ωSup ⟨fun n ↦ (c (h.choose + n)).getD h.choose_spec.choose, by
-      intro i j h'
-      simp only
-      have h₁ := c.monotone (by simp : h.choose ≤ h.choose + i)
-      have h₂ := c.monotone (by simp : h.choose ≤ h.choose + j)
-      rw [h.choose_spec.choose_spec] at h₁ h₂
+    then
+      have : Nonempty A := ⟨h.choose_spec.choose⟩
+      some (ωSup ⟨fun n ↦ (c (Nat.find h + n)).getD ‹Nonempty A›.some, by
+        intro i j h'
+        simp only
+        classical
+        have h₁ := c.monotone (by simp : Nat.find h ≤ Nat.find h + i)
+        have h₂ := c.monotone (by simp : Nat.find h ≤ Nat.find h + j)
+        rw [(Nat.find_spec h).choose_spec] at h₁ h₂
 
-      cases h₃ : c (h.choose + i) with
-      | none => simp only [h₃, Option.le_none, reduceCtorEq] at h₁
-      | some x =>
+        cases h₃ : c (Nat.find h + i) with
+        | none => simp only [h₃, Option.le_none, reduceCtorEq] at h₁
+        | some x =>
 
-      cases h₄ : c (h.choose + j) with
-      | none => simp only [h₄, Option.le_none, reduceCtorEq] at h₂
-      | some y =>
+        cases h₄ : c (Nat.find h + j) with
+        | none => simp only [h₄, Option.le_none, reduceCtorEq] at h₂
+        | some y =>
 
-      simp only [Option.getD_some, ge_iff_le]
-      rw [←Option.some_le_some, ←h₃, ←h₄]
-      apply c.monotone
-      simp only [add_le_add_iff_left, h']⟩)
+        simp only [Option.getD_some, ge_iff_le]
+        rw [←Option.some_le_some, ←h₃, ←h₄]
+        apply c.monotone
+        simp only [add_le_add_iff_left, h']⟩)
     else none
   le_ωSup c i := by
     cases h' : c i with
     | none => simp only [Option.none_le]
     | some x =>
+      classical
       by_cases h : ∃ n x, c n = some x
       · simp only [h, ↓reduceDIte, Option.some_le_some]
         apply le_ωSup_of_le i
         simp only [Chain, OrderHom.coe_mk]
-        have := c.monotone (by simp : i ≤ h.choose + i)
-        cases h'' : c (h.choose + i)
+        have := c.monotone (by simp : i ≤ Nat.find h + i)
+        cases h'' : c (Nat.find h + i)
         · simp only [h', h'', Option.le_none, reduceCtorEq] at this
         · simp only [h', h'', Option.some_le_some] at this
           simp only [Option.getD_some, this]
@@ -74,16 +79,17 @@ noncomputable instance [OmegaCompletePartialOrder A] : OmegaCompletePartialOrder
     cases x with
     | none => grind
     | some x =>
+      classical
       by_cases h' : ∃ n x, c n = some x
       · simp only [Chain, h', ↓reduceDIte, Option.some_le_some, ωSup_le_iff, OrderHom.coe_mk]
         intro i
-        cases h'' : c (h'.choose + i) with
+        cases h'' : c (Nat.find h' + i) with
         | none =>
-          have := c.monotone (by simp : h'.choose ≤ h'.choose + i)
-          rw [h'.choose_spec.choose_spec] at this
+          have := c.monotone (by simp : Nat.find h' ≤ Nat.find h' + i)
+          rw [(Nat.find_spec h').choose_spec] at this
           simp only [h'', Option.le_none, reduceCtorEq] at this
         | some y =>
-          specialize h (h'.choose + i)
+          specialize h (Nat.find h' + i)
           simpa only [Option.getD_some, h'', Option.some_le_some] using h
       · simp only [h', ↓reduceDIte, Option.none_le]
 

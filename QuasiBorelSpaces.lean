@@ -21,13 +21,16 @@ import QuasiBorelSpaces.Nat
 import QuasiBorelSpaces.OmegaCompletePartialOrder.Basic
 import QuasiBorelSpaces.OmegaCompletePartialOrder.Chain.Const
 import QuasiBorelSpaces.OmegaCompletePartialOrder.Chain.Sum
-import QuasiBorelSpaces.OmegaCompletePartialOrder.Sum
+import QuasiBorelSpaces.OmegaCompletePartialOrder.Fix
 import QuasiBorelSpaces.OmegaCompletePartialOrder.Option
+import QuasiBorelSpaces.OmegaCompletePartialOrder.Sigma
+import QuasiBorelSpaces.OmegaCompletePartialOrder.Sum
 import QuasiBorelSpaces.OmegaHom
 import QuasiBorelSpaces.OmegaQuasiBorelSpace
 import QuasiBorelSpaces.Option
 import QuasiBorelSpaces.Pi
 import QuasiBorelSpaces.PreProbabilityMeasure
+import QuasiBorelSpaces.ProbabilisticPowerdomain
 import QuasiBorelSpaces.ProbabilityMeasure
 import QuasiBorelSpaces.Prod
 import QuasiBorelSpaces.Prop
@@ -40,5 +43,3 @@ import QuasiBorelSpaces.Subtype
 import QuasiBorelSpaces.Sum
 import QuasiBorelSpaces.Unit
 import QuasiBorelSpaces.UnitInterval.AssocProd
-import QuasiBorelSpaces.OmegaCompletePartialOrder.Fix
-import QuasiBorelSpaces.ProbabilisticPowerdomain

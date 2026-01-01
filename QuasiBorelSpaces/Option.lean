@@ -1,4 +1,5 @@
 import QuasiBorelSpaces.IsHomDiagonal
+import QuasiBorelSpaces.OmegaCompletePartialOrder.Option
 import QuasiBorelSpaces.Sum
 import QuasiBorelSpaces.Unit
 
@@ -88,6 +89,13 @@ lemma isHom_getD
   simp only [this]
   fun_prop
 
+@[simp, fun_prop]
+lemma isHom_isSome : IsHom (fun x : Option A ↦ x.isSome) := by
+  have (x : Option A) : x.isSome = x.elim false (fun _ ↦ true) := by
+    cases x <;> rfl
+  simp only [this]
+  fun_prop
+
 instance [IsHomDiagonal A] : IsHomDiagonal (Option A) where
   isHom_eq := by
     have {x y : Option A}
@@ -99,3 +107,64 @@ instance [IsHomDiagonal A] : IsHomDiagonal (Option A) where
     fun_prop
 
 end QuasiBorelSpace.Option
+
+namespace OmegaQuasiBorelSpace.Option
+
+open QuasiBorelSpace
+open OmegaCompletePartialOrder
+
+noncomputable instance {A : Type*} [OmegaQuasiBorelSpace A] : OmegaQuasiBorelSpace (Option A) where
+  isHom_ωSup' c hc := by
+    classical
+    change IsHom fun r ↦ ωSup _
+    simp only [ωSup, Chain.map_coe, Pi.evalOrderHom_coe, Function.comp_apply, Function.eval]
+    apply Prop.isHom_dite
+    · apply Prop.isHom_exists fun i ↦ ?_
+      suffices IsHom fun x ↦ (c i x).isSome by
+        simp only [← Option.isSome_iff_exists]
+        fun_prop
+      fun_prop
+    · apply Option.isHom_some
+      rw [isHom_def]
+      intro φ hφ
+      classical
+      have : Nonempty A := ⟨(φ 0).property.choose_spec.choose⟩
+      let c' : Chain (ℝ → A) := {
+        toFun n r := (c (Nat.find (φ r).property + n) (φ r)).getD ‹Nonempty A›.some
+        monotone' i j h r := by
+          cases hi : c (Nat.find (φ r).property + i) (φ r) with
+          | none =>
+            have := c.monotone
+              (by grind : Nat.find (φ r).property ≤ Nat.find (φ r).property + i)
+              (φ r)
+            rw [(Nat.find_spec (φ r).property).choose_spec] at this
+            simp only [hi, Option.le_none, reduceCtorEq] at this
+          | some x =>
+
+          cases hj : c (Nat.find (φ r).property + j) (φ r) with
+          | none =>
+            have := c.monotone
+              (by grind : Nat.find (φ r).property ≤ Nat.find (φ r).property + j)
+              (φ r)
+            rw [(Nat.find_spec (φ r).property).choose_spec] at this
+            simp only [hj, Option.le_none, reduceCtorEq] at this
+          | some y =>
+
+          have := c.monotone
+            (by grind : Nat.find (φ r).property + i ≤ Nat.find (φ r).property + j)
+            (φ r)
+          simp only [hi, hj, Option.some_le_some, Option.getD_some, ge_iff_le] at ⊢ this
+          exact this
+      }
+      apply isHom_ωSup c' fun n ↦ ?_
+      simp only [Chain, OrderHom.coe_mk, c']
+      apply Option.isHom_getD
+      · apply isHom_cases (f := fun n x ↦ c n (φ x))
+        · apply isHom_comp' (g := fun x ↦ Nat.find (φ x).property) (f := (· + n))
+          · fun_prop
+          · sorry
+        · fun_prop
+      · fun_prop
+    · fun_prop
+
+end OmegaQuasiBorelSpace.Option

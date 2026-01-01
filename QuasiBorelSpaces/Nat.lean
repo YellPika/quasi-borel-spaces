@@ -33,6 +33,10 @@ lemma isHom_rec
 lemma isHom_lt : IsHom (fun x : ℕ × ℕ ↦ x.1 < x.2) := by
   simp only [isHom_of_discrete_countable]
 
+@[fun_prop]
+lemma isHom_add : IsHom (fun x : ℕ × ℕ ↦ x.1 + x.2) := by
+  simp only [isHom_of_discrete_countable]
+
 end QuasiBorelSpace.Nat
 
 namespace QuasiBorelSpace.Fin
