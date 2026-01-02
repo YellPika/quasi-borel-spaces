@@ -8,25 +8,25 @@ namespace OmegaQuasiBorelSpace
 /-- The continuation monad in the category of `OmegaQuasiBorelSpace`s. -/
 structure Cont (R A : Type*) [OmegaQuasiBorelSpace R] [OmegaQuasiBorelSpace A] where
   /-- The underlying morphism. -/
-  val : (A →ω𝒒 R) →ω𝒒 R
+  apply : (A →ω𝒒 R) →ω𝒒 R
 
 namespace Cont
 
 variable {R A B : Type*} [OmegaQuasiBorelSpace R] [OmegaQuasiBorelSpace A]
 
 @[ext]
-lemma ext {x y : Cont R A} (h : x.val = y.val) : x = y := by
+lemma ext {x y : Cont R A} (h : x.apply = y.apply) : x = y := by
   cases x
   cases y
   simp_all only
 
 instance : PartialOrder (Cont R A) :=
-  PartialOrder.lift val (by
+  PartialOrder.lift apply (by
     rintro ⟨x⟩ ⟨y⟩
     simp only [mk.injEq, imp_self])
 
 instance : OmegaCompletePartialOrder (Cont R A) := by
-  refine OmegaCompletePartialOrder.lift ⟨val, ?_⟩ (fun c ↦ ⟨ωSup (c.map ⟨val, ?_⟩)⟩) ?_ ?_
+  refine OmegaCompletePartialOrder.lift ⟨apply, ?_⟩ (fun c ↦ ⟨ωSup (c.map ⟨apply, ?_⟩)⟩) ?_ ?_
   · rintro ⟨x⟩ ⟨y⟩
     simp only [LE.le, imp_self]
   · rintro ⟨x⟩ ⟨y⟩
@@ -36,17 +36,17 @@ instance : OmegaCompletePartialOrder (Cont R A) := by
   · simp only [OrderHom.coe_mk, implies_true]
 
 instance : QuasiBorelSpace (Cont R A) :=
-  QuasiBorelSpace.lift val
+  QuasiBorelSpace.lift apply
 
 @[simp, local fun_prop]
-lemma isHom_val : IsHom (val (R := R) (A := A)) := by
+lemma isHom_val : IsHom (apply (R := R) (A := A)) := by
   rw [← isHom_to_lift]
   simp only [isHom_id']
 
 @[fun_prop]
 lemma isHom_val'
     [QuasiBorelSpace B] {f : B → Cont R A} (hf : IsHom f)
-    : IsHom (fun x ↦ (f x).val) := by
+    : IsHom (fun x ↦ (f x).apply) := by
   fun_prop
 
 @[simp, local fun_prop]
@@ -73,7 +73,7 @@ lemma ωScottContinuous_mk'
   fun_prop
 
 @[simp, local fun_prop]
-lemma ωScottContinuous_val : ωScottContinuous (val (R := R) (A := A)) := by
+lemma ωScottContinuous_val : ωScottContinuous (apply (R := R) (A := A)) := by
   rw [ωScottContinuous_iff_monotone_map_ωSup]
   refine ⟨fun x y h k ↦ ?_, fun c ↦ ?_⟩
   · apply h
@@ -82,7 +82,7 @@ lemma ωScottContinuous_val : ωScottContinuous (val (R := R) (A := A)) := by
 @[fun_prop]
 lemma ωScottContinuous_val'
     [OmegaCompletePartialOrder B] {f : B → Cont R A} (hf : ωScottContinuous f)
-    : ωScottContinuous (fun x ↦ (f x).val) := by
+    : ωScottContinuous (fun x ↦ (f x).apply) := by
   fun_prop
 
 instance : OmegaQuasiBorelSpace (Cont R A) where
@@ -91,7 +91,7 @@ instance : OmegaQuasiBorelSpace (Cont R A) where
     apply isHom_comp'
     · fun_prop
     · let f : (ℝ → Cont R A) →o (ℝ → (A →ω𝒒 R) →ω𝒒 R) := {
-        toFun f r := (f r).val
+        toFun f r := (f r).apply
         monotone' i j h r := by apply h
       }
       apply isHom_ωSup (c.map f) fun n ↦ ?_
@@ -106,7 +106,7 @@ def unit : A →ω𝒒 Cont R A where
 /-- The `bind` operator (i.e., sequential composition) for the continuation monad. -/
 @[simps]
 def bind [OmegaQuasiBorelSpace B] : (A →ω𝒒 Cont R B) →ω𝒒 (Cont R A →ω𝒒 Cont R B) where
-  toFun f := { toFun x := ⟨{ toFun k := x.val { toFun y := (f y).val k } }⟩ }
+  toFun f := { toFun x := ⟨{ toFun k := x.apply { toFun y := (f y).apply k } }⟩ }
 
 @[simp]
 lemma bind_unit [OmegaQuasiBorelSpace B] (f : A →ω𝒒 Cont R B) (x : A) : bind f (unit x) = f x := rfl
