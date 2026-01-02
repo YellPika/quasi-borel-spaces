@@ -205,4 +205,11 @@ lemma isHom_cast
   subst this
   rfl
 
+@[fun_prop]
+lemma NonEmpty.isHom_some (f : A → Nonempty B) : IsHom fun x ↦ (f x).some := by
+  rw [isHom_def]
+  intro φ hφ
+  change IsHom fun _ ↦ (f (φ 0)).some
+  apply isHom_const
+
 end QuasiBorelSpace

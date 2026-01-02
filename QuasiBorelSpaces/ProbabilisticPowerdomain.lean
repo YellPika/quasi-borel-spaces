@@ -302,17 +302,16 @@ def E : RX X →ω𝒒 JX X where
           apply hxy
     · ext f
       simp only [
-        E_op, E_map, liftWeight, ωSup, Chain.map_coe, Pi.evalOrderHom_coe,
-        OrderHom.coe_mk, Function.comp_apply, Function.eval, OmegaQuasiBorelHom.coe_mk]
+        E_op, E_map, liftWeight, ωSup, Chain.Option.sequence, Chain.map_coe,
+        Pi.evalOrderHom_coe, OrderHom.coe_mk, Function.comp_apply, Function.eval,
+        Chain.Option.project, Option.map_dif, OmegaQuasiBorelHom.coe_mk]
       rw [← MeasureTheory.lintegral_iSup]
       · congr 1
         ext r
-        by_cases h : ∃n x, (c n) r = some x
+        by_cases h : ∃n, (c n r).isSome
         · simp only [h, ↓reduceDIte]
           rw [f.ωScottContinuous_coe.map_ωSup]
-          simp only [
-            ωSup, Chain, Chain.map, OrderHom.mk_comp_mk,
-            OrderHom.coe_mk, Function.comp_apply]
+          simp only [ωSup, Chain, Chain.map, OrderHom.comp, OrderHom.coe_mk, Function.comp_apply]
           classical
           apply le_antisymm
           · simp only [iSup_le_iff]
@@ -321,8 +320,10 @@ def E : RX X →ω𝒒 JX X where
             cases hc : c (Nat.find h + i) r with
             | some x => simp only [Option.getD_some, le_refl]
             | none =>
+              have h' := Nat.find_spec h
+              rw [Option.isSome_iff_exists] at h'
               have := c.monotone (by grind : Nat.find h ≤ Nat.find h + i) r
-              rw [(Nat.find_spec h).choose_spec, hc] at this
+              rw [h'.choose_spec, hc, Option.le_none] at this
               contradiction
           · simp only [iSup_le_iff]
             intro i

@@ -124,84 +124,71 @@ noncomputable instance {A : Type*} [OmegaQuasiBorelSpace A] : OmegaQuasiBorelSpa
   isHom_ωSup' c hc := by
     classical
     change IsHom fun r ↦ ωSup _
-    simp only [ωSup, Chain.map_coe, Pi.evalOrderHom_coe, Function.comp_apply, Function.eval]
+    simp only [
+      ωSup, Chain.Option.sequence_def, Chain.map_coe, Pi.evalOrderHom_coe,
+      Function.comp_apply, Function.eval, Option.map_dif]
     apply Prop.isHom_dite
-    · apply Prop.isHom_exists fun i ↦ ?_
-      suffices IsHom fun x ↦ (c i x).isSome by
-        simp only [← Option.isSome_iff_exists]
-        fun_prop
-      fun_prop
+    · fun_prop
     · apply Option.isHom_some
       rw [isHom_def]
       intro φ hφ
       classical
-      have : Nonempty A := ⟨(φ 0).property.choose_spec.choose⟩
+      have : Nonempty A := ⟨Option.get _ (Nat.find_spec (φ 0).property)⟩
       let c' : Chain (ℝ → A) := {
-        toFun n r := (c (Nat.find (φ r).property + n) (φ r)).getD ‹Nonempty A›.some
+        toFun n r := Chain.Option.project
+          (c.map (Pi.evalOrderHom (φ r).val))
+          (by obtain ⟨q, hq⟩ := φ r
+              simp only [
+                Chain.map_coe, Pi.evalOrderHom_coe,
+                Function.comp_apply, Function.eval, hq])
+          n
         monotone' i j h r := by
-          cases hi : c (Nat.find (φ r).property + i) (φ r) with
-          | none =>
-            have := c.monotone
-              (by grind : Nat.find (φ r).property ≤ Nat.find (φ r).property + i)
-              (φ r)
-            rw [(Nat.find_spec (φ r).property).choose_spec] at this
-            simp only [hi, Option.le_none, reduceCtorEq] at this
-          | some x =>
-
-          cases hj : c (Nat.find (φ r).property + j) (φ r) with
-          | none =>
-            have := c.monotone
-              (by grind : Nat.find (φ r).property ≤ Nat.find (φ r).property + j)
-              (φ r)
-            rw [(Nat.find_spec (φ r).property).choose_spec] at this
-            simp only [hj, Option.le_none, reduceCtorEq] at this
-          | some y =>
-
-          have := c.monotone
-            (by grind : Nat.find (φ r).property + i ≤ Nat.find (φ r).property + j)
-            (φ r)
-          simp only [hi, hj, Option.some_le_some, Option.getD_some, ge_iff_le] at ⊢ this
-          exact this
+          apply (Chain.Option.project _ _).monotone
+          exact h
       }
       apply isHom_ωSup c' fun n ↦ ?_
-      simp only [Chain, OrderHom.coe_mk, c']
+      simp only [
+        Chain, Chain.map, Chain.Option.project_def, OrderHom.comp_coe,
+        Pi.evalOrderHom_coe, Function.comp_apply, Function.eval, OrderHom.coe_mk, c']
       apply Option.isHom_getD
-      · apply isHom_cases (f := fun n x ↦ c n (φ x))
-        · apply isHom_comp' (g := fun x ↦ Nat.find (φ x).property) (f := (· + n))
-          · fun_prop
-          · rw [isHom_iff_measurable]
-            intro X hX
-            have : (fun x ↦ Nat.find (φ x).property) ⁻¹' X
-                 = {r | ∃n ∈ X, (c n (φ r)).isSome ∧ ∀m < n, (c m (φ r)).isNone} := by
-              ext r
-              simp only [Set.mem_preimage, Set.mem_setOf_eq]
-              apply Iff.intro
-              · intro h
-                use Nat.find (φ r).property, h
-                simp only [Option.isSome_iff_exists, Option.isNone_iff_eq_none]
-                refine ⟨Nat.find_spec (φ r).property, ?_⟩
-                intro m hm
-                cases hc : c m ↑(φ r) with
-                | none => rfl
-                | some x =>
-                  have := Nat.find_le (h := (φ r).property) (n := m) ⟨x, hc⟩
-                  grind
-              · rintro ⟨n, hn₁, hn₂, hn₃⟩
-                suffices Nat.find (φ r).property = n by grind
-                rw [Nat.find_eq_iff]
-                simp only [Option.isSome_iff_exists, Option.isNone_iff_eq_none] at hn₂ hn₃
+      · apply isHom_cases (f := fun i x ↦ c (i + n) (φ x))
+        · rw [isHom_iff_measurable]
+          intro X hX
+          have : (fun x ↦ Nat.find (φ x).property) ⁻¹' X
+                = {r | ∃n ∈ X, (c n (φ r)).isSome ∧ ∀m < n, (c m (φ r)).isNone} := by
+            ext r
+            simp only [Set.mem_preimage, Set.mem_setOf_eq]
+            apply Iff.intro
+            · intro h
+              use Nat.find (φ r).property, h
+              simp only [Option.isSome_iff_exists, Option.isNone_iff_eq_none]
+              have hφ := Nat.find_spec (φ r).property
+              simp only [Option.isSome_iff_exists] at hφ
+              refine ⟨hφ, ?_⟩
+              intro m hm
+              cases hc : c m ↑(φ r) with
+              | none => rfl
+              | some x =>
+                have := Nat.find_le (h := (φ r).property) (n := m) (by
+                  simp only [hc, Option.isSome_some])
+                simp only [Nat.lt_find_iff, not_exists] at hm
                 grind
-            simp only [this, measurableSet_setOf]
-            rw [←isHom_iff_measurable]
-            apply Prop.isHom_exists fun i ↦ ?_
-            apply Prop.isHom_and
-            · simp only [isHom_const]
-            · apply Prop.isHom_and
-              · rw [isHom_iff_measurable] at hφ
-                fun_prop
-              · apply Prop.isHom_forall fun j ↦ ?_
-                apply Prop.isHom_forall fun hj ↦ ?_
-                fun_prop
+            · rintro ⟨n, hn₁, hn₂, hn₃⟩
+              suffices Nat.find (φ r).property = n by grind
+              rw [Nat.find_eq_iff]
+              simp only [Option.isSome_iff_exists, Option.isNone_iff_eq_none] at hn₂ hn₃
+              grind
+          simp only [this, measurableSet_setOf]
+          rw [←isHom_iff_measurable]
+          apply Prop.isHom_exists fun i ↦ ?_
+          apply Prop.isHom_and
+          · simp only [isHom_const]
+          · apply Prop.isHom_and
+            · rw [isHom_iff_measurable] at hφ
+              fun_prop
+            · apply Prop.isHom_forall fun j ↦ ?_
+              apply Prop.isHom_forall fun hj ↦ ?_
+              fun_prop
         · fun_prop
       · fun_prop
     · fun_prop
