@@ -146,7 +146,7 @@ lemma isHom_def (φ : ℝ → X →ω𝒒 Y) :
   rw [← isVar_iff_isHom]
   rfl
 
-@[simp, fun_prop]
+@[simp]
 lemma isHom_eval : IsHom (fun p : (X →ω𝒒 Y) × X ↦ p.1 p.2) := by
   rw [QuasiBorelSpace.isHom_def]
   intro φ hφ
@@ -159,6 +159,39 @@ lemma isHom_eval : IsHom (fun p : (X →ω𝒒 Y) × X ↦ p.1 p.2) := by
     · exact h_arg
   apply isHom_comp (hf := h_func) (hg := h_input)
 
+@[simp]
+lemma ωScottContinuous_eval : ωScottContinuous (fun p : (X →ω𝒒 Y) × X ↦ p.1 p.2) := by
+  rw [ωScottContinuous_iff_monotone_map_ωSup]
+  refine ⟨fun x y ⟨h₁, h₂⟩ ↦ ?_, fun c ↦ ?_⟩
+  · trans
+    · apply h₁
+    · apply y.1.monotone_coe
+      apply h₂
+  · simp only [Prod.ωSup_fst, Prod.ωSup_snd, ωSup_coe]
+    apply le_antisymm
+    · simp only [
+        ωSup, ωSup_le_iff, Chain.map_coe, Pi.evalOrderHom_coe, OrderHom.coe_mk,
+        Function.comp_apply, Function.eval, OrderHom.fst_coe]
+      intro i
+      rw [(c i).1.ωScottContinuous_coe.map_ωSup]
+      simp only [ωSup_le_iff, Chain.map_coe, OrderHom.coe_mk, Function.comp_apply, OrderHom.snd_coe]
+      intro j
+      apply le_ωSup_of_le (i ⊔ j)
+      simp only [Chain.map_coe, OrderHom.coe_mk, Function.comp_apply]
+      trans
+      · apply (c.monotone (by grind : i ≤ i ⊔ j)).1
+      · apply (c (i ⊔ j)).1.monotone_coe
+        apply (c.monotone (by grind : j ≤ i ⊔ j)).2
+    · simp only [ωSup_le_iff, Chain.map_coe, OrderHom.coe_mk, Function.comp_apply]
+      intro i
+      apply le_ωSup_of_le i
+      simp only [
+        Chain.map_coe, Pi.evalOrderHom_coe, OrderHom.coe_mk,
+        Function.comp_apply, Function.eval, OrderHom.fst_coe]
+      apply (c i).1.monotone_coe
+      apply le_ωSup_of_le i
+      simp only [Chain.map_coe, Function.comp_apply, OrderHom.snd_coe, le_refl]
+
 @[fun_prop]
 lemma isHom_eval'
     {f : X → Y →ω𝒒 Z} (hf : IsHom f)
@@ -166,6 +199,16 @@ lemma isHom_eval'
     : IsHom (fun x ↦ f x (g x)) := by
   apply isHom_comp' (f := fun x ↦ x.1 x.2) (g := fun x ↦ (f x, g x))
   · simp only [isHom_eval]
+  · fun_prop
+
+
+@[fun_prop]
+lemma ωScottContinuous_eval'
+    {f : X → Y →ω𝒒 Z} (hf : ωScottContinuous f)
+    {g : X → Y} (hg : ωScottContinuous g)
+    : ωScottContinuous (fun x ↦ f x (g x)) := by
+  apply ωScottContinuous.comp (g := fun x ↦ x.1 x.2) (f := fun x ↦ (f x, g x))
+  · simp only [ωScottContinuous_eval]
   · fun_prop
 
 @[simp]
@@ -181,6 +224,35 @@ lemma isHom_iff (f : X → Y →ω𝒒 Z) : IsHom f ↔ IsHom (fun x : X × Y �
     intro φ hφ
     simp only [isHom_def]
     fun_prop
+
+@[fun_prop]
+lemma isHom_mk
+    {f : X → Y → Z}
+    (h₁ : IsHom fun x : X × Y ↦ f x.1 x.2)
+    (h₂ : ∀x, ωScottContinuous (f x))
+    : IsHom fun x ↦ mk (f x) (by fun_prop) (h₂ x) := by
+  simp only [isHom_iff, coe_mk, h₁]
+
+@[fun_prop]
+lemma ωScottContinuous_mk
+    {f : X → Y → Z}
+    (h₁ : ∀ x, IsHom (f x))
+    (h₂ : ωScottContinuous fun x : X × Y ↦ f x.1 x.2)
+    : ωScottContinuous fun x ↦ mk (f x) (h₁ x) (by fun_prop) := by
+  rw [ωScottContinuous_iff_monotone_map_ωSup]
+  refine ⟨fun x y h z ↦ ?_, fun c ↦ ?_⟩
+  · have : (x, z) ≤ (y, z) := ⟨h, le_rfl⟩
+    exact h₂.monotone this
+  · ext x
+    simp only [coe_mk, ωSup]
+    rw [(by simp only [ωSup_const] : x = ωSup (Chain.const x))]
+    change f (ωSup (Chain.zip c (Chain.const x))).1 (ωSup (Chain.zip c (Chain.const x))).2 = _
+    rw [h₂.map_ωSup]
+    congr 1
+    ext n
+    simp only [
+      Chain.map_coe, OrderHom.coe_mk, Function.comp_apply, Chain.zip_coe,
+      Chain.const_apply, ωSup_const, Pi.evalOrderHom_coe, Function.eval, coe_mk]
 
 /-- The exponential object is an ωQBS. -/
 instance : OmegaQuasiBorelSpace (X →ω𝒒 Y) where
@@ -228,77 +300,11 @@ def Prod.snd : X × Y →ω𝒒 Y where
 @[simps coe]
 def curry (f : Z × X →ω𝒒 Y) : Z →ω𝒒 (X →ω𝒒 Y) where
   toFun x := { toFun y := f (x, y) }
-  -- TODO: figure out what fun_prop lemmas we need to prove these automatically.
-  isHom' := by simp only [isHom_iff, coe_mk, Prod.mk.eta, isHom_coe]
-  ωScottContinuous' := by
-    rw [ωScottContinuous_iff_monotone_map_ωSup]
-    refine ⟨fun x y h z ↦ ?_, fun c ↦ ?_⟩
-    · simp only [coe_mk]
-      apply f.monotone_coe
-      simp only [Prod.mk_le_mk, h, le_refl, and_self]
-    · ext x
-      simp only [coe_mk, ωSup_coe]
-      rw [(by simp only [ωSup_const] : x = ωSup (Chain.const x))]
-      change f (ωSup (Chain.zip c (Chain.const x))) = _
-      rw [f.ωScottContinuous_coe.map_ωSup]
-      apply le_antisymm
-      · simp only [
-          ωSup_const, ωSup_le_iff, Chain.map_coe, OrderHom.coe_mk,
-          Function.comp_apply, Chain.zip_coe, Chain.const_apply]
-        intro i
-        apply le_ωSup_of_le i
-        simp only [
-          Chain.map_coe, Pi.evalOrderHom_coe, OrderHom.coe_mk,
-          Function.comp_apply, Function.eval, coe_mk, le_refl]
-      · simp only [
-          ωSup, ωSup_const, ωSup_le_iff, Chain.map_coe, Pi.evalOrderHom_coe,
-          OrderHom.coe_mk, Function.comp_apply, Function.eval, coe_mk]
-        intro i
-        apply le_ωSup_of_le i
-        simp only [
-          Chain.map_coe, OrderHom.coe_mk, Function.comp_apply,
-          Chain.zip_coe, Chain.const_apply, le_refl]
 
 /-- Function application is an `OmegaQuasiBorelHom`. -/
 @[simps coe]
 def eval : (X →ω𝒒 Y) × X →ω𝒒 Y where
   toFun x := x.1 x.2
-  -- TODO: figure out what fun_prop lemmas we need to prove this automatically.
-  ωScottContinuous' := by
-    rw [ωScottContinuous_iff_monotone_map_ωSup]
-    refine ⟨fun x y h ↦ ?_, fun c ↦ ?_⟩
-    · simp only
-      trans
-      · apply h.1
-      · apply y.1.monotone_coe
-        apply h.2
-    · simp only [ωSup, Prod.ωSupImpl_fst, Prod.ωSupImpl_snd, coe_mk]
-      apply le_antisymm
-      · simp only [
-          ωSup_le_iff, Chain.map_coe, Pi.evalOrderHom_coe, OrderHom.coe_mk,
-          Function.comp_apply, Function.eval, OrderHom.fst_coe]
-        intro i
-        rw [(c i).1.ωScottContinuous_coe.map_ωSup]
-        simp only [
-          Chain.map_coe, OrderHom.coe_mk, Function.comp_apply,
-          ωSup_le_iff, OrderHom.snd_coe]
-        intro j
-        apply le_ωSup_of_le (i ⊔ j)
-        simp only [Chain.map_coe, OrderHom.coe_mk, Function.comp_apply]
-        trans
-        · apply (c i).1.monotone_coe
-          apply (c.monotone (by simp only [le_sup_right] : j ≤ i ⊔ j)).2
-        · apply (c.monotone ?_).1
-          simp only [le_sup_left]
-      · simp only [ωSup_le_iff, Chain.map_coe, OrderHom.coe_mk, Function.comp_apply]
-        intro i
-        apply le_ωSup_of_le i
-        simp only [
-          Chain.map_coe, Pi.evalOrderHom_coe, OrderHom.coe_mk,
-          Function.comp_apply, Function.eval, OrderHom.fst_coe]
-        apply (c i).1.monotone_coe
-        apply le_ωSup_of_le i
-        simp only [Chain.map_coe, Function.comp_apply, OrderHom.snd_coe, le_refl]
 
 /-- Uncurrying for `OmegaQuasiBorelHom`s. -/
 @[simps!]
