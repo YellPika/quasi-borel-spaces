@@ -117,12 +117,6 @@ noncomputable instance : OmegaQuasiBorelSpace R where
     intro c hc
     exact hc 0
 
-/-- ωQBS structure on `ENNReal` -/
-noncomputable instance : OmegaQuasiBorelSpace ENNReal where
-  isHom_ωSup' c hc := by
-    change IsHom fun r ↦ ⨆ n, c n r
-    fun_prop
-
 /-
 ## Ambient ωQBSes for the construction
 -/

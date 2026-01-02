@@ -1,9 +1,10 @@
 import QuasiBorelSpaces.Basic
+import QuasiBorelSpaces.OmegaQuasiBorelSpace
 import Mathlib.MeasureTheory.Constructions.BorelSpace.Real
 
 namespace QuasiBorelSpace.ENNReal
 
-variable {A : Type*} [QuasiBorelSpace A]
+variable {A B : Type*} [QuasiBorelSpace A]
 
 @[fun_prop]
 lemma isHom_add
@@ -29,4 +30,27 @@ lemma isHom_mul
   simp only [isHom_ofMeasurableSpace] at ⊢ hg hf
   exact Measurable.mul hf hg
 
+@[fun_prop]
+lemma isHom_iSup
+    [Countable B] {f : A → B → ENNReal} (hf : ∀ b, IsHom (f · b))
+    : IsHom fun x ↦ ⨆i, f x i := by
+  rw [isHom_def]
+  intro φ hφ
+  apply isHom_of_measurable
+  apply Measurable.iSup fun b ↦ ?_
+  apply measurable_of_isHom
+  fun_prop
+
 end QuasiBorelSpace.ENNReal
+
+namespace OmegaQuasiBorelSpace.ENNReal
+
+open QuasiBorelSpace
+
+/-- ωQBS structure on `ENNReal` -/
+noncomputable instance : OmegaQuasiBorelSpace ENNReal where
+  isHom_ωSup' c hc := by
+    change IsHom fun r ↦ ⨆ n, c n r
+    fun_prop
+
+end OmegaQuasiBorelSpace.ENNReal
