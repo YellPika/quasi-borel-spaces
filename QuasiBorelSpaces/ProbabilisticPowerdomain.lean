@@ -29,17 +29,17 @@ open QuasiBorelSpace
 
 noncomputable section
 
-variable (X : Type*) [OmegaQuasiBorelSpace X]
+variable {X : Type*} [OmegaQuasiBorelSpace X]
 
 /-
 ## Randomizations and expectation operators (Section 4.1)
 -/
 
 /-- Randomizations of `X` are partial maps from the randomness source -/
-abbrev RX := FlatReal →ω𝒒 Option X
+abbrev RX (X : Type*) [OmegaQuasiBorelSpace X] := FlatReal →ω𝒒 Option X
 
 /-- Expectation operators on `X` (the Giry-style exponential) -/
-abbrev JX := (X →ω𝒒 ENNReal) →ω𝒒 ENNReal
+abbrev JX (X : Type*) [OmegaQuasiBorelSpace X] := (X →ω𝒒 ENNReal) →ω𝒒 ENNReal
 
 /-- Lift a weight to a partial result -/
 def liftWeight (w : X → ENNReal) : Option X → ENNReal
@@ -51,11 +51,11 @@ def dom (α : RX X) : Set FlatReal := {r | α r ≠ none}
 
 /-- Evaluate the expectation of a weight under a randomization -/
 def E_map (α : RX X) (w : X →ω𝒒 ENNReal) : ENNReal :=
-  ∫⁻ r, liftWeight X (fun x => w x) (α r)
+  ∫⁻ r, liftWeight w (α r)
 
 /-- Bundle the expectation operator arising from a randomization -/
 def E_op (α : RX X) : JX X where
-  toFun := fun w => E_map (X := X) α w
+  toFun := E_map (X := X) α
   ωScottContinuous' := by
     rw [ωScottContinuous_iff_monotone_map_ωSup]
     refine ⟨fun w1 w2 h ↦ ?_, fun c ↦ ?_⟩
@@ -68,8 +68,8 @@ def E_op (α : RX X) : JX X where
       | some x => exact h x
     · simp only [E_map]
       have h_sup (r)
-          : liftWeight X (fun x ↦ (ωSup c) x) (α r)
-          = ⨆ n, liftWeight X (fun x => c n x) (α r) := by
+          : liftWeight (fun x ↦ (ωSup c) x) (α r)
+          = ⨆ n, liftWeight (fun x => c n x) (α r) := by
         dsimp [liftWeight]
         cases α r with
         | none => simp only [iSup_const]
@@ -82,7 +82,7 @@ def E_op (α : RX X) : JX X where
       rw [lintegral_iSup]
       · congr
       · intro n
-        have h_eq : (fun r => liftWeight X (fun x => c n x) (α r)) = (fun r =>
+        have h_eq : (fun r => liftWeight (fun x => c n x) (α r)) = (fun r =>
         Option.elim (α r) 0 (fun x => c n x)) := by
           ext r
           dsimp [liftWeight, Option.elim]
@@ -114,7 +114,7 @@ def E_op (α : RX X) : JX X where
     rw [isHom_iff_measurable]
     dsimp
 
-    let F := fun (p : ℝ × FlatReal) => liftWeight X (β p.1) (α p.2)
+    let F := fun (p : ℝ × FlatReal) => liftWeight (β p.1) (α p.2)
     change Measurable (fun r => ∫⁻ s, F (r, s) ∂volume)
 
     apply Measurable.lintegral_prod_right
@@ -271,7 +271,7 @@ def E : RX X →ω𝒒 JX X where
     rw [isHom_iff_measurable]
     dsimp
 
-    let H := fun (tr : ℝ × FlatReal) => liftWeight X (fun x => (γ tr.1).2 x) (β (γ tr.1).1 tr.2)
+    let H := fun (tr : ℝ × FlatReal) => liftWeight (fun x => (γ tr.1).2 x) (β (γ tr.1).1 tr.2)
 
     have hH : IsHom H := by
       unfold H liftWeight
@@ -505,7 +505,7 @@ theorem E_preserves_return (x : X) :
     E (X := X) (return_R (X := X) x) = return_J (X := X) x := by
   apply OmegaQuasiBorelHom.ext
   intro w
-  change E_map X (return_R X x) w = w x
+  change E_map (return_R x) w = w x
   unfold E_map return_R
   dsimp [liftWeight]
 
@@ -532,7 +532,7 @@ theorem E_preserves_return (x : X) :
     · exact hs
 
   simp [h_vol]
-  let g := fun r => liftWeight X (fun x => w x) (return_R X x r)
+  let g := fun r => liftWeight (fun x => w x) (return_R x r)
   have h_eq : ∫⁻ r, g r ∂(Measure.map e.symm volume) = ∫⁻ y, g (e.symm y) ∂volume := by
     exact lintegral_map_equiv g e.symm
 
@@ -559,17 +559,17 @@ theorem E_preserves_bind {Y} [OmegaQuasiBorelSpace Y] (α : RX X) (k : X →ω�
       bind_J (X := X) (Y := Y) (E (X := X) α) (fun x => E (X := Y) (k x)) := by
   apply OmegaQuasiBorelHom.ext
   intro w
-  change E_map Y (bind_R X α k) w = bind_J X (E X α) (fun x => E Y (k x)) w
+  change E_map (bind_R α k) w = bind_J X (E α) (fun x => E (k x)) w
   unfold bind_J
   dsimp
   unfold E_map
-  let f := fun (p : FlatReal × FlatReal) => liftWeight Y w (α p.1 >>= (k · p.2))
+  let f := fun (p : FlatReal × FlatReal) => liftWeight w (α p.1 >>= (k · p.2))
   have h_meas_f : Measurable f := by
     let H : ℝ × ℝ → ENNReal := fun p => f (FlatReal.mk p.1, FlatReal.mk p.2)
     have hH : IsHom H := by
       dsimp [H, f]
-      change IsHom (fun (p : ℝ × ℝ) => liftWeight Y w (α (FlatReal.mk p.1) >>= (fun x => k x (FlatReal.mk p.2))))
-      have h_eq : (fun p => liftWeight Y w (α (FlatReal.mk p.1) >>= (fun x => k x (FlatReal.mk p.2)))) =
+      change IsHom (fun (p : ℝ × ℝ) => liftWeight w (α (FlatReal.mk p.1) >>= (fun x => k x (FlatReal.mk p.2))))
+      have h_eq : (fun p => liftWeight w (α (FlatReal.mk p.1) >>= (fun x => k x (FlatReal.mk p.2)))) =
                   (fun (p : ℝ × ℝ) =>
                   Option.elim (Option.elim (α (FlatReal.mk p.1)) none (fun x => k x (FlatReal.mk p.2))) 0 w) := by
         ext p
@@ -625,11 +625,11 @@ theorem E_preserves_bind {Y} [OmegaQuasiBorelSpace Y] (α : RX X) (k : X →ω�
     · apply Measurable.comp (Measurable.of_comap_le le_rfl) measurable_fst
     · apply Measurable.comp (Measurable.of_comap_le le_rfl) measurable_snd
 
-  have h_lhs : ∫⁻ r, liftWeight Y w (bind_R X α k r) ∂volume = ∫⁻ p, f p ∂(volume.prod volume) := by
+  have h_lhs : ∫⁻ r, liftWeight w (bind_R α k r) ∂volume = ∫⁻ p, f p ∂(volume.prod volume) := by
     simp only [bind_R]
-    change ∫⁻ r, liftWeight Y w (match RandomSplit.φ r with
+    change ∫⁻ r, liftWeight w (match RandomSplit.φ r with
       | (r₁, r₂) => α r₁ >>= (k · r₂)) ∂volume = _
-    have : (fun r => liftWeight Y w (match RandomSplit.φ r with
+    have : (fun r => liftWeight w (match RandomSplit.φ r with
         | (r₁, r₂) => α r₁ >>= (k · r₂))) = f ∘ RandomSplit.φ := by
       ext r
       simp [f]
