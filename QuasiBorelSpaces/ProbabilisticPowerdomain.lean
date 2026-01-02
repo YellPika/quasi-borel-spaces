@@ -123,11 +123,6 @@ noncomputable instance : OmegaQuasiBorelSpace ENNReal where
     change IsHom fun r ↦ ⨆ n, c n r
     fun_prop
 
-instance : OmegaQuasiBorelSpace Unit where
-  isHom_ωSup' := by
-    intro c hc
-    apply isHom_const
-
 /-
 ## Ambient ωQBSes for the construction
 -/
