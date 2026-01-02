@@ -96,6 +96,13 @@ lemma isHom_isSome : IsHom (fun x : Option A ↦ x.isSome) := by
   simp only [this]
   fun_prop
 
+@[simp, fun_prop]
+lemma isHom_isNone : IsHom (fun x : Option A ↦ x.isNone) := by
+  have (x : Option A) : x.isNone = x.elim true (fun _ ↦ false) := by
+    cases x <;> rfl
+  simp only [this]
+  fun_prop
+
 instance [IsHomDiagonal A] : IsHomDiagonal (Option A) where
   isHom_eq := by
     have {x y : Option A}
@@ -162,7 +169,39 @@ noncomputable instance {A : Type*} [OmegaQuasiBorelSpace A] : OmegaQuasiBorelSpa
       · apply isHom_cases (f := fun n x ↦ c n (φ x))
         · apply isHom_comp' (g := fun x ↦ Nat.find (φ x).property) (f := (· + n))
           · fun_prop
-          · sorry
+          · rw [isHom_iff_measurable]
+            intro X hX
+            have : (fun x ↦ Nat.find (φ x).property) ⁻¹' X
+                 = {r | ∃n ∈ X, (c n (φ r)).isSome ∧ ∀m < n, (c m (φ r)).isNone} := by
+              ext r
+              simp only [Set.mem_preimage, Set.mem_setOf_eq]
+              apply Iff.intro
+              · intro h
+                use Nat.find (φ r).property, h
+                simp only [Option.isSome_iff_exists, Option.isNone_iff_eq_none]
+                refine ⟨Nat.find_spec (φ r).property, ?_⟩
+                intro m hm
+                cases hc : c m ↑(φ r) with
+                | none => rfl
+                | some x =>
+                  have := Nat.find_le (h := (φ r).property) (n := m) ⟨x, hc⟩
+                  grind
+              · rintro ⟨n, hn₁, hn₂, hn₃⟩
+                suffices Nat.find (φ r).property = n by grind
+                rw [Nat.find_eq_iff]
+                simp only [Option.isSome_iff_exists, Option.isNone_iff_eq_none] at hn₂ hn₃
+                grind
+            simp only [this, measurableSet_setOf]
+            rw [←isHom_iff_measurable]
+            apply Prop.isHom_exists fun i ↦ ?_
+            apply Prop.isHom_and
+            · simp only [isHom_const]
+            · apply Prop.isHom_and
+              · rw [isHom_iff_measurable] at hφ
+                fun_prop
+              · apply Prop.isHom_forall fun j ↦ ?_
+                apply Prop.isHom_forall fun hj ↦ ?_
+                fun_prop
         · fun_prop
       · fun_prop
     · fun_prop
