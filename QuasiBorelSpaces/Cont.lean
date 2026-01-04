@@ -68,8 +68,8 @@ lemma ωScottContinuous_mk : ωScottContinuous (mk (R := R) (A := A)) := by
 
 @[fun_prop]
 lemma ωScottContinuous_mk'
-     [QuasiBorelSpace B] {f : B → (A →ω𝒒 R) →ω𝒒 R} (hf : IsHom f)
-     : IsHom (fun x ↦ mk (f x)) := by
+     [OmegaCompletePartialOrder B] {f : B → (A →ω𝒒 R) →ω𝒒 R} (hf : ωScottContinuous f)
+     : ωScottContinuous (fun x ↦ mk (f x)) := by
   fun_prop
 
 @[simp, local fun_prop]
