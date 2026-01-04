@@ -87,12 +87,10 @@ def E : RX X →ω𝒒 Cont ENNReal X where
 /-- Monad unit on randomizations (Dirac) -/
 @[simps]
 def return_R (x : X) : RX X where
-  toFun := fun r => if r.val ∈ Set.Icc 0 1 then some x else none
+  toFun r := if r.val ∈ Set.Icc 0 1 then some x else none
   isHom' := by
     apply Prop.isHom_ite
-    · apply isHom_comp'
-      · simp only [isHom_ofMeasurableSpace, measurable_mem, measurableSet_Icc]
-      · fun_prop
+    · fun_prop
     · fun_prop
     · fun_prop
   ωScottContinuous' := by

@@ -183,6 +183,10 @@ lemma isHom_unpack
     : IsHom (MeasureTheory.unpack (A := A)) := by
   simp only [isHom_iff_measurable, MeasureTheory.measurable_unpack]
 
+@[simp, fun_prop]
+lemma isHom_mem_Icc {a b : ℝ} : IsHom (· ∈ Set.Icc a b) := by
+  simp only [isHom_ofMeasurableSpace, measurable_mem, measurableSet_Icc]
+
 lemma isHom_cast
     {B} [instB : QuasiBorelSpace B]
     {C} [instC : QuasiBorelSpace C]
