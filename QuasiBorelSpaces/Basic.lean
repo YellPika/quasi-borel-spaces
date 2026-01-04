@@ -95,14 +95,6 @@ lemma isHom_of_measurable
   simp only [isHom_iff_measurable]
   fun_prop
 
-@[fun_prop]
-lemma measurable_of_isHom
-    [MeasurableSpace A] [MeasurableQuasiBorelSpace A]
-    (f : ℝ → A) (hf : IsHom f)
-    : Measurable f := by
-  simp only [isHom_iff_measurable] at hf
-  exact hf
-
 @[fun_prop, simp]
 lemma isHom_id : IsHom (A := A) id := by
   rw [isHom_def]
@@ -204,6 +196,27 @@ lemma isHom_cast
     apply heq
   subst this
   rfl
+
+@[fun_prop]
+lemma measurable_of_isHom
+    [MeasurableSpace A] [MeasurableQuasiBorelSpace A]
+    [MeasurableSpace B] [MeasurableQuasiBorelSpace B] [StandardBorelSpace B]
+    (f : B → A) (hf : IsHom f)
+    : Measurable f := by
+  wlog hB : Nonempty B
+  · simp only [not_nonempty_iff] at hB
+    apply measurable_of_empty
+  have : f = (fun a ↦ f (MeasureTheory.unpack a)) ∘ MeasureTheory.pack := by
+    ext
+    simp only [Function.comp_apply, MeasureTheory.unpack_pack]
+  rw [this]
+  apply Measurable.comp
+  · rw [← MeasurableQuasiBorelSpace.isHom_iff_measurable]
+    apply isHom_comp
+    · exact hf
+    · rw [MeasurableQuasiBorelSpace.isHom_iff_measurable]
+      fun_prop
+  · simp only [MeasureTheory.measurable_pack]
 
 @[fun_prop]
 lemma NonEmpty.isHom_some (f : A → Nonempty B) : IsHom fun x ↦ (f x).some := by
