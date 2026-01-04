@@ -1,5 +1,6 @@
 import QuasiBorelSpaces.Basic
 import QuasiBorelSpaces.OmegaQuasiBorelSpace
+import Mathlib.MeasureTheory.Measure.Prod
 
 /-!
 # Binary Products of Quasi-Borel Spaces
@@ -137,3 +138,23 @@ instance : OmegaQuasiBorelSpace (A × B) where
       fun_prop
 
 end OmegaQuasiBorelSpace.Prod
+
+namespace QuasiBorelSpace
+
+variable {A B : Type*} [QuasiBorelSpace A] [QuasiBorelSpace B]
+
+-- TODO: move this to a more appropriate file
+@[fun_prop]
+lemma Measure.isHom_lintegral
+    [MeasurableSpace A] [MeasurableSpace B] [StandardBorelSpace B] [MeasurableQuasiBorelSpace B]
+    {f : A → B → ENNReal} (hf : IsHom fun x : _ × _ ↦ f x.1 x.2)
+    (μ : MeasureTheory.Measure B) [MeasureTheory.SFinite μ]
+    : IsHom fun x ↦ ∫⁻ y, f x y ∂μ := by
+  rw [isHom_def]
+  intro φ hφ
+  apply isHom_of_measurable
+  apply Measurable.lintegral_prod_left
+  apply measurable_of_isHom
+  fun_prop
+
+end QuasiBorelSpace
