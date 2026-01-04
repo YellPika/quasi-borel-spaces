@@ -140,6 +140,8 @@ instance : QuasiBorelSpace (X →ω𝒒 Y) where
     · exact hix'
     · exact hφ
 
+instance : MeasurableSpace (X →ω𝒒 Y) := toMeasurableSpace
+
 @[local simp]
 lemma isHom_def (φ : ℝ → X →ω𝒒 Y) :
     IsHom φ ↔ IsHom (fun x : ℝ × X ↦ φ x.1 x.2) := by
@@ -192,15 +194,15 @@ lemma ωScottContinuous_eval : ωScottContinuous (fun p : (X →ω𝒒 Y) × X �
       apply le_ωSup_of_le i
       simp only [Chain.map_coe, Function.comp_apply, OrderHom.snd_coe, le_refl]
 
+omit [OmegaQuasiBorelSpace X] in
 @[fun_prop]
-lemma isHom_eval'
+lemma isHom_eval' [QuasiBorelSpace X]
     {f : X → Y →ω𝒒 Z} (hf : IsHom f)
     {g : X → Y} (hg : IsHom g)
     : IsHom (fun x ↦ f x (g x)) := by
   apply isHom_comp' (f := fun x ↦ x.1 x.2) (g := fun x ↦ (f x, g x))
   · simp only [isHom_eval]
   · fun_prop
-
 
 @[fun_prop]
 lemma ωScottContinuous_eval'
