@@ -1,4 +1,5 @@
 import QuasiBorelSpaces.OmegaQuasiBorelSpace
+import QuasiBorelSpaces.OmegaCompletePartialOrder.Basic
 import Mathlib.MeasureTheory.Measure.Haar.OfBasis
 import Mathlib.MeasureTheory.Measure.MeasureSpaceDef
 import Mathlib.MeasureTheory.Measure.Typeclasses.SFinite
@@ -57,5 +58,48 @@ instance : OmegaCompletePartialOrder FlatReal where
 /-- `FlatReal` is trivially an ωQBS. -/
 instance : OmegaQuasiBorelSpace FlatReal where
   isHom_ωSup' _ hc := hc 0
+
+instance : TopologicalSpace FlatReal :=
+  TopologicalSpace.induced val inferInstance
+
+instance : BorelSpace FlatReal where
+  measurable_eq := by
+    simp only [instMeasurableSpace, inferInstance, Real.measurableSpace, ← borel_comap]
+
+instance : PolishSpace FlatReal :=
+  Equiv.polishSpace_induced (α := FlatReal) (β := ℝ) {
+    toFun := val
+    invFun := mk
+    left_inv _ := rfl
+    right_inv _ := rfl
+  }
+
+instance : StandardBorelSpace FlatReal where
+  polish := ⟨inferInstance, inferInstance, inferInstance⟩
+
+@[simp]
+lemma le_iff_eq {x y : FlatReal} : x ≤ y ↔ x = y := by rfl
+
+open OmegaCompletePartialOrder
+
+@[simp, fun_prop]
+lemma ωScottContinuous_of
+    {A : Type*} [OmegaCompletePartialOrder A] (f : FlatReal → A)
+    : ωScottContinuous f := by
+  rw [ωScottContinuous_iff_monotone_map_ωSup]
+  refine ⟨fun x y hxy ↦ ?_, fun c ↦ ?_⟩
+  · simp only [le_iff_eq] at hxy
+    simp only [hxy, le_refl]
+  · simp only [ωSup]
+    apply le_antisymm
+    · apply le_ωSup_of_le 0
+      simp only [Chain.map_coe, OrderHom.coe_mk, Function.comp_apply, le_refl]
+    · simp only [ωSup_le_iff, Chain.map_coe, OrderHom.coe_mk, Function.comp_apply]
+      intro i
+      apply le_of_eq
+      congr 1
+      symm
+      apply c.monotone
+      simp only [zero_le]
 
 end FlatReal
