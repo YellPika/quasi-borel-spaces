@@ -1,5 +1,6 @@
 import Mathlib.Order.OmegaCompletePartialOrder
 import QuasiBorelSpaces.OmegaCompletePartialOrder.Chain.Const
+import Mathlib.MeasureTheory.Integral.Lebesgue.Add
 
 /-!
 # Basic properties of ω-complete partial orders
@@ -68,5 +69,49 @@ lemma ωSup_const (x : A) : ωSup (Chain.const x) = x := by
   · simp only [ωSup_le_iff, Chain.const_apply, le_refl, implies_true]
   · apply le_ωSup_of_le 0
     simp only [Chain.const_apply, le_refl]
+
+@[fun_prop]
+lemma Measure.ωScottContinuous_lintegral
+    [MeasurableSpace B]
+    {f : A → B → ENNReal}
+    (hf₁ : ωScottContinuous fun x : _ × _ ↦ f x.1 x.2)
+    (hf₂ : ∀a, Measurable (f a))
+    (μ : MeasureTheory.Measure B)
+    : ωScottContinuous fun x ↦ ∫⁻ y, f x y ∂μ := by
+  rw [ωScottContinuous_iff_monotone_map_ωSup]
+  refine ⟨fun a b h ↦ ?_, fun c ↦ ?_⟩
+  · apply MeasureTheory.lintegral_mono
+    intro c
+    apply hf₁.monotone (⟨h, le_rfl⟩ : (a, c) ≤ (b, c))
+  · simp only [ωSup, Chain.map_coe, OrderHom.coe_mk, Function.comp_apply]
+    rw [← MeasureTheory.lintegral_iSup]
+    · apply MeasureTheory.lintegral_congr fun b ↦ ?_
+      rw [(by simp : f (ωSup c) b = f (ωSup c) (ωSup (Chain.const b)))]
+      apply hf₁.map_ωSup (Chain.zip c (Chain.const b))
+    · fun_prop
+    · intro i j h a
+      apply hf₁.monotone (⟨c.monotone h, le_rfl⟩ : (c i, a) ≤ (c j, a))
+
+lemma ωScottContinuous_ite
+    {f : A → Prop} (hf : ∀ {x y}, x ≤ y → f x = f y) [DecidablePred f]
+    {g : A → B} (hg : ωScottContinuous g)
+    {h : A → B} (hh : ωScottContinuous h)
+    : ωScottContinuous fun x ↦ if f x then g x else h x := by
+  rw [ωScottContinuous_iff_monotone_map_ωSup]
+  refine ⟨fun x y hxy ↦ ?_, fun c ↦ ?_⟩
+  · simp only [hf hxy]
+    by_cases hfxy : f y
+    · simp only [hfxy, ↓reduceIte]
+      apply hg.monotone hxy
+    · simp only [hfxy, ↓reduceIte]
+      apply hh.monotone hxy
+  · rw [hg.map_ωSup, hh.map_ωSup, ← apply_ite]
+    congr 1
+    ext i
+    simp only [Chain.map_coe, OrderHom.coe_mk, Function.comp_apply]
+    specialize hf (le_ωSup c i : c i ≤ ωSup c)
+    simp only [hf]
+    by_cases hfc : f (ωSup c) <;>
+    · simp only [hfc, ↓reduceIte, Chain.map_coe, OrderHom.coe_mk, Function.comp_apply]
 
 end OmegaCompletePartialOrder
