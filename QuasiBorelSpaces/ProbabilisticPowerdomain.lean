@@ -415,6 +415,19 @@ noncomputable instance : OmegaQuasiBorelSpace (TX X) where
     rw [QuasiBorelSpace.Subtype.isHom_def] at hcn
     exact hcn
 
+/-- the val projection of `TX` is ω-scott continuous -/
+@[simp]
+lemma TX.ωScottContinuous_val : ωScottContinuous (Subtype.val (p := InTX (X := X))) := by
+  rw [ωScottContinuous_iff_monotone_map_ωSup]
+  refine ⟨fun _ _ h ↦ h, fun _ ↦ rfl⟩
+
+/-- composing with val preserves ω-scott continuity for `TX` -/
+@[fun_prop]
+lemma TX.ωScottContinuous_val' {A : Type*} [OmegaCompletePartialOrder A]
+    {f : A → TX X} (hf : ωScottContinuous f)
+    : ωScottContinuous (fun x ↦ (f x).val) :=
+  ωScottContinuous.comp (TX.ωScottContinuous_val (X := X)) hf
+
 /-- `MTX` inherits an ωCPO structure from `MSX` -/
 noncomputable instance : OmegaCompletePartialOrder (MTX X) where
   ωSup := fun c =>
@@ -464,13 +477,9 @@ noncomputable def return_T (x : X) : TX X where
 noncomputable def bind_T {Y} [OmegaQuasiBorelSpace Y] (t : TX X) (k : X →ω𝒒 TX Y) : TX Y where
   val := t.1.bind {
     toFun x := (k x).1
-    ωScottContinuous' :=
-      -- TODO: we should be able to infer this automatically if we make TX a
-      -- structure with appropriate lemmas
-      sorry
+    ωScottContinuous' := by fun_prop
   }
   property := sorry
-
 /-- (placeholder) The inclusion `T ↪ J` is a monad morphism (See theorem 4.3 of [VakarKS19]) -/
 theorem expectation_factorizes_monad :
     True := by
