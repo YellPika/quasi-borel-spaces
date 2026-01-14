@@ -116,7 +116,9 @@ instance [DiscreteMeasurableSpace A] [Countable A] : DiscreteMeasurableSpace (Li
     rw [MeasurableSpace.measurableSet_comap]
     use .encode '' X
     apply And.intro
-    · apply MeasurableSet.of_discrete
+    · have {n} : DiscreteMeasurableSpace (Fin n → A) := by
+        apply MeasurableSingletonClass.toDiscreteMeasurableSpace
+      apply MeasurableSet.of_discrete (α := (n : ℕ) × (Fin n → A))
     · rw [Set.preimage_image_eq]
       simp only [List.Encoding.encode_injective]
 

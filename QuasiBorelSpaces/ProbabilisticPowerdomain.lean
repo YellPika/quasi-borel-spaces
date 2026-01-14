@@ -283,7 +283,7 @@ theorem E_preserves_bind {Y} [OmegaQuasiBorelSpace Y] (α : RX X) (k : X →ω�
   rw [h_fubini]
   apply lintegral_congr
   intro r1
-  simp [f]
+  simp only [Option.bind_eq_bind, OmegaQuasiBorelHom.coe_mk, f]
   cases h : α r1 with
   | none => simp only [Option.bind_none, Option.elim_none, lintegral_const, zero_mul]
   | some x => simp only [Option.bind_some, Option.elim_some]
@@ -502,23 +502,38 @@ noncomputable def sample_map (_ : Unit) : RX FlatReal where
         by_cases hT : True ∈ s <;> by_cases hF : False ∈ s
         · suffices (fun x => x ∈ Set.Icc (0:ℝ) 1) ⁻¹' s = Set.univ by
             rw [this]; exact MeasurableSet.univ
-          ext x; simp; by_cases h : x ∈ Set.Icc (0:ℝ) 1
+          ext x
+          simp only [Set.mem_Icc, Set.mem_preimage, Set.mem_univ, iff_true]
+          by_cases h : x ∈ Set.Icc (0:ℝ) 1
           · simp only [Set.mem_Icc] at h; rw [eq_true h]; exact hT
           · simp only [Set.mem_Icc] at h; rw [eq_false h]; exact hF
         · suffices (fun x => x ∈ Set.Icc (0:ℝ) 1) ⁻¹' s = Set.Icc 0 1 by
             rw [this]; exact measurableSet_Icc
-          ext x; simp; by_cases h : x ∈ Set.Icc (0:ℝ) 1
+          ext x
+          simp only [Set.mem_Icc, Set.mem_preimage]
+          by_cases h : x ∈ Set.Icc (0:ℝ) 1
           · simp only [Set.mem_Icc] at h; rw [eq_true h]; simp [hT]
           · simp only [Set.mem_Icc] at h; rw [eq_false h]; simp [hF]
         · suffices (fun x => x ∈ Set.Icc (0:ℝ) 1) ⁻¹' s = (Set.Icc 0 1)ᶜ by
             rw [this]; exact MeasurableSet.compl measurableSet_Icc
-          ext x; simp; by_cases h : x ∈ Set.Icc (0:ℝ) 1
-          · simp only [Set.mem_Icc] at h; rw [eq_true h]; simp [hT]; assumption
-          · simp only [Set.mem_Icc] at h; rw [eq_false h]; simp [hF]
-            intro hx; simp [hx] at h; exact h
+          ext x
+          simp only [Set.mem_Icc, Set.mem_preimage, Set.mem_compl_iff, not_and, not_le]
+          by_cases h : x ∈ Set.Icc (0:ℝ) 1
+          · simp only [Set.mem_Icc] at h
+            rw [eq_true h]
+            simp only [hT, false_iff, Classical.not_imp, not_lt]
+            assumption
+          · simp only [Set.mem_Icc] at h
+            rw [eq_false h]
+            simp only [hF, true_iff]
+            intro hx
+            simp only [hx, true_and, not_le] at h
+            exact h
         · suffices (fun x => x ∈ Set.Icc (0:ℝ) 1) ⁻¹' s = ∅ by
             rw [this]; exact MeasurableSet.empty
-          ext x; simp; by_cases h : x ∈ Set.Icc (0:ℝ) 1
+          ext x
+          simp only [Set.mem_Icc, Set.mem_preimage, Set.mem_empty_iff_false, iff_false]
+          by_cases h : x ∈ Set.Icc (0:ℝ) 1
           · simp only [Set.mem_Icc] at h; rw [eq_true h]; exact hT
           · simp only [Set.mem_Icc] at h; rw [eq_false h]; exact hF
       · apply isHom_of_measurable
@@ -557,23 +572,38 @@ noncomputable def score_map (r : FlatReal) : RX Unit where
         by_cases hT : True ∈ t <;> by_cases hF : False ∈ t
         · suffices (fun x => x ∈ Set.Icc 0 |r.val|) ⁻¹' t = Set.univ by
             rw [this]; exact MeasurableSet.univ
-          ext x; simp; by_cases h : x ∈ Set.Icc 0 |r.val|
+          ext x
+          simp only [Set.mem_Icc, Set.mem_preimage, Set.mem_univ, iff_true]
+          by_cases h : x ∈ Set.Icc 0 |r.val|
           · simp only [Set.mem_Icc] at h; rw [eq_true h]; exact hT
           · simp only [Set.mem_Icc] at h; rw [eq_false h]; exact hF
         · suffices (fun x => x ∈ Set.Icc 0 |r.val|) ⁻¹' t = Set.Icc 0 |r.val| by
             rw [this]; exact measurableSet_Icc
-          ext x; simp; by_cases h : x ∈ Set.Icc 0 |r.val|
+          ext x
+          simp only [Set.mem_Icc, Set.mem_preimage]
+          by_cases h : x ∈ Set.Icc 0 |r.val|
           · simp only [Set.mem_Icc] at h; rw [eq_true h]; simp [hT]
           · simp only [Set.mem_Icc] at h; rw [eq_false h]; simp [hF]
         · suffices (fun x => x ∈ Set.Icc 0 |r.val|) ⁻¹' t = (Set.Icc 0 |r.val|)ᶜ by
             rw [this]; exact MeasurableSet.compl measurableSet_Icc
-          ext x; simp; by_cases h : x ∈ Set.Icc 0 |r.val|
-          · simp only [Set.mem_Icc] at h; rw [eq_true h]; simp [hT]; assumption
-          · simp only [Set.mem_Icc] at h; rw [eq_false h]; simp [hF]
-            intro hx; simp [hx] at h; exact h
+          ext x
+          simp only [Set.mem_Icc, Set.mem_preimage, Set.mem_compl_iff, not_and, not_le]
+          by_cases h : x ∈ Set.Icc 0 |r.val|
+          · simp only [Set.mem_Icc] at h
+            rw [eq_true h]
+            simp only [hT, false_iff, Classical.not_imp, not_lt]
+            assumption
+          · simp only [Set.mem_Icc] at h
+            rw [eq_false h]
+            simp only [hF, true_iff]
+            intro hx
+            simp only [hx, true_and, not_le] at h
+            exact h
         · suffices (fun x => x ∈ Set.Icc 0 |r.val|) ⁻¹' t = ∅ by
             rw [this]; exact MeasurableSet.empty
-          ext x; simp; by_cases h : x ∈ Set.Icc 0 |r.val|
+          ext x
+          simp only [Set.mem_Icc, Set.mem_preimage, Set.mem_empty_iff_false, iff_false]
+          by_cases h : x ∈ Set.Icc 0 |r.val|
           · simp only [Set.mem_Icc] at h; rw [eq_true h]; exact hT
           · simp only [Set.mem_Icc] at h; rw [eq_false h]; exact hF
       · apply isHom_of_measurable
