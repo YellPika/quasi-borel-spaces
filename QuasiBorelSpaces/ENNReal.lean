@@ -49,8 +49,8 @@ open QuasiBorelSpace
 
 /-- ωQBS structure on `ENNReal` -/
 noncomputable instance : OmegaQuasiBorelSpace ENNReal where
-  isHom_ωSup' c hc := by
-    change IsHom fun r ↦ ⨆ n, c n r
+  isHom_ωSup := by
+    change IsHom fun c : OmegaCompletePartialOrder.Chain ENNReal ↦ ⨆ n, c n
     fun_prop
 
 end OmegaQuasiBorelSpace.ENNReal

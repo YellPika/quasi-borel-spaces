@@ -102,15 +102,9 @@ instance : OmegaCompletePartialOrder (X →ω𝒒 Y) :=
     (fun c ↦ {
       toFun := ωSup (c.map ⟨DFunLike.coe, fun _ _ h ↦ h⟩)
       isHom' := by
-        rw [isHom_def]
-        intro φ hφ
-        let c' : Chain (ℝ → Y) := {
-          toFun x r := (c x) (φ r)
-          monotone' i j h r := c.monotone h (φ r)
-        }
-        apply isHom_ωSup c' fun n ↦ ?_
-        simp only [Chain, OrderHom.coe_mk, c']
-        fun_prop
+        simp only [
+          ωSup, Chain.isHom_iff, Chain.map_coe, Pi.evalOrderHom_coe, OrderHom.coe_mk,
+          Function.comp_apply, Function.eval, isHom_coe, implies_true, isHom_ωSup']
       ωScottContinuous' := by
         let c' : Chain (X →𝒄 Y) := {
           toFun n := (c n).toContinuousHom
@@ -213,8 +207,11 @@ lemma ωScottContinuous_eval'
   · simp only [ωScottContinuous_eval]
   · fun_prop
 
+omit [OmegaQuasiBorelSpace X] in
 @[simp]
-lemma isHom_iff (f : X → Y →ω𝒒 Z) : IsHom f ↔ IsHom (fun x : X × Y ↦ f x.1 x.2) := by
+lemma isHom_iff
+    [QuasiBorelSpace X] (f : X → Y →ω𝒒 Z)
+    : IsHom f ↔ IsHom (fun x : X × Y ↦ f x.1 x.2) := by
   apply Iff.intro
   · intro hf
     rw [QuasiBorelSpace.isHom_def]
@@ -258,18 +255,20 @@ lemma ωScottContinuous_mk
 
 /-- The exponential object is an ωQBS. -/
 instance : OmegaQuasiBorelSpace (X →ω𝒒 Y) where
-  isHom_ωSup' := by
-    intro c hc
-    rw [isHom_def]
-    let c' : Chain (ℝ × X → Y) := {
-      toFun n x := c n x.1 x.2
-      monotone' i j h x := c.monotone h x.1 x.2
-    }
-    apply isHom_ωSup c' fun n ↦ ?_
-    simp only [Chain, OrderHom.coe_mk, c']
-    apply isHom_comp' (f := fun x : (X →ω𝒒 Y) × X ↦ x.1 x.2) (g := fun x : ℝ × X ↦ (c n x.1, x.2))
-    · apply isHom_eval
+  isHom_ωSup := by
+    simp only [ωSup, isHom_iff, coe_mk]
+    apply isHom_ωSup'
+    simp only [
+      Chain.isHom_iff, Chain.map_coe, Pi.evalOrderHom_coe,
+      OrderHom.coe_mk, Function.comp_apply, Function.eval]
+    intro i
+    apply isHom_comp'
+        (f := fun x : (X →ω𝒒 Y) × X ↦ x.1 x.2)
+        (g := fun x : Chain (X →ω𝒒 Y) × X ↦ (x.1 i, x.2))
     · fun_prop
+    · apply Prod.isHom_mk
+      · apply isHom_comp' (Chain.isHom_apply i) Prod.isHom_fst
+      · fun_prop
 
 /-! ### Operations -/
 

@@ -86,17 +86,21 @@ lemma ωScottContinuous_val'
   fun_prop
 
 instance : OmegaQuasiBorelSpace (Cont R A) where
-  isHom_ωSup' c hc := by
+  isHom_ωSup := by
     change IsHom fun x ↦ mk _
+    apply isHom_comp' isHom_mk
+    apply isHom_ωSup'
+    simp only [
+      Chain.isHom_iff, Chain.map_coe, OrderHom.coe_mk,
+      Function.comp_apply, OmegaQuasiBorelHom.isHom_iff]
+    intro i
     apply isHom_comp'
-    · fun_prop
-    · let f : (ℝ → Cont R A) →o (ℝ → (A →ω𝒒 R) →ω𝒒 R) := {
-        toFun f r := (f r).apply
-        monotone' i j h r := by apply h
-      }
-      apply isHom_ωSup (c.map f) fun n ↦ ?_
-      simp only [Chain.map_coe, OrderHom.coe_mk, Function.comp_apply, f]
-      fun_prop
+        (f := fun x : Cont R A × _ ↦ x.1.apply x.2)
+        (g := fun x : Chain (Cont R A) × _ ↦ (x.1 i, x.2))
+        (by fun_prop)
+    apply Prod.isHom_mk
+    · apply isHom_comp' (Chain.isHom_apply i) Prod.isHom_fst
+    · apply Prod.isHom_snd
 
 /-- The `unit` operator (i.e., pure values) for the continuation monad. -/
 @[simps]

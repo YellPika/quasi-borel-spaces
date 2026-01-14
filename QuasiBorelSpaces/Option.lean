@@ -172,15 +172,9 @@ lemma isHom_sequence [QuasiBorelSpace A] [Preorder A] : IsHom (Chain.Option.sequ
   · fun_prop
 
 noncomputable instance [OmegaQuasiBorelSpace A] : OmegaQuasiBorelSpace (Option A) where
-  isHom_ωSup' c hc := by
-    classical
+  isHom_ωSup := by
     change IsHom fun r ↦ ωSup _
-    apply Option.isHom_map
-    · fun_prop
-    · apply isHom_comp' isHom_sequence
-      simp only [
-        Chain.isHom_iff, Chain.map_coe, Pi.evalOrderHom_coe,
-        Function.comp_apply, Function.eval]
-      fun_prop
+    simp only [ωSup]
+    fun_prop
 
 end OmegaQuasiBorelSpace.Option

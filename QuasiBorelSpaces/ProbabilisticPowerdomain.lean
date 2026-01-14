@@ -378,42 +378,32 @@ noncomputable def E_MT (β : MRX X) : MTX X :=
   ⟨E_rand (X := X) β, InMTX.randomizable β⟩
 
 /-- `TX` inherits an ωCPO structure from `Cont ENNReal` -/
-noncomputable instance : OmegaCompletePartialOrder (TX X) where
-  ωSup := fun c =>
-    let incl : OrderHom (TX X) (Cont ENNReal X) :=
-      { toFun := Subtype.val
-        monotone' := by
-          intro a b h
-          exact h }
-    ⟨ωSup (c.map incl), InTX.sup (fun n => (c n).2)⟩
-  le_ωSup := by
-    intro c n
-    simpa using (le_ωSup (c.map ⟨Subtype.val, by intro a b h; exact h⟩) n)
-  ωSup_le := by
-    intro c x hx
-    exact (ωSup_le (c := c.map ⟨Subtype.val, by intro a b h; exact h⟩) (x := x.1)
-      (by
-        intro n
-        exact hx n))
+noncomputable instance : OmegaCompletePartialOrder (TX X) :=
+  OmegaCompletePartialOrder.subtype _ (by
+    intro c hc
+    apply InTX.sup fun n ↦ ?_
+    apply hc
+    use n)
 
 /-- `TX` is an ωQBS as a full subobject of `Cont ENNReal` -/
 noncomputable instance : OmegaQuasiBorelSpace (TX X) where
-  isHom_ωSup' := by
-    intro c hc
-    rw [QuasiBorelSpace.Subtype.isHom_def]
-    let c' : Chain (ℝ → Cont ENNReal X) := {
-      toFun := fun n r => (c n r).val
-      monotone' := fun i j h r => c.monotone h r
-    }
-    have h_eq : (fun r => (ωSup c r).val) = ωSup c' := by
-      ext r
-      rfl
-    rw [h_eq]
-    apply OmegaQuasiBorelSpace.isHom_ωSup c'
-    intro n
-    have hcn := hc n
-    rw [QuasiBorelSpace.Subtype.isHom_def] at hcn
-    exact hcn
+  isHom_ωSup := by
+    simp only [Subtype.isHom_def]
+    apply Cont.isHom_mk'
+    simp only [OmegaQuasiBorelHom.isHom_iff, OmegaQuasiBorelHom.ωSup_coe]
+    change IsHom fun x ↦ ωSup _
+    apply isHom_ωSup'
+    simp only [
+      Chain.isHom_iff, Chain.map_coe, Pi.evalOrderHom_coe, OrderHom.coe_mk,
+      OrderHom.Subtype.val_coe, Function.comp_apply, Function.eval]
+    intro i
+    apply isHom_comp'
+      (f := fun x : TX X × (X →ω𝒒 ENNReal) ↦ x.1.val.apply x.2)
+      (g := fun x : Chain (TX X) × (X →ω𝒒 ENNReal) ↦ (x.1 i, x.2))
+    · fun_prop
+    · apply Prod.isHom_mk
+      · apply isHom_comp' (Chain.isHom_apply i) Prod.isHom_fst
+      · apply Prod.isHom_snd
 
 /-- the val projection of `TX` is ω-scott continuous -/
 @[simp]
@@ -429,42 +419,33 @@ lemma TX.ωScottContinuous_val' {A : Type*} [OmegaCompletePartialOrder A]
   ωScottContinuous.comp (TX.ωScottContinuous_val (X := X)) hf
 
 /-- `MTX` inherits an ωCPO structure from `MSX` -/
-noncomputable instance : OmegaCompletePartialOrder (MTX X) where
-  ωSup := fun c =>
-    let incl : OrderHom (MTX X) (MSX X) :=
-      { toFun := Subtype.val
-        monotone' := by
-          intro a b h
-          exact h }
-    ⟨ωSup (c.map incl), InMTX.sup (fun n => (c n).2)⟩
-  le_ωSup := by
-    intro c n
-    simpa using (le_ωSup (c.map ⟨Subtype.val, by intro a b h; exact h⟩) n)
-  ωSup_le := by
-    intro c x hx
-    exact (ωSup_le (c := c.map ⟨Subtype.val, by intro a b h; exact h⟩) (x := x.1)
-      (by
-        intro n
-        exact hx n))
+noncomputable instance : OmegaCompletePartialOrder (MTX X) :=
+  OmegaCompletePartialOrder.subtype _ (by
+    intro c hc
+    apply InMTX.sup fun n ↦ ?_
+    apply hc
+    use n)
 
 /-- `MTX` is an ωQBS as a full subobject of `MSX` -/
 noncomputable instance : OmegaQuasiBorelSpace (MTX X) where
-  isHom_ωSup' := by
-    intro c hc
-    rw [QuasiBorelSpace.Subtype.isHom_def]
-    let c' : Chain (ℝ → MSX X) := {
-      toFun := fun n r => (c n r).val
-      monotone' := fun i j h r => c.monotone h r
-    }
-    have h_eq : (fun r => (ωSup c r).val) = ωSup c' := by
-      ext r
-      rfl
-    rw [h_eq]
-    apply OmegaQuasiBorelSpace.isHom_ωSup c'
-    intro n
-    have hcn := hc n
-    rw [QuasiBorelSpace.Subtype.isHom_def] at hcn
-    exact hcn
+  isHom_ωSup := by
+    simp only [Subtype.isHom_def, OmegaQuasiBorelHom.isHom_iff]
+    apply Cont.isHom_mk'
+    change IsHom fun x ↦ ωSup _
+    apply isHom_ωSup'
+    simp only [
+      Chain.isHom_iff, Chain.map_coe, OrderHom.coe_mk, Pi.evalOrderHom_coe,
+      OrderHom.Subtype.val_coe, Function.comp_apply, Function.eval,
+      OmegaQuasiBorelHom.isHom_iff]
+    intro i
+    apply isHom_comp'
+      (f := fun x : _ × _ × _ ↦ (x.1.val x.2.1).apply x.2.2)
+      (g := fun x : (Chain (MTX X) × FlatReal) × (X →ω𝒒 ENNReal) ↦ (x.1.1 i, x.1.2, x.2))
+    · fun_prop
+    · apply Prod.isHom_mk
+      · apply isHom_comp' (Chain.isHom_apply i)
+        fun_prop
+      · fun_prop
 
 /-- Monad unit on `T` obtained by restriction -/
 noncomputable def return_T (x : X) : TX X where

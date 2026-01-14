@@ -57,7 +57,9 @@ instance : OmegaCompletePartialOrder FlatReal where
 
 /-- `FlatReal` is trivially an ωQBS. -/
 instance : OmegaQuasiBorelSpace FlatReal where
-  isHom_ωSup' _ hc := hc 0
+  isHom_ωSup := by
+    change QuasiBorelSpace.IsHom fun c : OmegaCompletePartialOrder.Chain FlatReal ↦ c 0
+    fun_prop
 
 instance : TopologicalSpace FlatReal :=
   TopologicalSpace.induced val inferInstance

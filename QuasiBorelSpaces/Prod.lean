@@ -125,16 +125,13 @@ open OmegaCompletePartialOrder
 variable {A B : Type*} [OmegaQuasiBorelSpace A] [OmegaQuasiBorelSpace B]
 
 instance : OmegaQuasiBorelSpace (A × B) where
-  isHom_ωSup' c hc := by
+  isHom_ωSup := by
     rw [Prod.isHom_iff]
-    constructor
-    · let c₁ := c.map ⟨(fun f r ↦ (f r).1), by intro f g h r; exact (h r).1⟩
-      apply isHom_ωSup c₁ fun n ↦ ?_
-      simp only [Chain.map_coe, OrderHom.coe_mk, Function.comp_apply, c₁]
-      fun_prop
-    · let c₂ := c.map ⟨(fun f r ↦ (f r).2), by intro f g h r; exact (h r).2⟩
-      apply isHom_ωSup c₂ fun n ↦ ?_
-      simp only [Chain.map_coe, OrderHom.coe_mk, Function.comp_apply, c₂]
+    constructor <;>
+    · apply isHom_ωSup'
+      simp only [
+        Chain.isHom_iff, Chain.map_coe, Function.comp_apply,
+        OrderHom.fst_coe, OrderHom.snd_coe]
       fun_prop
 
 end OmegaQuasiBorelSpace.Prod

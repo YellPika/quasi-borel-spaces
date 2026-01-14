@@ -35,7 +35,7 @@ lemma inr_apply (c : Chain B) (n : ℕ) : inr (A := A) c n = .inr (c n) := rfl
 
 /-- Projects left values out of a chain. -/
 @[simps]
-def projl [Inhabited A] (c : Chain (A ⊕ B)) : Chain A where
+def projl [hA : Inhabited A] (c : Chain (A ⊕ B)) : Chain A where
   toFun n := Sum.elim id (fun _ ↦ default) (c n)
   monotone' := by
     refine monotone_nat_of_le_succ fun n ↦ ?_
@@ -58,7 +58,7 @@ lemma projl_apply [Inhabited A] (c : Chain (A ⊕ B)) (n : ℕ) :
   rfl
 
 /-- Projects right values out of a chain. -/
-def projr [Inhabited B] (c : Chain (A ⊕ B)) : Chain B :=
+def projr [hB : Inhabited B] (c : Chain (A ⊕ B)) : Chain B :=
   projl (c.map
     ⟨ Sum.swap
     , by
