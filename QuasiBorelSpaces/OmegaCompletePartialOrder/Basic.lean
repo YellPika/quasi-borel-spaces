@@ -2,9 +2,14 @@ module
 
 public import Mathlib.Order.OmegaCompletePartialOrder
 public import QuasiBorelSpaces.OmegaCompletePartialOrder.Chain.Const
-public import Mathlib.MeasureTheory.Integral.Lebesgue.Add
+public import Mathlib.MeasureTheory.MeasurableSpace.Defs
+public import Mathlib.Data.ENNReal.Basic
+public import Mathlib.MeasureTheory.Measure.MeasureSpaceDef
+public import Mathlib.MeasureTheory.Constructions.BorelSpace.Basic
+public import Mathlib.MeasureTheory.Integral.Lebesgue.Basic
+import Mathlib.MeasureTheory.Integral.Lebesgue.Add
 
-@[expose] public section
+public section
 
 /-!
 # Basic properties of ω-complete partial orders
