@@ -585,7 +585,7 @@ lemma choose_eq (p : I) (μ : ProbabilityMeasure A) : μ ◃p▹ μ = μ := by
   rcases p with ⟨p, hp⟩
   simp only [Set.mem_Icc] at hp
   ext k hk
-  simp (disch := fun_prop) [lintegral_choose, unitInterval.coe_symm_eq]
+  simp (disch := fun_prop) only [lintegral_choose, unitInterval.coe_symm_eq]
   simp only [hp, ENNReal.ofReal_sub, ENNReal.ofReal_one]
 
   wlog hkμ : ∫⁻ x, k x ∂μ ≠ ⊤

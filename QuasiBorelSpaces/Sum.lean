@@ -156,7 +156,7 @@ lemma isHom_projl
     {f : C → Chain (A ⊕ B)} (hf : IsHom f)
     {g : C → A} (hg : IsHom g)
     : IsHom (fun x ↦ Chain.Sum.projl (hA := ⟨g x⟩) (f x)) := by
-  simp only [Chain.isHom_iff, Chain.Sum.projl_apply]
+  simp only [Chain.isHom_iff, Chain.Sum.projl_coe]
   intro i
   apply Sum.isHom_elim'
   · fun_prop
@@ -171,7 +171,7 @@ lemma isHom_projr
     {f : C → Chain (A ⊕ B)} (hf : IsHom f)
     {g : C → B} (hb : IsHom g)
     : IsHom (fun x ↦ Chain.Sum.projr (hB := ⟨g x⟩) (f x)) := by
-  simp only [Chain.isHom_iff, Chain.Sum.projr_apply]
+  simp only [Chain.isHom_iff, Chain.Sum.projr_coe]
   intro i
   apply Sum.isHom_elim'
   · fun_prop
@@ -187,7 +187,7 @@ lemma isHom_distrib
   fun_prop
 
 /-- Coproduct of omega quasi-borel spaces is again an omega quasi-borel space. -/
-noncomputable instance instOmegaQuasiBorelSpaceSum
+noncomputable instance
     [OmegaQuasiBorelSpace A] [OmegaQuasiBorelSpace B] :
     OmegaQuasiBorelSpace (A ⊕ B) where
   isHom_ωSup := by

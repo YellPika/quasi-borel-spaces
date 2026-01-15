@@ -22,7 +22,7 @@ def inl (c : Chain A) : Chain (A ⊕ B) :=
     simp only [Sum.inl_le_inl_iff, h]⟩
 
 @[simp]
-lemma inl_apply (c : Chain A) (n : ℕ) : inl (B := B) c n = .inl (c n) := rfl
+lemma inl_coe (c : Chain A) (n : ℕ) : inl (B := B) c n = .inl (c n) := rfl
 
 /-- Right injection for chains of sums. -/
 def inr (c : Chain B) : Chain (A ⊕ B) :=
@@ -31,10 +31,9 @@ def inr (c : Chain B) : Chain (A ⊕ B) :=
     simp only [Sum.inr_le_inr_iff, h]⟩
 
 @[simp]
-lemma inr_apply (c : Chain B) (n : ℕ) : inr (A := A) c n = .inr (c n) := rfl
+lemma inr_coe (c : Chain B) (n : ℕ) : inr (A := A) c n = .inr (c n) := rfl
 
 /-- Projects left values out of a chain. -/
-@[simps]
 def projl [hA : Inhabited A] (c : Chain (A ⊕ B)) : Chain A where
   toFun n := Sum.elim id (fun _ ↦ default) (c n)
   monotone' := by
@@ -53,7 +52,7 @@ def projl [hA : Inhabited A] (c : Chain (A ⊕ B)) : Chain A where
       | inr y => simp only [Sum.elim_inr, le_refl]
 
 @[simp]
-lemma projl_apply [Inhabited A] (c : Chain (A ⊕ B)) (n : ℕ) :
+lemma projl_coe [Inhabited A] (c : Chain (A ⊕ B)) (n : ℕ) :
     projl c n = Sum.elim id (fun _ ↦ default) (c n) :=
   rfl
 
@@ -69,16 +68,16 @@ def projr [hB : Inhabited B] (c : Chain (A ⊕ B)) : Chain B :=
     ⟩)
 
 @[simp]
-lemma projr_apply [Inhabited B] (c : Chain (A ⊕ B)) (n : ℕ) :
+lemma projr_coe [Inhabited B] (c : Chain (A ⊕ B)) (n : ℕ) :
     projr c n = Sum.elim (fun _ ↦ default) id (c n) := by
   cases h : c n with
   | inl _ =>
       simp only [
-        projr, projl_apply, map_coe, OrderHom.coe_mk, Function.comp_apply, h, Sum.swap_inl,
+        projr, projl_coe, map_coe, OrderHom.coe_mk, Function.comp_apply, h, Sum.swap_inl,
         Sum.elim_inr, Sum.elim_inl]
   | inr _ =>
       simp only [
-        projr, projl_apply, map_coe, OrderHom.coe_mk, Function.comp_apply, h, Sum.swap_inr,
+        projr, projl_coe, map_coe, OrderHom.coe_mk, Function.comp_apply, h, Sum.swap_inr,
         Sum.elim_inl, id_eq, Sum.elim_inr]
 
 /-- Splits a chain of sums into a sum of chains. -/
@@ -92,33 +91,23 @@ def distrib (c : Chain (A ⊕ B)) : Chain A ⊕ Chain B :=
       .inr (projr c))
     (c 0)
 
-lemma distrib_def [Inhabited A] [Inhabited B] (c : Chain (A ⊕ B))
-    : distrib c
-    = if (c 0).isLeft then .inl (projl c) else .inr (projr c) := by
-  cases hc₀ : c 0 with
-  | inl c₀ =>
-    simp only [distrib, hc₀, Sum.elim_inl, Sum.isLeft_inl, ↓reduceIte, Sum.inl.injEq]
-    ext n
-    simp only [projl_apply]
-    cases hcₙ : c n with
-    | inl cₙ => simp only [Sum.elim_inl, id_eq]
-    | inr cₙ =>
-      have : c 0 ≤ c n := c.monotone (by simp only [zero_le])
-      simp only [hc₀, hcₙ, Sum.not_inl_le_inr] at this
-  | inr c₀ =>
-    simp only [
-      distrib, hc₀, Sum.elim_inr, Sum.isLeft_inr,
-      Bool.false_eq_true, ↓reduceIte, Sum.inr.injEq]
-    ext n
-    simp only [projr_apply]
-    cases hcₙ : c n with
-    | inl cₙ =>
-      have : c 0 ≤ c n := c.monotone (by simp only [zero_le])
-      simp only [hc₀, hcₙ, Sum.not_inr_le_inl] at this
-    | inr cₙ => simp only [Sum.elim_inr, id_eq]
+@[simp]
+lemma distrib_inl (c : Chain A) : distrib (inl (B := B) c) = .inl c := rfl
 
 @[simp]
-lemma elim_distrib (c : Chain (A ⊕ B)) : Sum.elim inl inr (distrib c) = c := by
+lemma distrib_inr (c : Chain B) : distrib (inr (A := A) c) = .inr c := rfl
+
+@[simp]
+lemma distrib_cases
+    {p : Chain (A ⊕ B) → Prop}
+    (inl : ∀ c, p (inl c))
+    (inr : ∀ c, p (inr c))
+    (c : Chain (A ⊕ B)) : p c := by
+  suffices this : c = Sum.elim Sum.inl Sum.inr (distrib c) by
+    rw [this]
+    cases distrib c with
+    | inl _ => apply inl
+    | inr _ => apply inr
   apply OrderHom.ext
   ext n
   dsimp only [distrib]
@@ -129,8 +118,8 @@ lemma elim_distrib (c : Chain (A ⊕ B)) : Sum.elim inl inr (distrib c) = c := b
     | inl y =>
       simp only [h₀, hₙ, Sum.inl_le_inl_iff] at this
       simp only [Sum.elim_inl]
-      rw [inl_apply]
-      simp only [projl_apply, hₙ, Sum.elim_inl, id_eq]
+      rw [inl_coe]
+      simp only [projl_coe, hₙ, Sum.elim_inl, id_eq]
     | inr y => simp only [h₀, hₙ, Sum.not_inl_le_inr] at this
   | inr x =>
     cases hₙ : c n with
@@ -138,13 +127,7 @@ lemma elim_distrib (c : Chain (A ⊕ B)) : Sum.elim inl inr (distrib c) = c := b
     | inr y =>
       simp only [h₀, hₙ] at this
       simp only [Sum.elim_inr]
-      rw [inr_apply]
-      simp only [projr_apply, hₙ, Sum.elim_inr, id_eq]
-
-@[simp]
-lemma distrib_inl (c : Chain A) : distrib (inl (B := B) c) = .inl c := rfl
-
-@[simp]
-lemma distrib_inr (c : Chain B) : distrib (inr (A := A) c) = .inr c := rfl
+      rw [inr_coe]
+      simp only [projr_coe, hₙ, Sum.elim_inr, id_eq]
 
 end OmegaCompletePartialOrder.Chain.Sum
