@@ -75,6 +75,9 @@ lemma ωScottContinuous_E_op : ωScottContinuous (expectation (X := X)) := by
     apply measurable_of_isHom
     fun_prop
 
+-- TODO: inline the existing definition of `expectation`, then rename `E` to
+-- `expectation`. This will also require inlining `isHom_E_op` and
+-- `ωScottContinuous_E_op`.
 /-- The expectation morphism `E : RX → JX` -/
 @[simps]
 def E : Randomization X →ω𝒒 Cont ENNReal X where
@@ -109,16 +112,9 @@ class RandomSplit where
 attribute [fun_prop] RandomSplit.measurable_φ
 
 /-- A default instance of `RandomSplit` (placeholder for now) -/
-noncomputable def defaultRandomSplit : RandomSplit := by
-  classical
-  refine ⟨?φ, ?hφ, ?hpres⟩
-  · sorry
-  · sorry
-  · sorry
+noncomputable def defaultRandomSplit : RandomSplit := sorry
 
 attribute [instance] defaultRandomSplit
-
-variable [RandomSplit]
 
 /-- Monad bind on randomizations using the randomness splitting -/
 def Randomization.bind
@@ -139,6 +135,7 @@ section ExpectationMonad
 
 variable {X : Type*} [OmegaQuasiBorelSpace X]
 
+-- TODO: rename E_* to expectation_*
 /-- Expectation preserves the monad structure on randomizations -/
 theorem E_preserves_return (x : X) :
     E (return_R x) = Cont.unit x := by
@@ -261,7 +258,9 @@ theorem E_preserves_bind
     · apply Measurable.comp (Measurable.of_comap_le le_rfl) measurable_fst
     · apply Measurable.comp (Measurable.of_comap_le le_rfl) measurable_snd
 
-  have h_lhs : ∫⁻ r, (Randomization.bind α k r).elim 0 w ∂volume = ∫⁻ p, f p ∂(volume.prod volume) := by
+  have h_lhs
+      : ∫⁻ r, (Randomization.bind α k r).elim 0 w ∂volume
+      = ∫⁻ p, f p ∂(volume.prod volume) := by
     simp only [Randomization.bind]
     change ∫⁻ r, (match RandomSplit.φ r with | (r₁, r₂) => α r₁ >>= (k · r₂)).elim 0 w ∂volume = _
     have
@@ -269,7 +268,6 @@ theorem E_preserves_bind
         = f ∘ RandomSplit.φ := by
       ext r
       simp only [Option.bind_eq_bind, Function.comp_apply, f]
-      dsimp only [defaultRandomSplit, RandomSplit.φ]
     rw [this]
     rw [← RandomSplit.preserves_volume]
     rw [lintegral_map h_meas_f RandomSplit.measurable_φ]
@@ -281,7 +279,7 @@ theorem E_preserves_bind
   rw [h_fubini]
   apply lintegral_congr
   intro r1
-  simp only [Option.bind_eq_bind, OmegaQuasiBorelHom.coe_mk, f]
+  simp only [Option.bind_eq_bind, f]
   cases h : α r1 with
   | none => simp only [Option.bind_none, Option.elim_none, lintegral_const, zero_mul]
   | some x => simp only [Option.bind_some, Option.elim_some]
@@ -293,43 +291,26 @@ theorem E_preserves_bind
 /-- Predicate: expectation operator arising from a randomization -/
 def Randomizable (μ : Cont ENNReal X) : Prop := ∃ α : Randomization X, μ = expectation α
 
+-- TODO: make this a structure and give more descriptive name.
 /-- Randomizable expectation operators as a subtype -/
 def SX := {μ : Cont ENNReal X // Randomizable μ}
+
+-- TODO: give more descriptive name. Alternatively, just remove the abbreviation
+-- and use `FlatReal →ω𝒒 Randomization X` directly.
 /-- Randomizations valued in randomizations -/
 abbrev MRX (X : Type*) [OmegaQuasiBorelSpace X] := FlatReal →ω𝒒 Randomization X
+
+-- TODO: give more descriptive name. Alternatively, just remove the abbreviation
+-- and use `FlatReal →ω𝒒 Cont ENNReal X` directly.
 /-- Randomizable random operators (random elements of `Cont ENNReal`) -/
 abbrev MSX (X : Type*) [OmegaQuasiBorelSpace X] := FlatReal →ω𝒒 Cont ENNReal X
 
+-- TODO: rename (what does this have to do with E)?
 /-- Extend `E` pointwise to random randomizations -/
 noncomputable def E_rand (β : MRX X) : MSX X where
   toFun r := expectation (β r)
-  isHom' := by
-    have hE : IsHom (fun α => expectation α) := (E (X := X)).isHom_coe
-    have hβ : IsHom β := β.isHom_coe
-    exact isHom_comp hE hβ
-  ωScottContinuous' := by
-    rw [ωScottContinuous_iff_monotone_map_ωSup]
-    refine ⟨fun r s hrs ↦ ?_, fun c ↦ ?_⟩
-    · cases hrs
-      exact le_rfl
-    · let f : OrderHom FlatReal (Cont ENNReal X) :=
-        { toFun := fun r => expectation (β r)
-          monotone' := by
-            intro r s hrs
-            cases hrs
-            exact le_rfl }
-      have h_sup : ωSup c = c 0 := rfl
-      apply le_antisymm
-      · have : f (ωSup c) ≤ ωSup (c.map f) :=
-          le_ωSup (c.map f) 0
-        simpa [h_sup] using this
-      · apply ωSup_le
-        intro n
-        have hconst : c n = c 0 := by
-          have h' : c 0 = c n := c.monotone (Nat.zero_le n)
-          exact h'.symm
-        simp [h_sup, hconst]
 
+-- TODO: rename with TX
 /-- Membership in the ω-sup-closure of randomizable operators -/
 inductive InTX : Cont ENNReal X → Prop
   /-- Randomizable operators are in the closure -/
@@ -337,6 +318,7 @@ inductive InTX : Cont ENNReal X → Prop
   /-- The closure is closed under ω-sups -/
   | sup {c : Chain (Cont ENNReal X)} : (∀ n, InTX (c n)) → InTX (ωSup c)
 
+-- TODO: rename with MTX
 /-- Membership in the ω-sup-closure of randomizable random operators -/
 inductive InMTX : MSX X → Prop
   /-- Randomizable random operators are in the closure -/
@@ -344,9 +326,11 @@ inductive InMTX : MSX X → Prop
   /-- The closure is closed under ω-sups -/
   | sup {c : Chain (MSX X)} : (∀ n, InMTX (c n)) → InMTX (ωSup c)
 
+-- TODO: give more descriptive name and turn into a structure.
 /-- Probabilistic powerdomain: smallest ω-subcpo of `Cont ENNReal` -/
 abbrev TX (X : Type*) [OmegaQuasiBorelSpace X] := {μ : Cont ENNReal X // InTX (X := X) μ}
 
+-- TODO: give more descriptive name and turn into a structure.
 /-- Random elements of the powerdomain -/
 abbrev MTX (X : Type*) [OmegaQuasiBorelSpace X] := {β : MSX X // InMTX (X := X) β}
 
@@ -367,10 +351,14 @@ def MTX.incl (t : MTX X) : MSX X := t.1
 
 end Inclusions
 
+-- TODO: rename to Randomization.⟨something⟩
+-- (where "something" depends on what you call TX)
 /-- Expectation factors through `T` -/
 noncomputable def E_T (α : Randomization X) : TX X :=
   ⟨expectation (X := X) α, InTX.randomizable α⟩
 
+-- TODO: rename to Randomization.⟨something⟩
+-- (where "something" depends on what you call MTX)
 /-- Pointwise extension of `E_T` to random randomizations -/
 noncomputable def E_MT (β : MRX X) : MTX X :=
   ⟨E_rand (X := X) β, InMTX.randomizable β⟩
@@ -445,6 +433,7 @@ noncomputable instance : OmegaQuasiBorelSpace (MTX X) where
         fun_prop
       · fun_prop
 
+-- TODO: rename to T.return
 /-- Monad unit on `T` obtained by restriction -/
 noncomputable def return_T (x : X) : TX X where
   val := Cont.unit x
@@ -452,6 +441,7 @@ noncomputable def return_T (x : X) : TX X where
     rw [←E_preserves_return]
     apply InTX.randomizable
 
+-- TODO: rename to T.bind
 /-- Monad bind on `T`, restricting the `J` bind -/
 noncomputable def bind_T {Y} [OmegaQuasiBorelSpace Y] (t : TX X) (k : X →ω𝒒 TX Y) : TX Y where
   val := t.1.bind {
@@ -469,8 +459,9 @@ theorem expectation_factorizes_monad :
 ## Sampling and conditioning (Section 4.4)
 -/
 
+-- TODO: rename to Randomization.sample
 /-- `sample : 1 → R R` is the identity randomization on reals -/
-noncomputable def sample_map (_ : Unit) : Randomization FlatReal where
+noncomputable def sample_map : Randomization FlatReal where
   toFun := fun r => if r.val ∈ Set.Icc 0 1 then some r else none
   ωScottContinuous' := by fun_prop
   isHom' := by
@@ -479,6 +470,7 @@ noncomputable def sample_map (_ : Unit) : Randomization FlatReal where
     · fun_prop
     · fun_prop
 
+-- TODO: rename to Randomization.score
 /-- `score : R → R⊥` truncates Lebesgue to an interval of length `|r|` -/
 noncomputable def score_map (r : FlatReal) : Randomization Unit where
   toFun t := if t.val ∈ Set.Icc (0 : ℝ) |r.val| then some () else none
@@ -489,10 +481,12 @@ noncomputable def score_map (r : FlatReal) : Randomization Unit where
     · fun_prop
     · fun_prop
 
+-- TODO: rename to TX.sample
 /-- Sampling lifted to the powerdomain -/
-noncomputable def sample_T (_ : Unit) : TX FlatReal :=
-  E_T (X := FlatReal) (sample_map ())
+noncomputable def sample_T : TX FlatReal :=
+  E_T (X := FlatReal) sample_map
 
+-- TODO: rename to TX.score
 /-- Conditioning lifted to the powerdomain -/
 noncomputable def score_T (r : FlatReal) : TX Unit :=
   E_T (X := Unit) (score_map r)
