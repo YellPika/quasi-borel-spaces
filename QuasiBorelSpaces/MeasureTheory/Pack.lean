@@ -1,5 +1,8 @@
-import Mathlib.MeasureTheory.Constructions.Polish.EmbeddingReal
-import Mathlib.Tactic.FunProp
+module
+
+public import Mathlib.MeasureTheory.Constructions.Polish.EmbeddingReal
+
+public section
 
 namespace MeasureTheory
 

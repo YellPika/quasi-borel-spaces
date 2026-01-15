@@ -1,11 +1,15 @@
-import Mathlib.Topology.UnitInterval
+module
+
+public import Mathlib.Topology.UnitInterval
+
+public section
 
 open scoped unitInterval
 
 namespace unitInterval
 
 /-- Helper function for `choose_assoc` -/
-@[simps]
+@[simps, expose]
 noncomputable def assocProd (p q : I) : I where
   val := (σ p * q) / σ (p * q)
   property := by

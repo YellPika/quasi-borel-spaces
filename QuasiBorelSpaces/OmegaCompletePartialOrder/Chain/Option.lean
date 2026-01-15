@@ -1,6 +1,10 @@
-import QuasiBorelSpaces.Option.Instances
-import Mathlib.Data.Nat.Find
-import Mathlib.Order.OmegaCompletePartialOrder
+module
+
+public import QuasiBorelSpaces.Option.Instances
+public import Mathlib.Data.Nat.Find
+public import Mathlib.Order.OmegaCompletePartialOrder
+
+@[expose] public section
 
 variable {A : Type*} [Preorder A]
 

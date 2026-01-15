@@ -1,6 +1,10 @@
-import Mathlib.MeasureTheory.MeasurableSpace.Defs
-import Mathlib.MeasureTheory.MeasurableSpace.Instances
-import Mathlib.MeasureTheory.MeasurableSpace.Constructions
+module
+
+public import Mathlib.MeasureTheory.MeasurableSpace.Defs
+public import Mathlib.MeasureTheory.MeasurableSpace.Instances
+public import Mathlib.MeasureTheory.MeasurableSpace.Constructions
+
+public section
 
 open scoped MeasureTheory
 

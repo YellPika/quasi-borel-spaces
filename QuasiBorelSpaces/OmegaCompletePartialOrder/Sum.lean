@@ -1,7 +1,11 @@
-import Mathlib.Data.Sum.Order
-import Mathlib.Order.OmegaCompletePartialOrder
-import QuasiBorelSpaces.OmegaCompletePartialOrder.Basic
-import QuasiBorelSpaces.OmegaCompletePartialOrder.Chain.Sum
+module
+
+public import Mathlib.Data.Sum.Order
+public import Mathlib.Order.OmegaCompletePartialOrder
+public import QuasiBorelSpaces.OmegaCompletePartialOrder.Basic
+public import QuasiBorelSpaces.OmegaCompletePartialOrder.Chain.Sum
+
+@[expose] public section
 
 /-!
 # ωCPO instance for coproducts

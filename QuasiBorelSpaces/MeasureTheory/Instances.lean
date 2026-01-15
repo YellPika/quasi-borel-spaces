@@ -1,4 +1,8 @@
-import Mathlib.MeasureTheory.MeasurableSpace.Defs
+module
+
+public import Mathlib.MeasureTheory.MeasurableSpace.Defs
+
+public section
 
 namespace MeasureTheory
 instance : MeasurableSpace PEmpty := ⊤

@@ -1,4 +1,8 @@
-import Mathlib.Order.OmegaCompletePartialOrder
+module
+
+public import Mathlib.Order.OmegaCompletePartialOrder
+
+public section
 
 namespace OmegaCompletePartialOrder.Chain
 
@@ -8,6 +12,7 @@ variable {A : Type*} [Preorder A]
 def const (x : A) : Chain A := OrderHom.const ℕ x
 
 @[simp]
-lemma const_apply (x : A) (n : ℕ) : const x n = x := rfl
+lemma const_apply (x : A) (n : ℕ) : const x n = x := by
+  rfl
 
 end OmegaCompletePartialOrder.Chain

@@ -1,4 +1,8 @@
-import Mathlib.Probability.Kernel.MeasurableLIntegral
+module
+
+public import Mathlib.Probability.Kernel.MeasurableLIntegral
+
+public section
 
 namespace MeasureTheory.Measure
 

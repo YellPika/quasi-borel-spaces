@@ -1,4 +1,9 @@
-import RoseTree
+module
+
+public import RoseTree.Defs
+import RoseTree.Basic
+
+public section
 
 namespace Rose
 

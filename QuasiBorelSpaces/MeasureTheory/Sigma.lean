@@ -1,7 +1,9 @@
-import Mathlib.MeasureTheory.MeasurableSpace.Constructions
-import Mathlib.Tactic.FunProp
-import Mathlib.MeasureTheory.MeasurableSpace.Embedding
+module
+
+public import Mathlib.MeasureTheory.MeasurableSpace.Constructions
 import QuasiBorelSpaces.MeasureTheory.Cases
+
+public section
 
 namespace MeasureTheory.Sigma
 

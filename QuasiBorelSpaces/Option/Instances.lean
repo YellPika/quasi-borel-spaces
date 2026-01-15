@@ -1,6 +1,10 @@
+module
+
 import Mathlib.Data.Option.Basic
-import Mathlib.Order.BoundedOrder.Basic
-import Mathlib.Order.Defs.PartialOrder
+public import Mathlib.Order.BoundedOrder.Basic
+public import Mathlib.Order.Defs.PartialOrder
+
+public section
 
 variable {A : Type*}
 

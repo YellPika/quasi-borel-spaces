@@ -1,7 +1,11 @@
-import Mathlib.Algebra.Order.Group.Nat
-import Mathlib.Data.Sigma.Order
-import Mathlib.Order.OmegaCompletePartialOrder
-import Mathlib.Tactic.Have
+module
+
+public import Mathlib.Algebra.Order.Group.Nat
+public import Mathlib.Data.Sigma.Order
+public import Mathlib.Order.OmegaCompletePartialOrder
+public import Mathlib.Tactic.Have
+
+@[expose] public section
 
 namespace OmegaCompletePartialOrder.Chain.Sigma
 

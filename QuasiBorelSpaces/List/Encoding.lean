@@ -1,7 +1,11 @@
+module
+
 import Mathlib.Tactic.Lemma
 import Mathlib.Tactic.TypeStar
 import Mathlib.Data.Nat.Notation
 import Mathlib.Data.Fin.Basic
+
+public section
 
 namespace List
 
@@ -17,9 +21,11 @@ abbrev Encoding (A : Type*) :=
 namespace Encoding
 
 /-- The encoded version of `[]`. -/
+@[expose]
 def nil : Encoding A := ⟨0, Fin.elim0⟩
 
 /-- The encoded version of `· ∷ ·`. -/
+@[expose]
 def cons (x : A) (xs : Encoding A) : Encoding A :=
   ⟨xs.1 + 1, Fin.cases x xs.2⟩
 
@@ -72,10 +78,12 @@ def encode : List A → Encoding A :=
   List.foldr Encoding.cons Encoding.nil
 
 @[simp]
-lemma encode_nil {A} : encode (A := A) [] = Encoding.nil := rfl
+lemma encode_nil {A} : encode (A := A) [] = Encoding.nil := by
+  rfl
 
 @[simp]
-lemma encode_cons {A} (x : A) (xs : List A) : encode (x :: xs) = Encoding.cons x (encode xs) := rfl
+lemma encode_cons {A} (x : A) (xs : List A) : encode (x :: xs) = Encoding.cons x (encode xs) := by
+  rfl
 
 @[simp]
 lemma encode_injective : Function.Injective (encode (A := A)) := by

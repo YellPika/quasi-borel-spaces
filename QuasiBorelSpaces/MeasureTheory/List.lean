@@ -1,7 +1,11 @@
-import Mathlib.MeasureTheory.MeasurableSpace.Constructions
+module
+
+public import Mathlib.MeasureTheory.MeasurableSpace.Constructions
 import Mathlib.Tactic.FunProp
-import QuasiBorelSpaces.List.Encoding
+public import QuasiBorelSpaces.List.Encoding
 import QuasiBorelSpaces.MeasureTheory.Sigma
+
+public section
 
 variable
   {A : Type*} [MeasurableSpace A]
@@ -36,13 +40,26 @@ lemma measurable_fold
   apply Sigma.measurable_elim
   intro i
   induction i with
-  | zero => simp only [foldr, measurable_const]
+  | zero =>
+    have {x : Fin 0 → A} : ⟨0, x⟩ = Encoding.nil := by
+      simp only [Encoding.nil, Sigma.mk.injEq, heq_eq_eq, true_and]
+      ext i
+      apply Fin.elim0 i
+    simp only [this, foldr_nil, measurable_const]
   | succ n ih =>
-    have : Measurable fun x : Fin (n + 1) → A ↦ foldr cons nil ⟨n, fun i ↦ x i.succ⟩ := by
-      apply Measurable.comp' ih
-      fun_prop
-    simp only [foldr]
-    fun_prop
+    have {x : Fin (n + 1) → A} : ⟨n + 1, x⟩ = Encoding.cons (x 0) ⟨n, x ∘ Fin.succ⟩ := by
+      simp only [Encoding.cons, Sigma.mk.injEq, heq_eq_eq, true_and]
+      ext i
+      cases i using Fin.cases <;> rfl
+    simp only [this, foldr_cons]
+    apply Measurable.comp'
+      (g := fun x : _ × _ ↦ cons x.1 x.2)
+      (f := fun x ↦ (_, _))
+    · assumption
+    · apply Measurable.prodMk
+      · fun_prop
+      · apply Measurable.comp' ih
+        fun_prop
 
 end List.Encoding
 

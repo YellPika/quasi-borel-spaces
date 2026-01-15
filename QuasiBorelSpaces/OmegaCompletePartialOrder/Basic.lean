@@ -1,6 +1,10 @@
-import Mathlib.Order.OmegaCompletePartialOrder
-import QuasiBorelSpaces.OmegaCompletePartialOrder.Chain.Const
-import Mathlib.MeasureTheory.Integral.Lebesgue.Add
+module
+
+public import Mathlib.Order.OmegaCompletePartialOrder
+public import QuasiBorelSpaces.OmegaCompletePartialOrder.Chain.Const
+public import Mathlib.MeasureTheory.Integral.Lebesgue.Add
+
+@[expose] public section
 
 /-!
 # Basic properties of ω-complete partial orders
@@ -87,7 +91,10 @@ lemma Measure.ωScottContinuous_lintegral
     rw [← MeasureTheory.lintegral_iSup]
     · apply MeasureTheory.lintegral_congr fun b ↦ ?_
       rw [(by simp : f (ωSup c) b = f (ωSup c) (ωSup (Chain.const b)))]
-      apply hf₁.map_ωSup (Chain.zip c (Chain.const b))
+      apply Eq.trans (hf₁.map_ωSup (Chain.zip c (Chain.const b)))
+      simp only [
+        ωSup, Chain.map_coe, OrderHom.coe_mk, Function.comp_apply,
+        Chain.zip_coe, Chain.const_apply]
     · fun_prop
     · intro i j h a
       apply hf₁.monotone (⟨c.monotone h, le_rfl⟩ : (c i, a) ≤ (c j, a))

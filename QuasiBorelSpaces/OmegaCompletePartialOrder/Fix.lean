@@ -1,5 +1,9 @@
-import Mathlib.Order.OmegaCompletePartialOrder
-import QuasiBorelSpaces.OmegaCompletePartialOrder.Basic
+module
+
+public import Mathlib.Order.OmegaCompletePartialOrder
+public import QuasiBorelSpaces.OmegaCompletePartialOrder.Basic
+
+@[expose] public section
 
 namespace OmegaCompletePartialOrder
 
