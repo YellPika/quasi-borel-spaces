@@ -138,8 +138,7 @@ lemma isHom_project
     {f : A → Chain (Option B)} (hf : IsHom f)
     (g : ∀ x, ∃ n, (f x n).isSome)
     : IsHom (fun x ↦ Chain.Option.project (f x) (g x)) := by
-  simp only [Chain.Option.project_def, Chain.isHom_iff]
-  simp only [Chain, OrderHom.coe_mk]
+  simp only [Chain.isHom_iff, Chain.Option.project_coe]
   intro i
   apply Option.isHom_getD
   · apply isHom_cases (f := fun n x ↦ f x n)
@@ -156,11 +155,11 @@ lemma isHom_project
   · fun_prop
 
 @[fun_prop]
-lemma isHom_sequence [QuasiBorelSpace A] [Preorder A] : IsHom (Chain.Option.sequence (A := A)) := by
+lemma isHom_distrib [QuasiBorelSpace A] [Preorder A] : IsHom (Chain.Option.distrib (A := A)) := by
   classical
   rw [isHom_def]
   intro φ hφ
-  simp only [Chain.Option.sequence_def]
+  simp only [Chain.Option.distrib]
   apply Prop.isHom_dite
   · apply Prop.isHom_exists fun i ↦ ?_
     apply isHom_eq'
