@@ -20,19 +20,13 @@ variable {A B : Type*}
 variable [Preorder A] [Preorder B]
 
 /-- Left injection for chains of sums. -/
-def inl (c : Chain A) : Chain (A ⊕ B) :=
-  c.map ⟨.inl, by
-    intro x y h
-    simp only [Sum.inl_le_inl_iff, h]⟩
+def inl (c : Chain A) : Chain (A ⊕ B) := c.map ⟨.inl, Sum.inl_mono⟩
 
 @[simp]
 lemma inl_coe (c : Chain A) (n : ℕ) : inl (B := B) c n = .inl (c n) := rfl
 
 /-- Right injection for chains of sums. -/
-def inr (c : Chain B) : Chain (A ⊕ B) :=
-  c.map ⟨.inr, by
-    intro x y h
-    simp only [Sum.inr_le_inr_iff, h]⟩
+def inr (c : Chain B) : Chain (A ⊕ B) := c.map ⟨.inr, Sum.inr_mono⟩
 
 @[simp]
 lemma inr_coe (c : Chain B) (n : ℕ) : inr (A := A) c n = .inr (c n) := rfl

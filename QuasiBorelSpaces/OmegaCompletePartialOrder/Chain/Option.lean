@@ -11,9 +11,7 @@ variable {A : Type*} [Preorder A]
 namespace OmegaCompletePartialOrder.Chain.Option
 
 /-- A chain of `none`s. -/
-def none : Chain (Option A) where
-  toFun _ := .none
-  monotone' _ _ _ := by rfl
+def none : Chain (Option A) := ⟨fun _ ↦ .none, monotone_const⟩
 
 @[simp]
 lemma none_coe {n} : none (A := A) n = .none := rfl
