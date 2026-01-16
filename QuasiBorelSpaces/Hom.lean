@@ -93,25 +93,22 @@ lemma isHom_eval'
   · simp only [isHom_eval]
   · fun_prop
 
-@[simp]
-lemma isHom_iff (f : A → B →𝒒 C) : IsHom f ↔ IsHom (fun x : A × B ↦ f x.1 x.2) := by
-  apply Iff.intro
-  · intro hf
-    rw [QuasiBorelSpace.isHom_def]
-    simp only [Prod.isHom_iff, and_imp]
-    intro φ hφ₁ hφ₂
-    fun_prop
-  · intro hf
-    rw [QuasiBorelSpace.isHom_def]
-    intro φ hφ
-    simp only [isHom_def]
-    fun_prop
-
 @[fun_prop]
 lemma isHom_mk
     {f : A → B → C} (hf : IsHom (fun x : A × B ↦ f x.1 x.2))
     : IsHom (fun x ↦ mk (f x) (by fun_prop)) := by
-  simp only [isHom_iff, coe_mk, hf]
+  rw [QuasiBorelSpace.isHom_def]
+  intro φ hφ
+  simp only [isHom_def, coe_mk]
+  fun_prop
+
+@[simp]
+lemma isHom_iff (f : A → B →𝒒 C) : IsHom f ↔ IsHom (fun x : A × B ↦ f x.1 x.2) := by
+  apply Iff.intro
+  · intro hf
+    fun_prop
+  · intro hf
+    apply isHom_mk hf
 
 /-- Currying for `QuasiBorelHom`s. -/
 @[simps coe]
