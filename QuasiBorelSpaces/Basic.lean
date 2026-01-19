@@ -161,6 +161,13 @@ lemma isHom_to_subsingleton [Subsingleton B] (f : A → B) : IsHom f := by
   have : ∀r, f (φ r) = f (φ 0) := by subsingleton
   simp only [this, isHom_const]
 
+@[simp]
+lemma isHom_of_subsingleton [Subsingleton A] (f : A → B) : IsHom f := by
+  rw [isHom_def]
+  intro φ hφ
+  have : ∀r, φ r = φ 0 := by subsingleton
+  simp only [this, isHom_const]
+
 lemma isHom_of_lift {A} (f : A → B) : IsHom[lift f, _] f := by
   apply @IsHom.intro _ _ (lift f)
   intro φ hφ
