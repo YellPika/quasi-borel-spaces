@@ -242,4 +242,16 @@ lemma NonEmpty.isHom_some (f : A → Nonempty B) : IsHom fun x ↦ (f x).some :=
   change IsHom fun _ ↦ (f (φ 0)).some
   apply isHom_const
 
+lemma isHom_mono
+    {B : Type*} {f : A → B} {inst₁ inst₂ : QuasiBorelSpace B}
+    (hf : IsHom[_, inst₁] f)
+    (hinst : ∀ φ : ℝ → B, inst₁.IsVar φ → inst₂.IsVar φ)
+    : IsHom[_, inst₂] f := by
+  rw [isHom_def] at ⊢ hf
+  intro φ hφ
+  specialize hf hφ
+  rw [← isVar_iff_isHom] at ⊢ hf
+  apply hinst
+  apply hf
+
 end QuasiBorelSpace
