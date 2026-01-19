@@ -5,7 +5,7 @@ public import Mathlib.Order.OmegaCompletePartialOrder
 public import QuasiBorelSpaces.OmegaCompletePartialOrder.Basic
 public import QuasiBorelSpaces.OmegaCompletePartialOrder.Chain.Sum
 
-@[expose] public section
+public section
 
 /-!
 # ωCPO instance for coproducts
@@ -48,9 +48,11 @@ noncomputable instance : OmegaCompletePartialOrder (Sum α β) where
         exact hx
 
 @[simp]
-lemma ωSup_inl (c : Chain α) : ωSup (Chain.Sum.inl c : Chain (α ⊕ β)) = .inl (ωSup c) := rfl
+lemma ωSup_inl (c : Chain α) : ωSup (Chain.Sum.inl c : Chain (α ⊕ β)) = .inl (ωSup c) := by
+  simp only [ωSup, Chain.Sum.distrib_inl, Sum.map_inl]
 
 @[simp]
-lemma ωSup_inr (c : Chain β) : ωSup (Chain.Sum.inr c : Chain (α ⊕ β)) = .inr (ωSup c) := rfl
+lemma ωSup_inr (c : Chain β) : ωSup (Chain.Sum.inr c : Chain (α ⊕ β)) = .inr (ωSup c) := by
+  simp only [ωSup, Chain.Sum.distrib_inr, Sum.map_inr]
 
 end OmegaCompletePartialOrder.Sum

@@ -1,4 +1,9 @@
+module
+
 import QuasiBorelSpaces.Basic
+public import QuasiBorelSpaces.Defs
+
+public section
 
 namespace QuasiBorelSpace.Chain
 
@@ -15,8 +20,9 @@ instance [Preorder A] : QuasiBorelSpace (Chain A) where
   isVar_comp hf hφ i := by
     rw [←isHom_iff_measurable] at hf
     fun_prop
-  isVar_cases' hix hφ i :=
-    isHom_cases (by simp only [isHom_ofMeasurableSpace, hix]) (hφ · i)
+  isVar_cases' hix hφ i := by
+    apply isHom_cases ?_ (hφ · i)
+    simp only [isHom_ofMeasurableSpace, hix]
 
 @[local simp]
 lemma isHom_def [Preorder A] (φ : ℝ → Chain A) : IsHom φ ↔ ∀ i, IsHom (φ · i) := by

@@ -4,7 +4,7 @@ public import QuasiBorelSpaces.Option.Instances
 public import Mathlib.Data.Nat.Find
 public import Mathlib.Order.OmegaCompletePartialOrder
 
-@[expose] public section
+public section
 
 variable {A : Type*} [Preorder A]
 
@@ -14,7 +14,7 @@ namespace OmegaCompletePartialOrder.Chain.Option
 def none : Chain (Option A) := ⟨fun _ ↦ .none, monotone_const⟩
 
 @[simp]
-lemma none_coe {n} : none (A := A) n = .none := rfl
+lemma none_coe {n} : none (A := A) n = .none := by rfl
 
 /--
 Lifts a chain of values to a chain of `some`s,
@@ -34,7 +34,7 @@ def some (i : ℕ) (c : Chain A) : Chain (Option A) where
 
 @[simp]
 lemma some_coe (i n : ℕ) (c : Chain A)
-    : some i c n = if n < i then .none else .some (c (n - i)) :=
+    : some i c n = if n < i then .none else .some (c (n - i)) := by
   rfl
 
 /--

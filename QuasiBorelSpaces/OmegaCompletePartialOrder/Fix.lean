@@ -1,9 +1,9 @@
 module
 
 public import Mathlib.Order.OmegaCompletePartialOrder
-public import QuasiBorelSpaces.OmegaCompletePartialOrder.Basic
+import QuasiBorelSpaces.OmegaCompletePartialOrder.Basic
 
-@[expose] public section
+public section
 
 namespace OmegaCompletePartialOrder
 
@@ -17,7 +17,6 @@ lemma iterate_le_succ (f : α →𝒄 α) (x : α) (hx : x ≤ f x) (n : ℕ) :
     rw [Function.iterate_succ']
     rw [Function.iterate_succ']
     exact f.monotone ih
-
 
 namespace Chain
 
@@ -34,7 +33,8 @@ def iterate (f : α →𝒄 α) (x : α) (hx : x ≤ f x) : Chain α where
 
 @[simp]
 lemma iterate_apply (f : α →𝒄 α) (x : α) (hx : x ≤ f x) (n : ℕ) :
-    iterate f x hx n = Nat.iterate f n x := rfl
+    iterate f x hx n = Nat.iterate f n x := by
+  rfl
 
 end Chain
 

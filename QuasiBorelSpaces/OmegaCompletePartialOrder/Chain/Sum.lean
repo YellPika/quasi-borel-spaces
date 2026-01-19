@@ -1,11 +1,10 @@
 module
 
-public import Mathlib.Algebra.Order.Group.Nat
+import Mathlib.Algebra.Order.Group.Nat
 public import Mathlib.Data.Sum.Order
 public import Mathlib.Order.OmegaCompletePartialOrder
-public import Mathlib.Tactic.Have
 
-@[expose] public section
+public section
 
 /-!
 # Chain utilities for coproducts of ωCPOs
@@ -23,13 +22,13 @@ variable [Preorder A] [Preorder B]
 def inl (c : Chain A) : Chain (A ⊕ B) := c.map ⟨.inl, Sum.inl_mono⟩
 
 @[simp]
-lemma inl_coe (c : Chain A) (n : ℕ) : inl (B := B) c n = .inl (c n) := rfl
+lemma inl_coe (c : Chain A) (n : ℕ) : inl (B := B) c n = .inl (c n) := by rfl
 
 /-- Right injection for chains of sums. -/
 def inr (c : Chain B) : Chain (A ⊕ B) := c.map ⟨.inr, Sum.inr_mono⟩
 
 @[simp]
-lemma inr_coe (c : Chain B) (n : ℕ) : inr (A := A) c n = .inr (c n) := rfl
+lemma inr_coe (c : Chain B) (n : ℕ) : inr (A := A) c n = .inr (c n) := by rfl
 
 /-- Projects left values out of a chain. -/
 def projl [hA : Inhabited A] (c : Chain (A ⊕ B)) : Chain A where
@@ -51,7 +50,7 @@ def projl [hA : Inhabited A] (c : Chain (A ⊕ B)) : Chain A where
 
 @[simp]
 lemma projl_coe [Inhabited A] (c : Chain (A ⊕ B)) (n : ℕ) :
-    projl c n = Sum.elim id (fun _ ↦ default) (c n) :=
+    projl c n = Sum.elim id (fun _ ↦ default) (c n) := by
   rfl
 
 /-- Projects right values out of a chain. -/
@@ -90,10 +89,10 @@ def distrib (c : Chain (A ⊕ B)) : Chain A ⊕ Chain B :=
     (c 0)
 
 @[simp]
-lemma distrib_inl (c : Chain A) : distrib (inl (B := B) c) = .inl c := rfl
+lemma distrib_inl (c : Chain A) : distrib (inl (B := B) c) = .inl c := by rfl
 
 @[simp]
-lemma distrib_inr (c : Chain B) : distrib (inr (A := A) c) = .inr c := rfl
+lemma distrib_inr (c : Chain B) : distrib (inr (A := A) c) = .inr c := by rfl
 
 @[simp]
 lemma distrib_cases

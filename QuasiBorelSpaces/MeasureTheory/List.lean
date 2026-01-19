@@ -1,9 +1,9 @@
 module
 
-public import Mathlib.MeasureTheory.MeasurableSpace.Constructions
 import Mathlib.Tactic.FunProp
-public import QuasiBorelSpaces.List.Encoding
 import QuasiBorelSpaces.MeasureTheory.Sigma
+public import Mathlib.MeasureTheory.MeasurableSpace.Constructions
+public import QuasiBorelSpaces.List.Encoding
 
 public section
 

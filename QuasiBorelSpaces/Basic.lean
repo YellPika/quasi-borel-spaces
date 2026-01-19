@@ -1,7 +1,13 @@
-import QuasiBorelSpaces.Defs
-import QuasiBorelSpaces.MeasureTheory.Pack
+module
+
+import all QuasiBorelSpaces.Defs
+public import QuasiBorelSpaces.MeasureTheory.Pack
+public import Mathlib.MeasureTheory.Constructions.Polish.Basic
+public import QuasiBorelSpaces.Defs
 
 open scoped MeasureTheory
+
+public section
 
 namespace QuasiBorelSpace
 

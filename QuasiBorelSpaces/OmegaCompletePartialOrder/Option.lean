@@ -3,7 +3,7 @@ module
 public import QuasiBorelSpaces.OmegaCompletePartialOrder.Basic
 public import QuasiBorelSpaces.OmegaCompletePartialOrder.Chain.Option
 
-@[expose] public section
+public section
 
 /-
 Faithful ωCPO structure on `Option A` (bottom element `none`, supremum of a

@@ -1,10 +1,10 @@
 module
 
-public import Mathlib.Order.OmegaCompletePartialOrder
 public import Mathlib.Data.Sigma.Order
+public import Mathlib.Order.OmegaCompletePartialOrder
 public import QuasiBorelSpaces.OmegaCompletePartialOrder.Chain.Sigma
 
-@[expose] public section
+public section
 
 namespace OmegaCompletePartialOrder.Sigma
 

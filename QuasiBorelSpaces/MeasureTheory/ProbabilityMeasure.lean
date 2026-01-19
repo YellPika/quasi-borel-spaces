@@ -1,10 +1,10 @@
 module
 
+import Mathlib.Probability.Kernel.Composition.MeasureComp
 public import Mathlib.MeasureTheory.MeasurableSpace.Defs
 public import Mathlib.MeasureTheory.Measure.MeasureSpaceDef
 public import Mathlib.MeasureTheory.Measure.Typeclasses.Probability
 public import Mathlib.MeasureTheory.Measure.ProbabilityMeasure
-import Mathlib.Probability.Kernel.Composition.MeasureComp
 
 public section
 

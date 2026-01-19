@@ -1,5 +1,12 @@
+module
+
 import Mathlib.Order.OmegaCompletePartialOrder
-import QuasiBorelSpaces.Chain
+import QuasiBorelSpaces.Basic
+public import Mathlib.Order.OmegaCompletePartialOrder
+public import QuasiBorelSpaces.Chain
+public import QuasiBorelSpaces.Defs
+
+public section
 
 open OmegaCompletePartialOrder
 open QuasiBorelSpace

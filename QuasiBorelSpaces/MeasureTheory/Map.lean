@@ -1,6 +1,9 @@
 module
 
-public import Mathlib.Probability.Kernel.MeasurableLIntegral
+import Mathlib.Probability.Kernel.MeasurableLIntegral
+public import Mathlib.MeasureTheory.MeasurableSpace.Defs
+public import Mathlib.MeasureTheory.Measure.GiryMonad
+public import Mathlib.MeasureTheory.Measure.Typeclasses.Finite
 
 public section
 

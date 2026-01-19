@@ -1,7 +1,7 @@
 module
 
-public import Mathlib.MeasureTheory.MeasurableSpace.Constructions
 import QuasiBorelSpaces.MeasureTheory.Cases
+public import Mathlib.MeasureTheory.MeasurableSpace.Constructions
 
 public section
 

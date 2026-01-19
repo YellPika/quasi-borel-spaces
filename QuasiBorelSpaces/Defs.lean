@@ -1,5 +1,12 @@
+module
+
 import Mathlib.MeasureTheory.Constructions.BorelSpace.Basic
 import QuasiBorelSpaces.MeasureTheory.Cases
+public import Mathlib.Data.Real.Basic
+public import Mathlib.MeasureTheory.Constructions.BorelSpace.Basic
+public import Mathlib.MeasureTheory.MeasurableSpace.Defs
+
+public section
 
 /-!
 # Quasi-Borel Spaces
@@ -67,7 +74,7 @@ def ofMeasurableSpace [MeasurableSpace A] : QuasiBorelSpace A where
   IsVar φ := Measurable φ
   isVar_const x := measurable_const
   isVar_comp := by fun_prop
-  isVar_cases' := MeasureTheory.measurable_cases
+  isVar_cases' := by apply MeasureTheory.measurable_cases
 
 namespace Real
 instance : QuasiBorelSpace ℝ := ofMeasurableSpace
@@ -76,6 +83,10 @@ end Real
 namespace ENNReal
 instance : QuasiBorelSpace ENNReal := ofMeasurableSpace
 end ENNReal
+
+namespace «Prop»
+instance : QuasiBorelSpace Prop := ofMeasurableSpace
+end «Prop»
 
 /--
 Every `QuasiBorelSpace` induces a `MeasurableSpace`.
@@ -124,10 +135,3 @@ measurable space.
 class abbrev DiscreteQuasiBorelSpace (A : Type*) [QuasiBorelSpace A] [MeasurableSpace A] :=
   DiscreteMeasurableSpace A
   MeasurableQuasiBorelSpace A
-
-namespace QuasiBorelSpace.Prop
-
-@[simps!]
-instance : QuasiBorelSpace Prop := ofMeasurableSpace
-
-end QuasiBorelSpace.Prop
