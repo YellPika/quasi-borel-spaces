@@ -1,4 +1,5 @@
 import QuasiBorelSpaces.Basic
+import QuasiBorelSpaces.OmegaQuasiBorelSpace
 
 namespace QuasiBorelSpace.Subtype
 
@@ -35,3 +36,25 @@ lemma isHom_val {P : B → Prop} {f : A → Subtype P} (hf : IsHom f) : IsHom (f
   exact hf
 
 end QuasiBorelSpace.Subtype
+
+namespace OmegaQuasiBorelSpace.Subtype
+
+open QuasiBorelSpace
+open OmegaCompletePartialOrder
+
+variable
+  {I : Type*} {P : I → Prop} [OmegaQuasiBorelSpace I]
+  (hP : ∀ (c : OmegaCompletePartialOrder.Chain I),
+    (∀ i ∈ c, P i) → P (OmegaCompletePartialOrder.ωSup c))
+
+/-- Constructs an `OmegaQuasiBorelSpace` instance for a `Subtype`. -/
+def subtype : OmegaQuasiBorelSpace (Subtype P) where
+  toOmegaCompletePartialOrder := OmegaCompletePartialOrder.subtype P hP
+  isHom_ωSup := by
+    simp only [OmegaCompletePartialOrder.subtype, ωSup, Subtype.isHom_def]
+    apply isHom_comp
+    · fun_prop
+    · simp only [Chain.isHom_iff, Chain.map_coe, OrderHom.Subtype.val_coe, Function.comp_apply]
+      fun_prop
+
+end OmegaQuasiBorelSpace.Subtype
