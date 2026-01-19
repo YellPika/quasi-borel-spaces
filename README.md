@@ -27,6 +27,8 @@ We differ from the original papers[^1][^4] in the following ways:
 
 - We prove the probability measure monad is strong by constructing the strength operation (as in the Isabelle formalization[^3]), instead of by showing `bind` is a morphism (as in Section V-D[^1]).
 
+- We provide a `QuasiBorelSpace` instance for `Chain`s, which allows a more succinct definition of `OmegaQuasiBorelSpace`: we only require the supremum function `ωSup : Chain A → A` is a morphism.
+
 [^1]: [A Convenient Category for Higher-Order Probability Theory](https://arxiv.org/pdf/1701.02547)
 [^2]: https://lean-lang.org/
 [^3]: [Quasi_Borel_Spaces - Archive of Formal Proofs](https://www.isa-afp.org/entries/Quasi_Borel_Spaces.html)
