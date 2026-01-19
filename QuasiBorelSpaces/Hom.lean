@@ -126,4 +126,14 @@ lemma curry_uncurry (f : A →𝒒 B →𝒒 C) : curry (uncurry f) = f := rfl
 @[simp]
 lemma uncurry_curry (f : A × B →𝒒 C) : uncurry (curry f) = f := rfl
 
+/-- The identity morphism. -/
+@[simps]
+def id : A →𝒒 A where
+  toFun x := x
+
+/-- Morphism composition. -/
+@[simps]
+def comp (f : B →𝒒 C) (g : A →𝒒 B) : A →𝒒 C where
+  toFun x := f (g x)
+
 end QuasiBorelHom
