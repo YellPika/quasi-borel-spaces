@@ -111,19 +111,11 @@ lemma ωScottContinuous_ite
     : ωScottContinuous fun x ↦ if f x then g x else h x := by
   rw [ωScottContinuous_iff_monotone_map_ωSup]
   refine ⟨fun x y hxy ↦ ?_, fun c ↦ ?_⟩
-  · simp only [hf hxy]
-    by_cases hfxy : f y
-    · simp only [hfxy, ↓reduceIte]
-      apply hg.monotone hxy
-    · simp only [hfxy, ↓reduceIte]
-      apply hh.monotone hxy
+  · grind [hh.monotone hxy, hg.monotone hxy]
   · rw [hg.map_ωSup, hh.map_ωSup, ← apply_ite]
     congr 1
     ext i
-    simp only [Chain.map_coe, OrderHom.coe_mk, Function.comp_apply]
-    specialize hf (le_ωSup c i : c i ≤ ωSup c)
-    simp only [hf]
-    by_cases hfc : f (ωSup c) <;>
-    · simp only [hfc, ↓reduceIte, Chain.map_coe, OrderHom.coe_mk, Function.comp_apply]
+    simp only [Chain.map_coe, OrderHom.coe_mk, Function.comp_apply, hf (le_ωSup c i)]
+    split_ifs <;> simp only [Chain.map_coe, OrderHom.coe_mk, Function.comp_apply]
 
 end OmegaCompletePartialOrder

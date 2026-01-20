@@ -21,10 +21,8 @@ lemma isHom_ite
   have (x : A) : inst x = Classical.dec _ := by subsingleton
   conv => enter [1, x]; rw [this]
   apply isHom_cases (f := fun b x ↦ if b then f x else g x) hp
-  intro q
-  by_cases hq : q
-  · simp only [hq, ↓reduceIte, hf]
-  · simp only [hq, ↓reduceIte, hg]
+  intro
+  split_ifs <;> assumption
 
 @[fun_prop]
 lemma isHom_not

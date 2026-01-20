@@ -202,15 +202,11 @@ noncomputable def chain [∀ i, Preorder (P i)] (φ : Chain (Var I P)) : Var I f
         simp only [apply_fst]
         have h₀ := φ.monotone hi r
         simp only [Sigma.le_def, apply_fst, apply_snd] at h₀
-        by_cases h₁ : ↑i = (φ i₁).embed ((φ i₁).index r)
-        · have h₂ : ↑i = (φ i₂).embed ((φ i₂).index r) := by simp only [h₁, h₀.fst]
-          simp only [h₁, ↓reduceDIte, ge_iff_le]
-          simpa only [h₂, ↓reduceDIte, eqRec_eq_cast, cast_cast] using cast_mono h₂.symm h₀.snd
-        · simp only [h₁, ↓reduceDIte]
-          have h₂ : ↑i ≠ (φ i₂).embed ((φ i₂).index r) := by
-            intro h₂
-            simp only [h₂, h₀.fst, not_true_eq_false] at h₁
-          simp only [h₂, ↓reduceDIte, le_refl]
+        split_ifs with h₁ h₂
+        · simpa only [h₂, ↓reduceDIte, eqRec_eq_cast, cast_cast] using cast_mono h₂.symm h₀.snd
+        · grind
+        · grind
+        · grind
     })
     (by simp only [
           apply_fst, Chain.isHom_iff, Subtype.forall, Set.mem_range,
