@@ -9,15 +9,7 @@ public import Mathlib.Order.OmegaCompletePartialOrder
 
 namespace OmegaCompletePartialOrder.Chain.Sigma
 
-variable {I : Type*} {P : I → Type*}
-
-private lemma cast_le
-    [∀ i, LE (P i)] {i j} (h : j = i) {x : P i} {y : P j} (h' : h ▸ x ≤ y)
-    : x ≤ cast (congr_arg P h) y := by
-  cases h
-  simp_all only [cast_eq]
-
-variable [∀ i, Preorder (P i)]
+variable {I : Type*} {P : I → Type*} [∀ i, Preorder (P i)]
 
 /-- Injects a chain into a chain of coproducts. -/
 def inj {i} (c : Chain (P i)) : Chain ((i : I) × P i) where
@@ -28,6 +20,11 @@ def inj {i} (c : Chain (P i)) : Chain ((i : I) × P i) where
 
 @[simp]
 lemma inj_coe {i} (c : Chain (P i)) (n : ℕ) : inj c n = ⟨i, c n⟩ := rfl
+
+private lemma cast_mono {i j : I} (h : i = j) : Monotone (cast (congr_arg P h)) := by
+  intro _ _ h'
+  subst h
+  exact h'
 
 /-- Converts a chain of coproducts into a coproduct of chains. -/
 def distrib (c : Chain ((i : I) × P i)) : (i : I) × Chain (P i) where
@@ -40,15 +37,11 @@ def distrib (c : Chain ((i : I) × P i)) : (i : I) × Chain (P i) where
         exact this.choose
       this ▸ (c n).snd
     monotone' i₁ i₂ hi := by
-      simp only [eqRec_eq_cast]
-      apply cast_le
-      · simp only [eqRec_eq_cast, cast_cast]
-        have := c.monotone hi
-        simp only [Sigma.le_def, eqRec_eq_cast] at this
-        exact this.choose_spec
-      · have := c.monotone (zero_le i₂)
-        rw [Sigma.le_def] at this
-        exact this.choose.symm
+      have h₀ := c.monotone (zero_le i₂)
+      have h₁ := c.monotone hi
+      simp only [Sigma.le_def, eqRec_eq_cast] at h₀ h₁
+      simpa only [eqRec_eq_cast, ge_iff_le, cast_cast]
+        using cast_mono h₀.fst.symm h₁.snd
   }
 
 @[simp]

@@ -169,14 +169,16 @@ instance [∀ i, Preorder (P i)] : Preorder (Var I P) where
 open OmegaCompletePartialOrder
 
 omit [∀ i, QuasiBorelSpace (P i)] in
-private lemma cast_le
-    [∀ i, LE (P i)] {i j} (h : j = i) {x : P i} {y : P j} (h' : h ▸ x ≤ y)
-    : x ≤ cast (congr_arg P h) y := by
-  cases h
-  simp_all only [cast_eq]
+private lemma cast_mono
+    [∀ i, Preorder (P i)] {i j : I} (h : i = j)
+    : Monotone (cast (congr_arg P h)) := by
+  intro _ _ h'
+  subst h
+  exact h'
 
 /-- Converts a `Chain` of `Var`s into a `Var` of `Chain`s. -/
 noncomputable def chain [∀ i, Preorder (P i)] (φ : Chain (Var I P)) : Var I fun r ↦ Chain (P r) :=
+  open Classical in
   have : Encodable (Set.range (Sigma.fst ∘ (φ 0).apply)) := by
     suffices Countable (Set.range (Sigma.fst ∘ (φ 0).apply)) by
       apply Encodable.ofCountable
@@ -189,36 +191,25 @@ noncomputable def chain [∀ i, Preorder (P i)] (φ : Chain (Var I P)) : Var I f
     (Set.rangeFactorization _)
     (fun i r ↦ {
       toFun n :=
-        open Classical in
-        if h : i.val = ((φ n).apply r).fst
-        then let x := (φ n).var ((φ n).index r) r
-             cast (by simp only [h, apply_fst]) x
+        if h : i.val = ((φ n).apply r).fst then
+          h ▸ (φ n).var ((φ n).index r) r
         else
           have : Nonempty (P i) := by
-            have := i.property
-            simp only [Set.mem_range, Function.comp_apply, apply_fst] at this
-            rcases this with ⟨r, hr⟩
-            simp only [← hr]
+            rcases i with ⟨i, r, rfl⟩
             exact ⟨(φ 0).var ((φ 0).index r) r⟩
           this.some
       monotone' i₁ i₂ hi := by
         simp only [apply_fst]
-        have := φ.monotone hi r
-        simp only [Sigma.le_def, apply_fst, apply_snd] at this
+        have h₀ := φ.monotone hi r
+        simp only [Sigma.le_def, apply_fst, apply_snd] at h₀
         by_cases h₁ : ↑i = (φ i₁).embed ((φ i₁).index r)
-        · simp only [h₁, ↓reduceDIte, ge_iff_le]
-          have h₂ : ↑i = (φ i₂).embed ((φ i₂).index r) := by
-            simp only [h₁, this.fst]
-          simp only [h₂, ↓reduceDIte, ge_iff_le]
-          apply cast_le
-          · have := this.snd
-            simp only [eqRec_eq_cast, cast_cast] at ⊢ this
-            exact this
-          · simp only [h₂]
-        · simp only [h₁, ↓reduceDIte, ge_iff_le]
+        · have h₂ : ↑i = (φ i₂).embed ((φ i₂).index r) := by simp only [h₁, h₀.fst]
+          simp only [h₁, ↓reduceDIte, ge_iff_le]
+          simpa only [h₂, ↓reduceDIte, eqRec_eq_cast, cast_cast] using cast_mono h₂.symm h₀.snd
+        · simp only [h₁, ↓reduceDIte]
           have h₂ : ↑i ≠ (φ i₂).embed ((φ i₂).index r) := by
             intro h₂
-            simp only [h₂, this.fst, not_true_eq_false] at h₁
+            simp only [h₂, h₀.fst, not_true_eq_false] at h₁
           simp only [h₂, ↓reduceDIte, le_refl]
     })
     (by simp only [
@@ -238,7 +229,7 @@ noncomputable def chain [∀ i, Preorder (P i)] (φ : Chain (Var I P)) : Var I f
             (ix := fun x : { x // i = (φ n).embed ((φ n).index x) } ↦
               ⟨(φ n).index x.val, x.property.symm⟩)
             (f := fun j x ↦ j.property ▸ (φ n).var j ↑x)
-          simp only [eqRec_eq_cast, Subtype.forall] at this
+          simp only [eqRec_eq_cast, Subtype.forall] at ⊢ this
           apply this
           · apply isHom_mono
             · fun_prop
@@ -283,8 +274,7 @@ lemma chain_apply [∀ i, Preorder (P i)] (φ : Chain (Var I P)) (r)
     have := φ.monotone (zero_le n) r
     simp only [Sigma.le_def, apply_fst, apply_snd] at this
     exact this.fst
-  simp only [DFunLike.coe]
-  simp only [OrderHom.toFun_eq_coe, this, ↓reduceDIte, eqRec_eq_cast]
+  simp only [Chain, this, OrderHom.coe_mk, ↓reduceDIte]
 
 end Var
 
@@ -472,36 +462,34 @@ private lemma heq_ext
   apply h'
 
 @[fun_prop]
-lemma isHom_distrib : IsHom (Chain.Sigma.distrib (I := I) (P := P)) := by
+lemma isHom_chain_distrib : IsHom (Chain.Sigma.distrib (I := I) (P := P)) := by
   rw [isHom_def]
+  simp only [Chain.isHom_iff, Sigma.isHom_def, Chain.Sigma.distrib]
   intro φ hφ
-  simp only [Chain.isHom_iff, Sigma.isHom_def, Chain.Sigma.distrib] at ⊢ hφ
   choose ψ hψ using hφ
-  let c : Chain (Sigma.Var I P) := {
+  use Sigma.Var.chain {
     toFun := ψ
     monotone' i₁ i₂ hi := by
       intro r
       simp only [← hψ]
       apply (φ r).monotone hi
   }
-  use Sigma.Var.chain c
   intro r
   simp only [
     Sigma.Var.chain_apply, Chain.Sigma.distrib, Chain.map_coe, OrderHom.coe_mk,
     Function.comp_apply, Sigma.Var.apply_fst, Sigma.Var.apply_snd, Sigma.mk.injEq]
-  simp only [c, DFunLike.coe]
-  simp only [OrderHom.toFun_eq_coe, hψ, Sigma.Var.apply_fst, true_and]
+  simp only [Chain, hψ, Sigma.Var.apply_fst, OrderHom.coe_mk, true_and]
   apply heq_ext
   · simp only [hψ, Sigma.Var.apply_fst]
   · intro k
-    simp only [DFunLike.coe]
+    simp only [Chain, OrderHom.coe_mk, heq_eqRec_iff_heq, eqRec_heq_iff_heq]
     specialize hψ k r
     simp only [Sigma.ext_iff, Sigma.Var.apply_fst, Sigma.Var.apply_snd] at hψ
-    simp only [OrderHom.toFun_eq_coe, heq_eqRec_iff_heq, eqRec_heq_iff_heq, hψ.2]
+    exact hψ.2
 
 instance : OmegaQuasiBorelSpace ((i : I) × P i) where
   isHom_ωSup := by
-    simp only [ωSup, id_eq]
+    simp only [ωSup]
     fun_prop
 
 end OmegaQuasiBorelSpace.Sigma
