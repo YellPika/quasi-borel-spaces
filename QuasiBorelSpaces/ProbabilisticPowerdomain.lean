@@ -428,13 +428,7 @@ noncomputable def pure (x : X) : Powerdomain X where
 
 /-- Monad bind on `Powerdomain`, restricting the `J` bind -/
 noncomputable def bind (t : Powerdomain X) (k : X →ω𝒒 Powerdomain Y) : Powerdomain Y where
-  val := t.1.bind {
-    toFun x := (k x).1
-    isHom' := by
-      fun_prop
-    ωScottContinuous' := by
-      fun_prop
-  }
+  val := t.1.bind { toFun x := (k x).1 }
   property := sorry
 
 end Powerdomain
@@ -453,21 +447,13 @@ namespace Randomization
 
 /-- `sample : 1 → R R` is the identity randomization on reals -/
 noncomputable def sample : Randomization FlatReal where
-  toFun := fun r => if r.val ∈ Set.Icc 0 1 then some r else none
-  ωScottContinuous' := by
-    fun_prop
-  isHom' := by
-    change IsHom (fun (r : FlatReal) => if r.val ∈ Set.Icc 0 1 then some r else none)
-    apply QuasiBorelSpace.Prop.isHom_ite <;> fun_prop
+  toFun r := if r.val ∈ Set.Icc 0 1 then some r else none
+  isHom' := by apply Prop.isHom_ite <;> fun_prop
 
 /-- `score : R → R⊥` truncates Lebesgue to an interval of length `|r|` -/
 noncomputable def score (r : FlatReal) : Randomization Unit where
   toFun t := if t.val ∈ Set.Icc (0 : ℝ) |r.val| then some () else none
-  ωScottContinuous' := by
-    fun_prop
-  isHom' := by
-    change IsHom (fun (t : FlatReal) => if t.val ∈ Set.Icc 0 |r.val| then some () else none)
-    apply QuasiBorelSpace.Prop.isHom_ite <;> fun_prop
+  isHom' := by apply Prop.isHom_ite <;> fun_prop
 
 end Randomization
 
