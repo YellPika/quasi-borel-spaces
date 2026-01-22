@@ -59,7 +59,7 @@ lemma isHom_fold
   apply Sigma.isHom_elim
   intro i
   induction i with
-  | zero => simp only [foldr, isHom_const]
+  | zero => simp only [foldr, isHom_const']
   | succ n ih =>
     simp only [foldr]
     apply Prod.isHom_of_uncurry

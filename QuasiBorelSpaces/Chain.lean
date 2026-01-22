@@ -16,7 +16,7 @@ variable
 
 instance [Preorder A] : QuasiBorelSpace (Chain A) where
   IsVar φ := ∀ i, IsHom (φ · i)
-  isVar_const f i := by simp only [isHom_const]
+  isVar_const f i := by simp only [isHom_const']
   isVar_comp hf hφ i := by
     rw [←isHom_iff_measurable] at hf
     fun_prop

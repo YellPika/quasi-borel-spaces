@@ -13,7 +13,7 @@ instance : QuasiBorelSpace (Quotient S) where
   isVar_const x := by
     induction x using Quotient.inductionOn with | h x =>
     use fun _ ↦ x
-    simp only [isHom_const, implies_true, and_self]
+    simp only [isHom_const', implies_true, and_self]
   isVar_comp {f} {φ} hf hφ := by
     rcases hφ with ⟨ψ, hψ, hφ⟩
     use fun x ↦ ψ (f x)

@@ -101,16 +101,15 @@ lemma isHom_of_measurable
   simp only [isHom_iff_measurable]
   fun_prop
 
-@[fun_prop, simp]
+@[simp]
 lemma isHom_id : IsHom (A := A) id := by
   rw [isHom_def]
   simp only [id_eq, imp_self, implies_true]
 
 @[fun_prop, simp]
-lemma isHom_id' : IsHom (fun x : A ↦ x) := by
-  fun_prop
+lemma isHom_id' : IsHom (fun x : A ↦ x) :=
+  isHom_id
 
-@[fun_prop]
 lemma isHom_comp
     {f : B → C} (hf : IsHom f)
     {g : A → B} (hg : IsHom g)
@@ -126,10 +125,14 @@ lemma isHom_comp'
     : IsHom (fun x ↦ f (g x)) := by
   exact isHom_comp hf hg
 
-@[fun_prop, simp]
-lemma isHom_const (x : B) : IsHom (fun _ : A ↦ x) := by
+@[simp]
+lemma isHom_const (x : B) : IsHom (Function.const A x) := by
   constructor
-  simp only [isVar_const, implies_true]
+  simp only [isVar_const, Function.const, implies_true]
+
+@[fun_prop, simp]
+lemma isHom_const' (x : B) : IsHom (fun _ : A ↦ x) :=
+  isHom_const x
 
 lemma isHom_cases
     {ix : A → I} {f : I → A → B}
@@ -165,14 +168,14 @@ lemma isHom_to_subsingleton [Subsingleton B] (f : A → B) : IsHom f := by
   rw [isHom_def]
   intro φ hφ
   have : ∀r, f (φ r) = f (φ 0) := by subsingleton
-  simp only [this, isHom_const]
+  simp only [this, isHom_const']
 
 @[simp]
 lemma isHom_of_subsingleton [Subsingleton A] (f : A → B) : IsHom f := by
   rw [isHom_def]
   intro φ hφ
   have : ∀r, φ r = φ 0 := by subsingleton
-  simp only [this, isHom_const]
+  simp only [this, isHom_const']
 
 lemma isHom_of_lift {A} (f : A → B) : IsHom[lift f, _] f := by
   apply @IsHom.intro _ _ (lift f)

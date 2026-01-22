@@ -68,7 +68,7 @@ instance [∀ i, SeparatesPoints (P i)] : SeparatesPoints ((i : I) × P i) where
     by_cases h : z₁ = x₁
     · subst h
       simp only [exists_const, hp]
-    · simp only [h, IsEmpty.exists_iff, isHom_const]
+    · simp only [h, IsEmpty.exists_iff, isHom_const']
 
 instance [SeparatesPoints A] [SeparatesPoints B] : SeparatesPoints (A ⊕ B) where
   separates x y h := by

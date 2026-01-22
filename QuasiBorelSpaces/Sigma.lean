@@ -93,7 +93,7 @@ def const (x : Sigma P) : Var I P := mk'
   (embed := fun _ ↦ x.1)
   (index := fun _ ↦ ())
   (var := fun _ _ ↦ x.2)
-  (isHom_var := by simp only [isHom_const, implies_true])
+  (isHom_var := by simp only [isHom_const', implies_true])
   (measurable_index := measurable_const)
 
 @[simp]
@@ -342,7 +342,7 @@ lemma isHom_fst [QuasiBorelSpace I] : IsHom (Sigma.fst : Sigma P → I) := by
   simp only [Var.apply_mk]
   apply isHom_cases (ix := index) (f := fun n r ↦ embed n)
   · simp only [isHom_ofMeasurableSpace, measurable_index]
-  · simp only [isHom_const, implies_true]
+  · simp only [isHom_const', implies_true]
 
 @[fun_prop]
 lemma isHom_snd : IsHom (Sigma.snd : (_ : I) × A → A) := by

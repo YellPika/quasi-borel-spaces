@@ -79,7 +79,7 @@ lemma isHom_find
       grind
   rw [this, measurableSet_setOf, ←isHom_iff_measurable]
   apply Prop.isHom_exists fun n ↦ Prop.isHom_and ?_ (Prop.isHom_and ?_ ?_)
-  · simp only [isHom_const]
+  · simp only [isHom_const']
   · fun_prop
   · apply Prop.isHom_forall fun m ↦ ?_
     apply Prop.isHom_forall fun hmn ↦ ?_

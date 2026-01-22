@@ -22,7 +22,7 @@ variable
 instance : QuasiBorelSpace (A × B) where
   IsVar φ := IsHom (fun x ↦ Prod.fst (φ x)) ∧ IsHom (fun x ↦ Prod.snd (φ x))
   isVar_const x := by
-    simp only [isHom_const, and_self]
+    simp only [isHom_const', and_self]
   isVar_comp hf := by
     rintro ⟨hφ₁, hφ₂⟩
     apply And.intro

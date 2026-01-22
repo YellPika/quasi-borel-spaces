@@ -477,7 +477,7 @@ lemma isHom_bind'
       : bind (f x) (g x)
       = bind (fun x : (A →𝒒 ProbabilityMeasure B) × A ↦ x.1 x.2) (str ⟨f x, hf' x⟩ (g x)) := by
     simp only [
-      str_eq_map, QuasiBorelHom.isHom_eval, Prod.isHom_iff, isHom_const,
+      str_eq_map, QuasiBorelHom.isHom_eval, Prod.isHom_iff, isHom_const',
       isHom_id', and_self, bind_map, QuasiBorelHom.coe_mk]
   simp only [this]
   fun_prop
@@ -495,7 +495,7 @@ example (μ : ProbabilityMeasure A) : str () μ = map ((), ·) μ := by
   simp only [str_eq_map]
 
 example (x : A) (y : B) : str x (unit y) = unit (x, y) := by
-  simp only [str_eq_map, Prod.isHom_iff, isHom_const, isHom_id', and_self, map_unit]
+  simp only [str_eq_map, Prod.isHom_iff, isHom_const', isHom_id', and_self, map_unit]
 
 example
     {f : A → A'} (hf : IsHom f)
@@ -508,7 +508,7 @@ example
     (x : A) (μ : ProbabilityMeasure (ProbabilityMeasure B))
     : bind (Function.uncurry str) (str x μ) = str x (bind id μ) := by
   simp only [
-    str_eq_map, isHom_str, Prod.isHom_iff, isHom_const, isHom_id', and_self,
+    str_eq_map, isHom_str, Prod.isHom_iff, isHom_const', isHom_id', and_self,
     bind_map, Function.uncurry_apply_pair, isHom_id, map_bind, id_eq]
 
 /-! ### `coin` -/
