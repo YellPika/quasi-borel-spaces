@@ -29,9 +29,7 @@ open MeasureTheory
 open OmegaCompletePartialOrder
 open QuasiBorelSpace
 
-noncomputable section
-
-variable {X : Type*} [OmegaQuasiBorelSpace X]
+variable {X Y : Type*} [OmegaQuasiBorelSpace X] [OmegaQuasiBorelSpace Y]
 
 /-
 ## Randomizations and expectation operators (Section 4.1)
@@ -47,59 +45,37 @@ def dom (α : Randomization X) : Set FlatReal := {r | α r ≠ none}
 
 end Randomization
 
-/-- Bundle the expectation operator arising from a randomization -/
-@[simps]
-def expectationOp (α : Randomization X) : Cont ENNReal X where
-  apply := {
-    toFun := fun w => ∫⁻ r, (α r).elim 0 w
-    ωScottContinuous' := by
-      apply Measure.ωScottContinuous_lintegral
-      · apply Option.ωScottContinuous_elim
-        · fun_prop
-        · simp only [bot_eq_zero']
-        · fun_prop
-      · intro a
-        apply measurable_of_isHom
-        fun_prop
-  }
-
-@[simp, fun_prop]
-lemma isHom_expectationOp : IsHom (expectationOp (X := X)) := by
-  unfold expectationOp
-  fun_prop
-
-@[simp, fun_prop]
-lemma ωScottContinuous_expectationOp : ωScottContinuous (expectationOp (X := X)) := by
-  unfold expectationOp
-  apply Cont.ωScottContinuous_mk'
-  apply OmegaQuasiBorelHom.ωScottContinuous_mk
-  apply Measure.ωScottContinuous_lintegral
-  · apply Option.ωScottContinuous_elim
-    · fun_prop
-    · simp only [bot_eq_zero']
-    · fun_prop
-  · intro a
-    apply measurable_of_isHom
-    fun_prop
-
 /-- The expectation morphism `expectation : Randomization → JX`. -/
 @[simps]
-def expectation : Randomization X →ω𝒒 Cont ENNReal X where
-  toFun := expectationOp
+noncomputable def expectation : Randomization X →ω𝒒 Cont ENNReal X where
+  toFun α := {
+    apply := {
+      toFun := fun w => ∫⁻ r, (α r).elim 0 w
+      ωScottContinuous' := by
+        apply Measure.ωScottContinuous_lintegral
+        · fun_prop (disch := simp only [bot_eq_zero'])
+        · intro a
+          apply measurable_of_isHom
+          fun_prop
+    }
+  }
   isHom' := by fun_prop
-  ωScottContinuous' := by fun_prop
+  ωScottContinuous' := by
+    apply Cont.ωScottContinuous_mk'
+    apply OmegaQuasiBorelHom.ωScottContinuous_mk
+    apply Measure.ωScottContinuous_lintegral
+    · fun_prop (disch := simp only [bot_eq_zero'])
+    · intro a
+      apply measurable_of_isHom
+      fun_prop
 
 namespace Randomization
 
 /-- Monad unit on randomizations (Dirac) -/
 @[simps]
-def pure (x : X) : Randomization X where
+noncomputable def pure (x : X) : Randomization X where
   toFun r := if r.val ∈ Set.Icc 0 1 then some x else none
-  isHom' := by
-    change IsHom (fun r : FlatReal => if r.val ∈ Set.Icc 0 1 then some x else none)
-    apply Prop.isHom_ite <;> fun_prop
-  ωScottContinuous' := by
-    fun_prop
+  isHom' := by apply Prop.isHom_ite <;> fun_prop
 
 end Randomization
 
@@ -116,54 +92,34 @@ class RandomSplit where
 
 attribute [fun_prop] RandomSplit.measurable_φ
 
-/-- A default instance of `RandomSplit` (placeholder for now) -/
-noncomputable def defaultRandomSplit : RandomSplit := by
-  refine ⟨?φ, ?hφ, ?hpres⟩
-  · sorry
-  · sorry
-  · sorry
-
-attribute [instance] defaultRandomSplit
-
 namespace Randomization
 
 /-- Monad bind on randomizations using the randomness splitting -/
-def bind {Y} [OmegaQuasiBorelSpace Y] [RandomSplit]
-    (α : Randomization X) (k : X →ω𝒒 Randomization Y) : Randomization Y where
-  toFun r := α (RandomSplit.φ r).1 >>= (k · (RandomSplit.φ r).2)
-  ωScottContinuous' := by
-    simp only [Option.bind_eq_bind]
-    fun_prop
-  isHom' := by
-    simp only [Option.bind_eq_bind]
-    fun_prop
+@[simps]
+def bind [RandomSplit]
+    (α : Randomization X) (k : X →ω𝒒 Randomization Y)
+    : Randomization Y where
+  toFun r := (α (RandomSplit.φ r).1).bind (k · (RandomSplit.φ r).2)
 
 end Randomization
-
-end
 
 section ExpectationMonad
 
 variable (X : Type*) [OmegaQuasiBorelSpace X]
 
 /-- Expectation preserves the monad structure on randomizations -/
-theorem expectation_preserves_return (x : X) :
-    expectation (X := X) (Randomization.pure (X := X) x) = Cont.unit x := by
+theorem expectation_preserves_return (x : X) : expectation (.pure x) = .unit x := by
   ext w
-  change (expectation (Randomization.pure x)).apply w = w x
-  simp only [expectation, Randomization.pure]
-  dsimp [expectationOp]
+  change (expectation (.pure x)).apply w = w x
+  simp only [expectation_coe_apply_coe, Randomization.pure_coe, Set.mem_Icc]
 
   let e : FlatReal ≃ᵐ ℝ := {
     toFun := FlatReal.val
     invFun := FlatReal.mk
-    left_inv := fun r => rfl
-    right_inv := fun y => rfl
+    left_inv _ := rfl
+    right_inv _ := rfl
     measurable_toFun := Measurable.of_comap_le le_rfl
-    measurable_invFun := by
-      intro s hs
-      rcases hs with ⟨t, ht, rfl⟩
-      simpa using ht
+    measurable_invFun := by simp only [Equiv.coe_fn_symm_mk, FlatReal.R.measurable_mk]
   }
 
   have h_vol_def : (volume : Measure FlatReal) = Measure.map FlatReal.mk volume := rfl
@@ -197,26 +153,25 @@ theorem expectation_preserves_return (x : X) :
     simp
   · exact Measurable.indicator measurable_const measurableSet_Icc
 
-theorem expectation_preserves_bind {Y} [OmegaQuasiBorelSpace Y] [RandomSplit]
+theorem expectation_preserves_bind [RandomSplit]
     (α : Randomization X) (k : X →ω𝒒 Randomization Y) :
-    expectation (Randomization.bind α k) = Cont.bind (expectation.comp k) (expectation α) := by
+    expectation (.bind α k) = .bind (expectation.comp k) (expectation α) := by
   ext w
   change (expectation (Randomization.bind α k)).apply w =
     ((expectation α).bind (expectation.comp k)).apply w
   unfold Cont.bind
   dsimp only [
-    OmegaQuasiBorelHom.coe_mk, OmegaQuasiBorelHom.comp_coe, expectation_coe,
-    expectationOp_apply_coe
-  ]
-  let f := fun (p : FlatReal × FlatReal) ↦ (α p.1 >>= (k · p.2)).elim 0 w
+    expectation_coe_apply_coe, Randomization.bind_coe,
+    OmegaQuasiBorelHom.coe_mk, OmegaQuasiBorelHom.comp_coe]
+  let f := fun (p : FlatReal × FlatReal) ↦ ((α p.1).bind (k · p.2)).elim 0 w
   have h_meas_f : Measurable f := by
     let H : ℝ × ℝ → ENNReal := fun p ↦ f (FlatReal.mk p.1, FlatReal.mk p.2)
     have hH : IsHom H := by
       dsimp [H, f]
       change IsHom (fun p : ℝ × ℝ ↦
-        (α (FlatReal.mk p.1) >>=
+        ((α (FlatReal.mk p.1)).bind
         (fun x ↦ k x (FlatReal.mk p.2))).elim 0 w)
-      have h_eq : (fun p ↦ (α (FlatReal.mk p.1) >>=
+      have h_eq : (fun p ↦ ((α (FlatReal.mk p.1)).bind
                            (fun x ↦ k x (FlatReal.mk p.2))).elim 0 w) =
                   (fun (p : ℝ × ℝ) ↦
                     Option.elim
@@ -278,24 +233,27 @@ theorem expectation_preserves_bind {Y} [OmegaQuasiBorelSpace Y] [RandomSplit]
       ∫⁻ r, (Randomization.bind α k r).elim 0 w ∂volume =
         ∫⁻ p, f p ∂(volume.prod volume) := by
     simp only [Randomization.bind]
-    change ∫⁻ r, (match RandomSplit.φ r with | (r₁, r₂) => α r₁ >>= (k · r₂)).elim 0 w ∂volume = _
+    change ∫⁻ r,
+      (match RandomSplit.φ r with
+       | (r₁, r₂) => (α r₁).bind (k · r₂)).elim 0 w ∂volume = _
     have
-        : (fun r => (match RandomSplit.φ r with | (r₁, r₂) => α r₁ >>= (k · r₂)).elim 0 w)
+        : (fun r => (match RandomSplit.φ r with | (r₁, r₂) => (α r₁).bind (k · r₂)).elim 0 w)
         = f ∘ RandomSplit.φ := by
       ext r
-      simp only [Option.bind_eq_bind, Function.comp_apply, f]
+      simp only [Function.comp_apply, f]
     rw [this]
     rw [← RandomSplit.preserves_volume]
     rw [lintegral_map h_meas_f RandomSplit.measurable_φ]
     rfl
 
+  simp only [Randomization.bind_coe] at h_lhs
   rw [h_lhs]
   have h_fubini : ∫⁻ p, f p ∂(volume.prod volume) =
       ∫⁻ r1, ∫⁻ r2, f (r1, r2) ∂volume ∂volume := lintegral_prod f h_meas_f.aemeasurable
   rw [h_fubini]
   apply lintegral_congr
   intro r1
-  simp only [Option.bind_eq_bind, f]
+  simp only [f]
   cases h : α r1 with
   | none => simp only [Option.bind_none, Option.elim_none, lintegral_const, zero_mul]
   | some x => simp only [Option.bind_some, Option.elim_some]
@@ -324,10 +282,6 @@ abbrev RandomExpectation (X : Type*) [OmegaQuasiBorelSpace X] :=
 /-- Extend expectation pointwise to random randomizations. -/
 noncomputable def expectationRandom (β : RandomizationRandomElement X) : RandomExpectation X where
   toFun r := expectation (X := X) (β r)
-  isHom' := by
-    fun_prop
-  ωScottContinuous' := by
-    fun_prop
 
 /-- Membership in the ω-sup-closure of randomizable operators -/
 inductive InPowerdomain : Cont ENNReal X → Prop
@@ -352,11 +306,11 @@ abbrev Powerdomain := {μ : Cont ENNReal X // InPowerdomain (X := X) μ}
 abbrev RandomPowerdomain := {β : RandomExpectation X // InRandomPowerdomain (X := X) β}
 
 noncomputable instance : QuasiBorelSpace (Powerdomain X) := by
-  dsimp [Powerdomain]
+  dsimp only [Powerdomain]
   infer_instance
 
 noncomputable instance : QuasiBorelSpace (RandomPowerdomain X) := by
-  dsimp [RandomPowerdomain]
+  dsimp only [RandomPowerdomain]
   infer_instance
 
 /-- Order structure on `Powerdomain X` inherited from the ambient `Cont ENNReal` -/
@@ -473,8 +427,7 @@ noncomputable def pure (x : X) : Powerdomain X where
     apply InPowerdomain.randomizable
 
 /-- Monad bind on `Powerdomain`, restricting the `J` bind -/
-noncomputable def bind {Y} [OmegaQuasiBorelSpace Y] (t : Powerdomain X)
-    (k : X →ω𝒒 Powerdomain Y) : Powerdomain Y where
+noncomputable def bind (t : Powerdomain X) (k : X →ω𝒒 Powerdomain Y) : Powerdomain Y where
   val := t.1.bind {
     toFun x := (k x).1
     isHom' := by

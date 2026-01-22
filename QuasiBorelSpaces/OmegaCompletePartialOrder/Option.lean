@@ -170,4 +170,13 @@ lemma ωScottContinuous_bind
   · rfl
   · fun_prop
 
+@[fun_prop]
+lemma ωScottContinuous_bind'
+    {C : Type _} [OmegaCompletePartialOrder C]
+    {f : A → B → Option C} (hf : ωScottContinuous fun (x, y) ↦ f x y)
+    {g : A → Option B} (hg : ωScottContinuous g)
+    : ωScottContinuous (fun x ↦ g x >>= f x) := by
+  simp only [Option.bind_eq_bind]
+  fun_prop
+
 end OmegaCompletePartialOrder.Option
