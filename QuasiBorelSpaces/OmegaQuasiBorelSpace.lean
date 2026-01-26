@@ -44,15 +44,15 @@ namespace OmegaQuasiBorelSpace
 
 variable {A B C : Type*}
 
-attribute [local fun_prop] isHom_ωSup
+attribute [simp, local fun_prop] isHom_ωSup
 
 /--
 Pointwise supremum of a chain of QBS morphisms is a QBS morphism
 (also known as the "Compatibility Axiom" for the exponential to be an ωQBS)
 -/
-@[simp, fun_prop]
+@[fun_prop]
 lemma isHom_ωSup'
-    [QuasiBorelSpace A] [OmegaQuasiBorelSpace B]
+    {_ : QuasiBorelSpace A} {_ : OmegaQuasiBorelSpace B}
     (f : A → Chain B) (hc : IsHom f) :
     IsHom (fun x ↦ ωSup (f x)) := by
   fun_prop

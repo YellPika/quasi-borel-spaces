@@ -1,11 +1,19 @@
+module
+
 import QuasiBorelSpaces.Basic
-import QuasiBorelSpaces.OmegaQuasiBorelSpace
+public import QuasiBorelSpaces.Defs
+public import QuasiBorelSpaces.OmegaQuasiBorelSpace
+
+public section
 
 namespace QuasiBorelSpace.Subtype
 
-variable {A B : Type*} [QuasiBorelSpace A] [QuasiBorelSpace B] {P : A → Prop}
+variable
+  {A : Type*} {_ : QuasiBorelSpace A}
+  {B : Type*} {_ : QuasiBorelSpace B}
+  {P : A → Prop}
 
-instance : QuasiBorelSpace (Subtype P) := lift Subtype.val
+instance [QuasiBorelSpace A] : QuasiBorelSpace (Subtype P) := lift Subtype.val
 
 @[simp]
 lemma isHom_def {P : B → Prop} (f : A → Subtype P) : IsHom f ↔ IsHom fun x ↦ (f x).val := by

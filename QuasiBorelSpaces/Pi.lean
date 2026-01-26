@@ -1,5 +1,10 @@
+module
+
 import QuasiBorelSpaces.Prod
-import QuasiBorelSpaces.OmegaQuasiBorelSpace
+public import QuasiBorelSpaces.Defs
+public import QuasiBorelSpaces.OmegaQuasiBorelSpace
+
+public section
 
 /-!
 # Small Products of Quasi-Borel Spaces
@@ -13,19 +18,19 @@ See [HeunenKSY17], Proposition 16.
 namespace QuasiBorelSpace.Pi
 
 variable
-  {A : Type*} [QuasiBorelSpace A]
-  {B : Type*} [QuasiBorelSpace B]
-  {C : Type*} [QuasiBorelSpace C]
-  {I : Type*} {P : I → Type*} [∀ i, QuasiBorelSpace (P i)]
+  {A : Type*} {_ : QuasiBorelSpace A}
+  {B : Type*} {_ : QuasiBorelSpace B}
+  {C : Type*} {_ : QuasiBorelSpace C}
+  {I : Type*} {P : I → Type*} {_ : ∀ i, QuasiBorelSpace (P i)}
 
-instance : QuasiBorelSpace (∀i : I, P i) where
+instance [∀ i, QuasiBorelSpace (P i)] : QuasiBorelSpace (∀i : I, P i) where
   IsVar φ := ∀ i, IsHom (φ · i)
   isVar_const f i := by simp only [isHom_const']
   isVar_comp hf hφ i := by
     rw [←isHom_iff_measurable] at hf
     fun_prop
-  isVar_cases' hix hφ i :=
-    isHom_cases (by simp only [isHom_ofMeasurableSpace, hix]) (hφ · i)
+  isVar_cases' hix hφ i := by
+    exact isHom_cases (by simp only [isHom_ofMeasurableSpace, hix]) (hφ · i)
 
 @[local simp]
 lemma isHom_def (φ : ℝ → ∀ i, P i) : IsHom φ ↔ ∀ i, IsHom (φ · i) := by
