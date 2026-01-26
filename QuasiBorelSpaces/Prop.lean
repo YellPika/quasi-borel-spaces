@@ -4,7 +4,8 @@ import QuasiBorelSpaces.Pi
 import QuasiBorelSpaces.Subtype
 
 variable
-  {A B : Type*} [QuasiBorelSpace A] [QuasiBorelSpace B]
+  {A : Type*} {_ : QuasiBorelSpace A}
+  {B : Type*} {_ : QuasiBorelSpace B}
   {I : Sort*} [Countable I]
 
 namespace QuasiBorelSpace.Prop
@@ -107,28 +108,22 @@ lemma isHom_dite
       then f' (if h : p x then ⟨x, h⟩ else Classical.arbitrary _)
       else g' (if h : ¬p x then ⟨x, h⟩ else Classical.arbitrary _)
 
-  have := isHom_cases (ix := fun x : A ↦ p x) (f := k)
-  have {x} : (if h : p x then f x h else g x h) = k (p x) x := by
-    by_cases h : p x
-    · simp only [h, ↓reduceDIte, dite_not, if_true, k, f']
-    · simp only [h, ↓reduceDIte, dite_not, if_false, k, g']
-
+  have {x}
+      : (if h : p x then f x h else g x h)
+      = if p x
+        then f' (if h :  p x then ⟨x, h⟩ else Classical.arbitrary _)
+        else g' (if h : ¬p x then ⟨x, h⟩ else Classical.arbitrary _) := by
+    grind
   simp only [this]
-  unfold k
+
   apply isHom_ite
   · fun_prop
   · apply isHom_comp' hf
     simp only [Subtype.isHom_def, apply_dite, dite_eq_ite]
-    apply isHom_ite
-    · fun_prop
-    · fun_prop
-    · fun_prop
+    apply isHom_ite <;> fun_prop
   · apply isHom_comp' hg
     simp only [Subtype.isHom_def, apply_dite, dite_eq_ite]
-    apply isHom_ite
-    · fun_prop
-    · fun_prop
-    · fun_prop
+    apply isHom_ite <;> fun_prop
 
 @[fun_prop]
 lemma isHom_decide

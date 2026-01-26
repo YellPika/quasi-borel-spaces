@@ -218,15 +218,13 @@ noncomputable def chain [∀ i, Preorder (P i)] (φ : Chain (Var I P)) : Var I f
           let : MeasurableSpace I := ⊤
           apply Measurable.const_eq
           fun_prop
-        · have := isHom_cases
+        · apply isHom_cases
             (A := { x // i = (φ n).embed ((φ n).index x) })
             (I := { j // (φ n).embed j = i })
             (B := P i)
             (ix := fun x : { x // i = (φ n).embed ((φ n).index x) } ↦
               ⟨(φ n).index x.val, x.property.symm⟩)
             (f := fun j x ↦ j.property ▸ (φ n).var j ↑x)
-          simp only [eqRec_eq_cast, Subtype.forall] at ⊢ this
-          apply this
           · apply isHom_mono
             · fun_prop
             · intro ψ hψ
@@ -242,8 +240,7 @@ noncomputable def chain [∀ i, Preorder (P i)] (φ : Chain (Var I P)) : Var I f
                   simp only [MeasurableSpace.measurableSet_top]
                 · apply measurable_id
               · apply Measurable.subtype_mk hψ
-          · intro m rfl
-            simp only [cast_eq]
+          · rintro ⟨m, rfl⟩
             apply isHom_comp'
             · apply (φ n).isHom_var
             · apply Subtype.isHom_val

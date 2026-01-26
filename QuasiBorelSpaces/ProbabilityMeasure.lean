@@ -2,6 +2,7 @@ import QuasiBorelSpaces.ENNReal
 import QuasiBorelSpaces.PreProbabilityMeasure
 import QuasiBorelSpaces.SeparatesPoints
 import QuasiBorelSpaces.UnitInterval.AssocProd
+import QuasiBorelSpaces.IsHomDiagonal
 import QuasiBorelSpaces.OmegaCompletePartialOrder.Basic
 
 /-!
@@ -237,16 +238,7 @@ instance : SeparatesPoints (ProbabilityMeasure A) where
   separates μ₁ μ₂ h := by
     ext k
     apply h _
-    · apply isHom_comp'
-      · rw [isHom_def]
-        intro φ hφ
-        simp only [isHom_ofMeasurableSpace] at ⊢ hφ
-        have : MeasurableSet { x | x ∈ φ ⁻¹' ({∫⁻ x, k x ∂μ₁} : Set _) } := by
-          apply hφ
-          apply measurableSet_eq
-        simp only [Set.mem_preimage, Set.mem_singleton_iff, measurableSet_setOf] at this
-        grind
-      · fun_prop
+    · fun_prop
     · rfl
 
 /-! ## Operations -/

@@ -53,8 +53,15 @@ instance : IsHomDiagonal ℝ where
     simp only [Prod.isHom_iff, isHom_ofMeasurableSpace] at ⊢ hφ
     rcases hφ with ⟨hφ₁, hφ₂⟩
     rw [←measurableSet_setOf]
-    apply measurableSet_eq_fun
-    · fun_prop
-    · fun_prop
+    apply measurableSet_eq_fun <;> fun_prop
+
+instance : IsHomDiagonal ENNReal where
+  isHom_eq := by
+    rw [isHom_def]
+    intro φ hφ
+    simp only [Prod.isHom_iff, isHom_ofMeasurableSpace] at ⊢ hφ
+    rcases hφ with ⟨hφ₁, hφ₂⟩
+    rw [←measurableSet_setOf]
+    apply measurableSet_eq_fun <;> fun_prop
 
 end QuasiBorelSpace

@@ -12,7 +12,9 @@ public section
 namespace QuasiBorelSpace
 
 variable
-  {A B C : Type*} [QuasiBorelSpace A] [QuasiBorelSpace B] [QuasiBorelSpace C]
+  {A : Type*} {_ : QuasiBorelSpace A}
+  {B : Type*} {_ : QuasiBorelSpace B}
+  {C : Type*} {_ : QuasiBorelSpace C}
   {I : Type*} [Countable I]
 
 lemma isVar_cases
