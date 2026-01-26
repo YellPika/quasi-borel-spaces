@@ -1,4 +1,3 @@
-import QuasiBorelSpaces.Bool
 import QuasiBorelSpaces.Hom
 import QuasiBorelSpaces.Lift
 import QuasiBorelSpaces.OmegaCompletePartialOrder.Sum

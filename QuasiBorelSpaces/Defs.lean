@@ -5,6 +5,7 @@ import QuasiBorelSpaces.MeasureTheory.Cases
 public import Mathlib.Data.Real.Basic
 public import Mathlib.MeasureTheory.Constructions.BorelSpace.Basic
 public import Mathlib.MeasureTheory.MeasurableSpace.Defs
+public import QuasiBorelSpaces.MeasureTheory.Instances
 
 public section
 
@@ -87,6 +88,30 @@ end ENNReal
 namespace «Prop»
 instance : QuasiBorelSpace Prop := ofMeasurableSpace
 end «Prop»
+
+namespace Bool
+instance : QuasiBorelSpace Bool := ofMeasurableSpace
+end Bool
+
+namespace Empty
+instance : QuasiBorelSpace Empty := ofMeasurableSpace
+end Empty
+
+namespace PEmpty
+instance : QuasiBorelSpace PEmpty := ofMeasurableSpace
+end PEmpty
+
+namespace Unit
+instance : QuasiBorelSpace Unit := ofMeasurableSpace
+end Unit
+
+namespace PUnit
+instance : QuasiBorelSpace PUnit := ofMeasurableSpace
+end PUnit
+
+namespace Nat
+instance : QuasiBorelSpace Nat := ofMeasurableSpace
+end Nat
 
 /--
 Every `QuasiBorelSpace` induces a `MeasurableSpace`.

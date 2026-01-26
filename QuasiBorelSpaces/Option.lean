@@ -1,7 +1,6 @@
 import QuasiBorelSpaces.IsHomDiagonal
 import QuasiBorelSpaces.OmegaCompletePartialOrder.Option
 import QuasiBorelSpaces.Sum
-import QuasiBorelSpaces.Unit
 
 namespace QuasiBorelSpace.Option
 

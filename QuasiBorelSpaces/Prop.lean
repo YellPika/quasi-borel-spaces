@@ -1,5 +1,4 @@
 import QuasiBorelSpaces.Basic
-import QuasiBorelSpaces.Bool
 import QuasiBorelSpaces.Pi
 import QuasiBorelSpaces.Subtype
 

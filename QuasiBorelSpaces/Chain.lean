@@ -10,11 +10,11 @@ namespace QuasiBorelSpace.Chain
 open OmegaCompletePartialOrder
 
 variable
-  {A : Type*} [QuasiBorelSpace A]
-  {B : Type*} [QuasiBorelSpace B]
-  {C : Type*} [QuasiBorelSpace C]
+  {A : Type*} {_ : QuasiBorelSpace A}
+  {B : Type*} {_ : QuasiBorelSpace B}
+  {C : Type*} {_ : QuasiBorelSpace C}
 
-instance [Preorder A] : QuasiBorelSpace (Chain A) where
+instance [Preorder A] [QuasiBorelSpace A] : QuasiBorelSpace (Chain A) where
   IsVar φ := ∀ i, IsHom (φ · i)
   isVar_const f i := by simp only [isHom_const']
   isVar_comp hf hφ i := by
@@ -25,7 +25,7 @@ instance [Preorder A] : QuasiBorelSpace (Chain A) where
     simp only [isHom_ofMeasurableSpace, hix]
 
 @[local simp]
-lemma isHom_def [Preorder A] (φ : ℝ → Chain A) : IsHom φ ↔ ∀ i, IsHom (φ · i) := by
+private lemma isHom_def [Preorder A] (φ : ℝ → Chain A) : IsHom φ ↔ ∀ i, IsHom (φ · i) := by
   rw [←isVar_iff_isHom]
   rfl
 

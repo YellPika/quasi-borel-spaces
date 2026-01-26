@@ -4,7 +4,6 @@ import QuasiBorelSpaces.Hom
 import QuasiBorelSpaces.MeasureTheory.Map
 import QuasiBorelSpaces.MeasureTheory.ProbabilityMeasure
 import QuasiBorelSpaces.Prop
-import QuasiBorelSpaces.Unit
 
 open MeasureTheory
 open scoped unitInterval

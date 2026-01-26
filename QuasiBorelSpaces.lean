@@ -1,10 +1,8 @@
 import QuasiBorelSpaces.Basic
-import QuasiBorelSpaces.Bool
 import QuasiBorelSpaces.Chain
 import QuasiBorelSpaces.Cont
 import QuasiBorelSpaces.Defs
 import QuasiBorelSpaces.ENNReal
-import QuasiBorelSpaces.Empty
 import QuasiBorelSpaces.Finset
 import QuasiBorelSpaces.FlatReal
 import QuasiBorelSpaces.Hom
@@ -47,5 +45,4 @@ import QuasiBorelSpaces.SeparatesPoints
 import QuasiBorelSpaces.Sigma
 import QuasiBorelSpaces.Subtype
 import QuasiBorelSpaces.Sum
-import QuasiBorelSpaces.Unit
 import QuasiBorelSpaces.UnitInterval.AssocProd
