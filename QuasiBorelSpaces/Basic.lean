@@ -88,15 +88,15 @@ end IsHom
 
 @[simp]
 lemma isHom_iff_measurable
-    {A : Type*} [QuasiBorelSpace A] [MeasurableSpace A] [MeasurableQuasiBorelSpace A]
+    {_ : MeasurableSpace A} [MeasurableQuasiBorelSpace A]
     (φ : ℝ → A)
     : IsHom φ ↔ Measurable φ :=
   MeasurableQuasiBorelSpace.isHom_iff_measurable φ
 
 @[fun_prop]
 lemma isHom_of_measurable
-    [MeasurableSpace A] [MeasurableQuasiBorelSpace A]
-    [MeasurableSpace B] [MeasurableQuasiBorelSpace B]
+    {_ : MeasurableSpace A} [MeasurableQuasiBorelSpace A]
+    {_ : MeasurableSpace B} [MeasurableQuasiBorelSpace B]
     (f : A → B) (hf : Measurable f)
     : IsHom f := by
   rw [isHom_def]
@@ -154,7 +154,7 @@ lemma isHom_cases
 
 @[simp, fun_prop]
 lemma isHom_of_discrete_countable
-    [MeasurableSpace A] [DiscreteQuasiBorelSpace A] [Countable A]
+    {_ : MeasurableSpace A} [DiscreteQuasiBorelSpace A] [Countable A]
     (f : A → B) : IsHom f := by
   apply isHom_cases (ix := fun x ↦ x) (f := fun x _ ↦ f x)
   · rw [isHom_def]
@@ -197,7 +197,7 @@ lemma isHom_to_lift
 
 @[simp, fun_prop]
 lemma isHom_unpack
-    [Nonempty A] [MeasurableSpace A] [MeasurableQuasiBorelSpace A] [StandardBorelSpace A]
+    [Nonempty A] {_ : MeasurableSpace A} [MeasurableQuasiBorelSpace A] [StandardBorelSpace A]
     : IsHom (MeasureTheory.unpack (A := A)) := by
   simp only [isHom_iff_measurable, MeasureTheory.measurable_unpack]
 
@@ -206,8 +206,8 @@ lemma isHom_mem_Icc {a b : ℝ} : IsHom (· ∈ Set.Icc a b) := by
   simp only [isHom_ofMeasurableSpace, measurable_mem, measurableSet_Icc]
 
 lemma isHom_cast
-    {B} [instB : QuasiBorelSpace B]
-    {C} [instC : QuasiBorelSpace C]
+    {B} {instB : QuasiBorelSpace B}
+    {C} {instC : QuasiBorelSpace C}
     {eq : B = C} (heq : ∀ (φ : ℝ → B), IsHom φ ↔ IsHom fun x ↦ cast eq (φ x))
     (f : A → B)
     : IsHom (fun x ↦ cast eq (f x)) ↔ IsHom f := by
@@ -221,8 +221,8 @@ lemma isHom_cast
 
 @[fun_prop]
 lemma measurable_of_isHom
-    [MeasurableSpace A] [MeasurableQuasiBorelSpace A]
-    [MeasurableSpace B] [MeasurableQuasiBorelSpace B] [StandardBorelSpace B]
+    {_ : MeasurableSpace A} [MeasurableQuasiBorelSpace A]
+    {_ : MeasurableSpace B} [MeasurableQuasiBorelSpace B] [StandardBorelSpace B]
     (f : B → A) (hf : IsHom f)
     : Measurable f := by
   wlog hB : Nonempty B
