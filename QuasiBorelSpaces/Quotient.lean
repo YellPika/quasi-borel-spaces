@@ -1,15 +1,22 @@
+module
+
 import QuasiBorelSpaces.Hom
-import QuasiBorelSpaces.SeparatesPoints
+public import QuasiBorelSpaces.Prod
+public import QuasiBorelSpaces.Defs
+
+public section
 
 namespace QuasiBorelSpace.Quotient
 
 variable
-  {A B C : Type*} [QuasiBorelSpace A] [QuasiBorelSpace B] [QuasiBorelSpace C]
+  {A : Type*} {_ : QuasiBorelSpace A}
+  {B : Type*} {_ : QuasiBorelSpace B}
+  {C : Type*} {_ : QuasiBorelSpace C}
   {S : Setoid A} {S' : Setoid B}
 
 @[simps]
-instance : QuasiBorelSpace (Quotient S) where
-  IsVar φ := ∃(ψ : ℝ → A), IsHom ψ ∧ ∀r, φ r = ⟦ψ r⟧
+instance [QuasiBorelSpace A] : QuasiBorelSpace (Quotient S) where
+  IsVar φ := ∃ ψ : ℝ → A, IsHom ψ ∧ ∀r, φ r = ⟦ψ r⟧
   isVar_const x := by
     induction x using Quotient.inductionOn with | h x =>
     use fun _ ↦ x
@@ -28,7 +35,7 @@ instance : QuasiBorelSpace (Quotient S) where
     · simp only [hφ, implies_true]
 
 @[simp]
-lemma isHom_def (φ : ℝ → Quotient S) : IsHom φ ↔ ∃(ψ : ℝ → A), IsHom ψ ∧ ∀r, φ r = ⟦ψ r⟧ := by
+lemma isHom_def (φ : ℝ → Quotient S) : IsHom φ ↔ ∃ ψ : ℝ → A, IsHom ψ ∧ ∀r, φ r = ⟦ψ r⟧ := by
   rw [← isVar_iff_isHom]
   rfl
 

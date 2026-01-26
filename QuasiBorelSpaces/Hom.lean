@@ -1,5 +1,9 @@
-import QuasiBorelSpaces.Nat
-import QuasiBorelSpaces.Prod
+module
+
+public import QuasiBorelSpaces.Prod
+public import QuasiBorelSpaces.Defs
+
+public section
 
 /-!
 # Exponentials of Quasi-Borel Spaces
@@ -13,17 +17,22 @@ open QuasiBorelSpace
 
 /-- The type of morphisms between `QuasiBorelSpace`s. -/
 structure QuasiBorelHom (A B : Type*) [QuasiBorelSpace A] [QuasiBorelSpace B] where
-  private toFun : A → B
-  private property : IsHom toFun := by fun_prop
+  /-- The underlying function. -/
+  toFun : A → B
+  /-- The underlying function is a morphism. -/
+  property : IsHom toFun := by fun_prop
 
 namespace QuasiBorelHom
 
-variable {A B C : Type*} [QuasiBorelSpace A] [QuasiBorelSpace B] [QuasiBorelSpace C]
+variable
+  {A : Type*} {_ : QuasiBorelSpace A}
+  {B : Type*} {_ : QuasiBorelSpace B}
+  {C : Type*} {_ : QuasiBorelSpace C}
 
 @[inherit_doc]
 infixr:25 " →𝒒 " => QuasiBorelHom
 
-instance : FunLike (A →𝒒 B) A B where
+instance [QuasiBorelSpace A] [QuasiBorelSpace B] : FunLike (A →𝒒 B) A B where
   coe := toFun
   coe_injective' f g := by
     cases f
@@ -31,7 +40,7 @@ instance : FunLike (A →𝒒 B) A B where
     simp only [mk.injEq, imp_self]
 
 /-- A simps projection for function coercion. -/
-def Simps.coe (f : A →𝒒 B) : A → B := f
+def Simps.coe [QuasiBorelSpace A] [QuasiBorelSpace B] (f : A →𝒒 B) : A → B := f
 
 initialize_simps_projections QuasiBorelHom (toFun → coe)
 
@@ -58,7 +67,7 @@ lemma toFun_eq_coe (f : A →𝒒 B) : toFun f = ⇑f := rfl
 @[simp, fun_prop]
 lemma isHom_coe (f : A →𝒒 B) : IsHom ⇑f := f.property
 
-instance : QuasiBorelSpace (A →𝒒 B) where
+instance [QuasiBorelSpace A] [QuasiBorelSpace B] : QuasiBorelSpace (A →𝒒 B) where
   IsVar φ := IsHom (fun x : ℝ × A ↦ φ x.1 x.2)
   isVar_const f := by fun_prop
   isVar_comp hf hφ := by
@@ -111,12 +120,12 @@ lemma isHom_iff (f : A → B →𝒒 C) : IsHom f ↔ IsHom (fun x : A × B ↦ 
     apply isHom_mk hf
 
 /-- Currying for `QuasiBorelHom`s. -/
-@[simps -fullyApplied]
+@[expose, simps -fullyApplied]
 def curry (f : A × B →𝒒 C) : A →𝒒 B →𝒒 C where
   toFun x := { toFun y := f (x, y) }
 
 /-- Uncurrying for `QuasiBorelHom`s. -/
-@[simps -fullyApplied]
+@[expose, simps -fullyApplied]
 def uncurry (f : A →𝒒 B →𝒒 C) : A × B →𝒒 C where
   toFun x := f x.1 x.2
 
@@ -127,12 +136,12 @@ lemma curry_uncurry (f : A →𝒒 B →𝒒 C) : curry (uncurry f) = f := rfl
 lemma uncurry_curry (f : A × B →𝒒 C) : uncurry (curry f) = f := rfl
 
 /-- The identity morphism. -/
-@[simps -fullyApplied]
+@[expose, simps -fullyApplied]
 def id : A →𝒒 A where
   toFun x := x
 
 /-- Morphism composition. -/
-@[simps -fullyApplied]
+@[expose, simps -fullyApplied]
 def comp (f : B →𝒒 C) (g : A →𝒒 B) : A →𝒒 C where
   toFun x := f (g x)
 

@@ -1,6 +1,12 @@
-import QuasiBorelSpaces.Basic
-import QuasiBorelSpaces.OmegaQuasiBorelSpace
+module
+
 import Mathlib.MeasureTheory.Measure.Prod
+import QuasiBorelSpaces.Basic
+public import Mathlib.MeasureTheory.Integral.Lebesgue.Basic
+public import QuasiBorelSpaces.Basic
+public import QuasiBorelSpaces.OmegaQuasiBorelSpace
+
+public section
 
 /-!
 # Binary Products of Quasi-Borel Spaces
@@ -14,12 +20,12 @@ See [HeunenKSY17], Proposition 16.
 namespace QuasiBorelSpace.Prod
 
 variable
-  {A : Type*} [QuasiBorelSpace A]
-  {B : Type*} [QuasiBorelSpace B]
-  {C : Type*} [QuasiBorelSpace C]
-  {D : Type*} [QuasiBorelSpace D]
+  {A : Type*} {_ : QuasiBorelSpace A}
+  {B : Type*} {_ : QuasiBorelSpace B}
+  {C : Type*} {_ : QuasiBorelSpace C}
+  {D : Type*} {_ : QuasiBorelSpace D}
 
-instance : QuasiBorelSpace (A × B) where
+instance [QuasiBorelSpace A] [QuasiBorelSpace B] : QuasiBorelSpace (A × B) where
   IsVar φ := IsHom (fun x ↦ Prod.fst (φ x)) ∧ IsHom (fun x ↦ Prod.snd (φ x))
   isVar_const x := by
     simp only [isHom_const', and_self]
@@ -38,7 +44,8 @@ instance : QuasiBorelSpace (A × B) where
       simp only [isHom_ofMeasurableSpace, hix]
 
 @[local simp]
-lemma isHom_def (f : ℝ → A × B) : IsHom f ↔ IsHom (fun x ↦ (f x).1) ∧ IsHom (fun x ↦ (f x).2) := by
+private lemma isHom_def (f : ℝ → A × B)
+    : IsHom f ↔ IsHom (fun x ↦ (f x).1) ∧ IsHom (fun x ↦ (f x).2) := by
   rw [← isVar_iff_isHom]
   rfl
 
@@ -104,16 +111,6 @@ lemma isHom_of_uncurry
   apply isHom_comp' (f := Function.uncurry f) (g := fun x ↦ (g x, h x))
   · apply hf
   · fun_prop
-
-variable {α β : Type*} [QuasiBorelSpace α] [QuasiBorelSpace β]
-
-lemma isHom_fst_comp {f : ℝ → α × β} (hf : IsHom f) :
-    IsHom (fun r => (f r).1) :=
-  (isHom_iff f).mp hf |>.1
-
-lemma isHom_snd_comp {f : ℝ → α × β} (hf : IsHom f) :
-    IsHom (fun r => (f r).2) :=
-  (isHom_iff f).mp hf |>.2
 
 end QuasiBorelSpace.Prod
 
