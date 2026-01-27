@@ -259,4 +259,10 @@ lemma isHom_mono
   apply hinst
   apply hf
 
+lemma measurableSet_toMeasurableSpace
+    (X : Set A)
+    : MeasurableSet[toMeasurableSpace] X
+    ↔ ∀{φ : ℝ → A}, IsHom φ → MeasurableSet (φ ⁻¹' X) := by
+  rfl
+
 end QuasiBorelSpace
