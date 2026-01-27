@@ -1,9 +1,15 @@
-import QuasiBorelSpaces.Nat
-import QuasiBorelSpaces.Prod
+module
+
+import QuasiBorelSpaces.MeasureTheory.Cases
 import QuasiBorelSpaces.MeasureTheory.Sigma
-import QuasiBorelSpaces.OmegaCompletePartialOrder.Sigma
 import QuasiBorelSpaces.Prop
 import QuasiBorelSpaces.Subtype
+public import Mathlib.Data.Sigma.Order
+public import QuasiBorelSpaces.Defs
+public import QuasiBorelSpaces.OmegaCompletePartialOrder.Sigma
+public import QuasiBorelSpaces.Prod
+
+public section
 
 /-!
 # Small Coproducts of Quasi-Borel Spaces
@@ -47,7 +53,7 @@ attribute [fun_prop] measurable_index
 Since every `Var` represents a variable, each `Var` induces a function
 `ℝ → Σi, P i`.
 -/
-@[simps]
+@[expose, simps]
 def apply (x : Var I P) (r : ℝ) : Sigma P where
   fst := x.embed (x.index r)
   snd := x.var (x.index r) r
@@ -97,7 +103,7 @@ def const (x : Sigma P) : Var I P := mk'
   (measurable_index := measurable_const)
 
 @[simp]
-lemma const_apply (x : Sigma P) (r : ℝ) : const x r = x := rfl
+lemma const_apply (x : Sigma P) (r : ℝ) : const x r = x := by rfl
 
 /-- Composition under measurable functions. -/
 def comp {f : ℝ → ℝ} (hf : Measurable f) (x : Var I P) : Var I P where
@@ -114,7 +120,7 @@ def comp {f : ℝ → ℝ} (hf : Measurable f) (x : Var I P) : Var I P where
 lemma comp_apply
     {f : ℝ → ℝ} (hf : Measurable f)
     (x : Var I P) (r : ℝ)
-    : comp hf x r = x (f r) :=
+    : comp hf x r = x (f r) := by
   rfl
 
 /-- Gluing of a countable number of variables. -/
@@ -153,7 +159,7 @@ def distrib {φ₁ : ℝ → A} (hφ₁ : IsHom φ₁) (φ₂ : Var I P) : Var I
 @[simp]
 lemma distrib_apply
     {φ₁ : ℝ → A} (hφ₁ : IsHom φ₁) (φ₂ : Var I P) (r : ℝ)
-    : apply (distrib hφ₁ φ₂) r = ⟨(φ₂ r).1, φ₁ r, (φ₂ r).2⟩ :=
+    : apply (distrib hφ₁ φ₂) r = ⟨(φ₂ r).1, φ₁ r, (φ₂ r).2⟩ := by
   rfl
 
 instance [∀ i, LE (P i)] : LE (Var I P) where

@@ -1,6 +1,12 @@
+module
+
 import QuasiBorelSpaces.Basic
 import QuasiBorelSpaces.Pi
-import QuasiBorelSpaces.Subtype
+public import QuasiBorelSpaces.Defs
+public import QuasiBorelSpaces.Prod
+public import QuasiBorelSpaces.Subtype
+
+public section
 
 variable
   {A : Type*} {_ : QuasiBorelSpace A}

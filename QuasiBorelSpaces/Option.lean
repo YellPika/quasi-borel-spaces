@@ -1,4 +1,5 @@
 import QuasiBorelSpaces.IsHomDiagonal
+import QuasiBorelSpaces.Nat
 import QuasiBorelSpaces.OmegaCompletePartialOrder.Option
 import QuasiBorelSpaces.Sum
 
