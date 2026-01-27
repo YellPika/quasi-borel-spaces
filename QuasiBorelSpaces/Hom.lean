@@ -140,9 +140,20 @@ lemma uncurry_curry (f : A × B →𝒒 C) : uncurry (curry f) = f := rfl
 def id : A →𝒒 A where
   toFun x := x
 
+@[simp]
+lemma eq_id : (.mk fun x : A ↦ x) = id := by
+  rfl
+
 /-- Morphism composition. -/
 @[expose, simps -fullyApplied]
 def comp (f : B →𝒒 C) (g : A →𝒒 B) : A →𝒒 C where
   toFun x := f (g x)
+
+@[simp]
+lemma eq_comp
+    {f : B → C} (hf : IsHom f)
+    {g : A → B} (hg : IsHom g)
+    : comp (mk f) (mk g) = mk fun x ↦ f (g x) := by
+  rfl
 
 end QuasiBorelHom
