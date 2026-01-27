@@ -79,6 +79,9 @@ instance [QuasiBorelSpace A] [QuasiBorelSpace B] : QuasiBorelSpace (A →𝒒 B)
     · fun_prop
     · fun_prop
 
+instance [QuasiBorelSpace A] [QuasiBorelSpace A] : MeasurableSpace (A →𝒒 B) :=
+  toMeasurableSpace
+
 @[local simp]
 lemma isHom_def (φ : ℝ → A →𝒒 B) : IsHom φ ↔ IsHom (fun x : ℝ × A ↦ φ x.1 x.2) := by
   rw [←isVar_iff_isHom]
