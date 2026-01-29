@@ -12,25 +12,46 @@ variable {A : Type*} [MeasurableSpace A] [StandardBorelSpace A]
 
 /-- Packs a natural number and a real number into a single real number. -/
 noncomputable def pack : A → ℝ :=
-  MeasureTheory.embeddingReal _
+  open Classical in
+  if h : Countable A
+  then MeasureTheory.embeddingReal _
+  else PolishSpace.measurableEquivOfNotCountable h not_countable
 
 /-- Unpacks a natural number and a real number from a single real number. -/
 noncomputable def unpack [Nonempty A] : ℝ → A :=
-  (MeasureTheory.measurableEmbedding_embeddingReal _).invFun
+  open Classical in
+  if h : Countable A
+  then (MeasureTheory.measurableEmbedding_embeddingReal _).invFun
+  else (PolishSpace.measurableEquivOfNotCountable h not_countable).symm
 
 @[simp]
 lemma unpack_pack [Nonempty A] (x : A) : unpack (pack x) = x := by
   simp only [unpack, pack]
-  apply MeasurableEmbedding.leftInverse_invFun
+  by_cases h : Countable A
+  · simp only [h, ↓reduceDIte]
+    apply MeasurableEmbedding.leftInverse_invFun
+  · simp only [h, ↓reduceDIte, MeasurableEquiv.symm_apply_apply]
+
+@[simp]
+lemma pack_unpack [Nonempty A] (h : ¬Countable A) (x : ℝ) : pack (unpack (A := A) x) = x :=by
+  simp only [pack, h, ↓reduceDIte, unpack, MeasurableEquiv.apply_symm_apply]
 
 @[simp, measurability, fun_prop]
 lemma measurable_pack : Measurable (pack (A := A)) := by
   unfold pack
-  fun_prop
+  by_cases h : Countable A
+  · simp only [h, ↓reduceDIte]
+    fun_prop
+  · simp only [h, ↓reduceDIte]
+    fun_prop
 
 @[simp, measurability, fun_prop]
 lemma measurable_unpack [Nonempty A] : Measurable (unpack (A := A)) := by
   unfold unpack
-  fun_prop
+  by_cases h : Countable A
+  · simp only [h, ↓reduceDIte]
+    fun_prop
+  · simp only [h, ↓reduceDIte]
+    fun_prop
 
 end MeasureTheory

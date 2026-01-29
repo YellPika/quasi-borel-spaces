@@ -4,6 +4,7 @@ import Mathlib.Probability.Kernel.MeasurableLIntegral
 public import Mathlib.MeasureTheory.MeasurableSpace.Defs
 public import Mathlib.MeasureTheory.Measure.GiryMonad
 public import Mathlib.MeasureTheory.Measure.Typeclasses.Finite
+public import Mathlib.Probability.Kernel.Defs
 
 public section
 
@@ -27,5 +28,22 @@ lemma measurable_map'
   apply ProbabilityTheory.Kernel.measurable_kernel_prodMk_left_of_finite
   · apply hf hX
   · infer_instance
+
+lemma measurable_apply
+    {μ : A → Measure B} (hμ : Measurable μ) (hμ' : ProbabilityTheory.IsSFiniteKernel ⟨μ, hμ⟩)
+    {i : A → Set B} (hi : Measurable fun x : _ × _ ↦ x.1 ∈ i x.2)
+    : Measurable (fun x ↦ μ x (i x)) := by
+  have hi' {x} : MeasurableSet (i x) := by
+    change MeasurableSet { a | a ∈ i x }
+    rw [measurableSet_setOf]
+    have : Measurable (fun y : B ↦ (y, x)) := by fun_prop
+    apply Measurable.comp' hi this
+  simp only [← MeasureTheory.lintegral_indicator_one, hi']
+  apply Measurable.lintegral_kernel_prod_left (κ := ⟨μ, hμ⟩)
+  apply Measurable.ite
+  · simp only [measurableSet_setOf]
+    fun_prop
+  · fun_prop
+  · fun_prop
 
 end MeasureTheory.Measure

@@ -5,6 +5,7 @@ import QuasiBorelSpaces.Defs
 import QuasiBorelSpaces.ENNReal
 import QuasiBorelSpaces.Finset
 import QuasiBorelSpaces.FlatReal
+import QuasiBorelSpaces.Functor
 import QuasiBorelSpaces.Hom
 import QuasiBorelSpaces.IsHomDiagonal
 import QuasiBorelSpaces.Lift
@@ -13,9 +14,11 @@ import QuasiBorelSpaces.List.Encoding
 import QuasiBorelSpaces.MeasureTheory.Cases
 import QuasiBorelSpaces.MeasureTheory.Instances
 import QuasiBorelSpaces.MeasureTheory.List
-import QuasiBorelSpaces.MeasureTheory.Map
+import QuasiBorelSpaces.MeasureTheory.Measure
 import QuasiBorelSpaces.MeasureTheory.Pack
 import QuasiBorelSpaces.MeasureTheory.ProbabilityMeasure
+import QuasiBorelSpaces.MeasureTheory.Quantile
+import QuasiBorelSpaces.MeasureTheory.Randomization
 import QuasiBorelSpaces.MeasureTheory.Sigma
 import QuasiBorelSpaces.Multiset
 import QuasiBorelSpaces.Nat

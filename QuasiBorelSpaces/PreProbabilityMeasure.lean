@@ -1,7 +1,7 @@
 import Mathlib.MeasureTheory.Constructions.UnitInterval
 import Mathlib.MeasureTheory.Measure.DiracProba
 import QuasiBorelSpaces.Hom
-import QuasiBorelSpaces.MeasureTheory.Map
+import QuasiBorelSpaces.MeasureTheory.Measure
 import QuasiBorelSpaces.MeasureTheory.ProbabilityMeasure
 import QuasiBorelSpaces.Prop
 
