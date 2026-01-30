@@ -1,7 +1,5 @@
 module
 
-public import Mathlib.MeasureTheory.MeasurableSpace.Defs
-public import Mathlib.MeasureTheory.MeasurableSpace.Instances
 public import Mathlib.MeasureTheory.MeasurableSpace.Constructions
 
 public section

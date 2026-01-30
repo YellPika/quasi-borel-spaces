@@ -3,9 +3,6 @@ module
 import Mathlib.Probability.CDF
 import QuasiBorelSpaces.MeasureTheory.Measure
 public import Mathlib.MeasureTheory.Constructions.UnitInterval
-public import Mathlib.MeasureTheory.Measure.GiryMonad
-public import Mathlib.MeasureTheory.Measure.MeasureSpaceDef
-public import Mathlib.MeasureTheory.Measure.Typeclasses.Probability
 
 public section
 

@@ -1,8 +1,5 @@
 module
 
-import Mathlib.MeasureTheory.Constructions.BorelSpace.Basic
-public import Mathlib.Topology.Defs.Basic
-public import Mathlib.MeasureTheory.Constructions.BorelSpace.Basic
 public import Mathlib.MeasureTheory.Constructions.Polish.Basic
 
 open scoped MeasureTheory

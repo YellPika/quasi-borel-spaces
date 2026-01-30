@@ -1,15 +1,7 @@
 module
 
-import Mathlib.Analysis.Real.Cardinality
 import Mathlib.Probability.Kernel.MeasurableLIntegral
-import Mathlib.MeasureTheory.Constructions.BorelSpace.Basic
-import Mathlib.MeasureTheory.Constructions.Polish.EmbeddingReal
-import QuasiBorelSpaces.MeasureTheory.Sum
 public import QuasiBorelSpaces.MeasureTheory.Option
-public import Mathlib.MeasureTheory.Constructions.Polish.Basic
-public import Mathlib.MeasureTheory.MeasurableSpace.Defs
-public import Mathlib.MeasureTheory.Measure.GiryMonad
-public import Mathlib.MeasureTheory.Measure.Typeclasses.Finite
 public import Mathlib.Probability.Kernel.Defs
 
 public section

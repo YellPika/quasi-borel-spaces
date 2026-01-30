@@ -1,7 +1,8 @@
 module
 
 import QuasiBorelSpaces.MeasureTheory.StandardBorelSpace
-public import QuasiBorelSpaces.MeasureTheory.Sum
+public import Mathlib.MeasureTheory.Constructions.Polish.Basic
+import QuasiBorelSpaces.MeasureTheory.Sum
 
 public section
 

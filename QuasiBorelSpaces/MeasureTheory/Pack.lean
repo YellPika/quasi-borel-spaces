@@ -1,7 +1,6 @@
 module
 
 import Mathlib.MeasureTheory.Constructions.Polish.EmbeddingReal
-public import Mathlib.MeasureTheory.MeasurableSpace.Defs
 public import Mathlib.MeasureTheory.Constructions.Polish.Basic
 
 public section
