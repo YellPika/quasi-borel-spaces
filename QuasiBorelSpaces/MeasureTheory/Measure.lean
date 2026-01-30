@@ -1,6 +1,12 @@
 module
 
+import Mathlib.Analysis.Real.Cardinality
 import Mathlib.Probability.Kernel.MeasurableLIntegral
+import Mathlib.MeasureTheory.Constructions.BorelSpace.Basic
+import Mathlib.MeasureTheory.Constructions.Polish.EmbeddingReal
+import QuasiBorelSpaces.MeasureTheory.Sum
+public import QuasiBorelSpaces.MeasureTheory.Option
+public import Mathlib.MeasureTheory.Constructions.Polish.Basic
 public import Mathlib.MeasureTheory.MeasurableSpace.Defs
 public import Mathlib.MeasureTheory.Measure.GiryMonad
 public import Mathlib.MeasureTheory.Measure.Typeclasses.Finite
@@ -45,5 +51,63 @@ lemma measurable_apply
     fun_prop
   · fun_prop
   · fun_prop
+
+/-- The push-forward of a measure by a partial function. -/
+noncomputable def mapOption (f : A → Option B) (μ : Measure A) : Measure B :=
+  open Classical in
+  let μ' := μ.restrict {x | (f x).isSome}
+  if h : NeZero μ' then
+    have : Nonempty B := by
+      by_contra hB
+      have {x} : ¬(f x).isSome := by
+        cases h : f x with
+        | none => simp only [Option.isSome_none, Bool.false_eq_true, not_false_eq_true]
+        | some y =>
+          have : Nonempty B := ⟨y⟩
+          contradiction
+      rcases h with ⟨h⟩
+      simp only [
+        this, Bool.false_eq_true, Set.setOf_false,
+        restrict_empty, ne_eq, not_true_eq_false, μ'] at h
+    μ'.map (Option.elim' this.some id ∘ f)
+  else
+    0
+
+@[simp]
+lemma lintegral_mapOption
+    {k : B → ENNReal} (hk : Measurable k)
+    {f : A → Option B} (hf : Measurable f)
+    (μ : Measure A)
+    : ∫⁻ b, k b ∂(mapOption f μ)
+    = ∫⁻ a, Option.elim (f a) 0 k ∂μ := by
+  by_cases h : NeZero (μ.restrict {x | (f x).isSome = true})
+  · simp only [mapOption, h, ↓reduceDIte]
+    rw [lintegral_map, ← MeasureTheory.lintegral_indicator]
+    · simp only [Set.indicator, Set.mem_setOf_eq, Function.comp_apply]
+      apply lintegral_congr fun a ↦ ?_
+      cases f a <;> rfl
+    · simp only [measurableSet_setOf]
+      fun_prop
+    · fun_prop
+    · fun_prop
+  · simp only [mapOption, h, ↓reduceDIte, lintegral_zero_measure]
+    simp only [not_neZero, restrict_eq_zero] at h
+    nth_rw 1 [← MeasureTheory.setLIntegral_measure_zero _ (fun a ↦ (f a).elim 0 k) h]
+    rw [← MeasureTheory.lintegral_indicator]
+    · simp only [Set.indicator, Set.mem_setOf_eq]
+      apply lintegral_congr fun a ↦ ?_
+      cases f a <;> rfl
+    · simp only [measurableSet_setOf]
+      fun_prop
+
+instance : MeasurableSMul₂ ENNReal (Measure B) where
+  measurable_smul := by
+    rw [MeasureTheory.Measure.measurable_measure]
+    intro s hs
+    simp only [Function.uncurry, smul_apply, smul_eq_mul]
+    apply Measurable.smul (f := Prod.fst)
+    · fun_prop
+    · apply Measurable.comp (MeasureTheory.Measure.measurable_coe hs)
+      fun_prop
 
 end MeasureTheory.Measure
