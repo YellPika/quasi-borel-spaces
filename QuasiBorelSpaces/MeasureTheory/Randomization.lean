@@ -1,12 +1,14 @@
 module
 
 import Mathlib.Analysis.SpecialFunctions.Sigmoid
+import QuasiBorelSpaces.MeasureTheory.Cases
 import QuasiBorelSpaces.MeasureTheory.Pack
 import QuasiBorelSpaces.MeasureTheory.Quantile
-public import Mathlib.MeasureTheory.Constructions.Polish.Basic
 public import Mathlib.MeasureTheory.Constructions.UnitInterval
-public import Mathlib.MeasureTheory.Measure.GiryMonad
-public import Mathlib.MeasureTheory.Measure.Typeclasses.Probability
+public import Mathlib.MeasureTheory.Measure.Restrict
+public import QuasiBorelSpaces.MeasureTheory.Measure
+public import QuasiBorelSpaces.MeasureTheory.Option
+public import QuasiBorelSpaces.MeasureTheory.StandardBorelSpace
 
 public section
 
@@ -16,13 +18,123 @@ namespace MeasureTheory.Measure
 
 variable {A B} [MeasurableSpace A] [MeasurableSpace B]
 
+/-- `normalize` is the canonical injection from `[0, r)` to `[0, 1]`. -/
+noncomputable def normalize {r : ℝ} (x : Set.Ico 0 r) : I where
+  val := x / r
+  property := by rw [Set.mem_Icc, le_div_iff₀, div_le_iff₀] <;> grind
+
+@[simp, fun_prop]
+lemma measurable_normalize (r) : Measurable (normalize (r := r)) := by
+  unfold normalize
+  fun_prop
+
+lemma injective_normalize (r) : Function.Injective (normalize (r := r)) := by
+  intro i₁ i₂ hi
+  simp only [normalize, Subtype.mk.injEq] at hi
+  rw [div_left_inj'] at hi
+  · ext
+    exact hi
+  · grind
+
+noncomputable instance (r : ℝ) : MeasureSpace (Set.Ico 0 r) where
+  volume := ENNReal.ofReal r • volume.comap normalize
+
+instance : IsEmpty (Set.Ico 0 (0 : ℝ)) := by simp
+
+@[simp]
+lemma volume_zero : (volume : Measure (Set.Ico 0 (0 : ℝ))) = 0 := by
+  ext s
+  have hs : s = ∅ := by
+    ext a
+    simpa using a.property
+  simp only [hs, measure_empty]
+
+@[simp]
+lemma measurableEmbedding_normalize (r) : MeasurableEmbedding (normalize (r := r)) where
+  injective := injective_normalize r
+  measurable := measurable_normalize r
+  measurableSet_image' := by
+    intro s hs
+    apply MeasurableSet.of_subtype_image
+    simp only [normalize, ← Set.image_comp, Function.comp_apply]
+    replace hs := MeasurableSet.subtype_image (by simp) hs
+    have : ((fun a ↦ ↑a / r) '' s) = (· / r) '' (Subtype.val '' s) := by
+      simp only [← Set.image_comp]
+      rfl
+    rw [this]
+    generalize ht : Subtype.val '' s = t
+    rw [ht] at hs
+    clear ht this s
+
+    wlog! hr : r ≠ 0
+    · subst hr
+      simp only [Set.image, div_zero, exists_and_right, measurableSet_setOf]
+      fun_prop
+
+    have : (fun x ↦ x / r) '' t = (· * r) ⁻¹' t := by grind
+    rw [this]
+    apply MeasurableMul.measurable_mul_const
+    exact hs
+
+@[simp]
+lemma range_normalize {r} (hr : 0 < r) : Set.range (normalize (r := r)) = Set.Ico 0 1 := by
+  ext x
+  simp only [Set.mem_range, normalize, Subtype.exists, Set.mem_Ico, zero_le', true_and]
+  refine ⟨?_, ?_⟩
+  · rintro ⟨y, ⟨hy₁, hy₂⟩, rfl⟩
+    rw [Subtype.mk_lt_mk, Set.Icc.coe_one, div_lt_one] <;> grind
+  · intro h
+    use x * r
+    have : 0 ≤ x * r := by apply mul_nonneg <;> grind
+    have : x * r < r := by rw [mul_lt_iff_lt_one_left] <;> grind
+    simp only [and_self, exists_true_left, *]
+    rw [Subtype.mk_eq_mk, MulDivCancelClass.mul_div_cancel]
+    grind
+
+@[simp]
+lemma volume_restrict_normalize : volume.restrict (Set.Ico 0 (1 : I)) = volume := by
+  ext s hs
+  simp only [hs, restrict_apply]
+  apply MeasureTheory.measure_inter_conull
+  simp only [
+    measurableSet_Ico, MeasurableSet.nullMeasurableSet, prob_compl_eq_zero_iff₀,
+    unitInterval.volume_Ico, Set.Icc.coe_one, Set.Icc.coe_zero, sub_zero, ENNReal.ofReal_one]
+
+private noncomputable def packI [StandardBorelSpace A] : A → I := unpack ∘ pack
+private noncomputable def unpackI [StandardBorelSpace A] [Nonempty A] : I → A := unpack ∘ pack
+
+@[local simp, local fun_prop]
+private lemma measurable_packI [StandardBorelSpace A] : Measurable (packI (A := A)) := by
+  unfold packI
+  fun_prop
+
+@[local simp, local fun_prop]
+private lemma measurable_unpackI
+    [StandardBorelSpace A] [Nonempty A]
+    : Measurable (unpackI (A := A)) := by
+  unfold unpackI
+  fun_prop
+
+@[local simp]
+private lemma unpackI_packI
+    [StandardBorelSpace A] [Nonempty A] {x : A}
+    : unpackI (packI x) = x := by
+  unfold unpackI packI
+  simp only [
+    Function.comp_apply, Set.countable_coe_iff,
+    Cardinal.Real.Icc_countable_iff, not_le,
+    zero_lt_one, pack_unpack, unpack_pack]
+
+private instance [StandardBorelSpace A]
+    {μ : Measure A} [IsProbabilityMeasure μ]
+    : IsProbabilityMeasure (μ.map packI) := by
+  apply Measure.isProbabilityMeasure_map
+  fun_prop
+
 /-- The function `det μ` is a function such that `volume.map (det μ) = μ`. -/
 noncomputable def det [StandardBorelSpace A] (μ : Measure A) [IsProbabilityMeasure μ] : I → A :=
-  have : IsProbabilityMeasure (μ.map (unpack (A := I) ∘ pack)) := by
-    apply Measure.isProbabilityMeasure_map
-    fun_prop
   have := MeasureTheory.nonempty_of_isProbabilityMeasure μ
-  unpack ∘ pack ∘ quantile (μ.map (unpack (A := I) ∘ pack))
+  unpackI ∘ quantile (μ.map packI)
 
 @[fun_prop]
 lemma measurable_det
@@ -30,44 +142,100 @@ lemma measurable_det
     {μ : A → Measure B} [∀ x, IsProbabilityMeasure (μ x)] (hμ : Measurable μ)
     {i : A → I} (hi : Measurable i)
     : Measurable fun x ↦ det (μ x) (i x) := by
-  simp only [det, Function.comp_apply]
   wlog hA : Nonempty A
   · simp only [not_nonempty_iff] at hA
     apply measurable_of_empty
-  have hB : Nonempty B := MeasureTheory.nonempty_of_isProbabilityMeasure (μ hA.some)
-  have {x} : IsProbabilityMeasure (Measure.map (unpack (A := I) ∘ pack) (μ x)) := by
-    apply Measure.isProbabilityMeasure_map
-    fun_prop
-  apply Measurable.comp (measurable_unpack (A := B))
+  have hB := MeasureTheory.nonempty_of_isProbabilityMeasure (μ hA.some)
+  apply Measurable.comp (measurable_unpackI (A := B))
   fun_prop
-
-@[simp]
-private lemma unitInterval.not_countable : ¬Countable I := by
-  intro h
-  have := Function.Injective.countable unitInterval.sigmoid_injective
-  simp only [_root_.not_countable] at this
 
 @[simp]
 lemma eq_det_volume
     [StandardBorelSpace A] (μ : Measure A) [IsProbabilityMeasure μ]
     : volume.map (det μ) = μ := by
-  have : IsProbabilityMeasure (Measure.map (unpack (A := I) ∘ pack) μ) := by
-    apply Measure.isProbabilityMeasure_map
-    fun_prop
-  rw [det, ← Measure.map_map, ← Measure.map_map]
-  · simp only [eq_quantile_volume]
-    rw [Measure.map_map, Measure.map_map]
-    · simp +unfoldPartialApp only [
-        Function.comp, unitInterval.not_countable,
-        not_false_eq_true, pack_unpack, unpack_pack, map_id']
-    · fun_prop
-    · fun_prop
+  rw [det, ← Measure.map_map]
+  · rw [eq_quantile_volume, Measure.map_map]
+    · simp +unfoldPartialApp only [Function.comp, unpackI_packI, map_id']
     · fun_prop
     · fun_prop
   · fun_prop
   · apply measurable_quantile <;> fun_prop
+
+/-- The function `det₁ μ` is a function such that `volume.map (det₁ μ) = μ`. -/
+noncomputable def det₁ [StandardBorelSpace A]
+    (μ : Measure A) [IsProbabilityMeasure μ]
+    (r : Set.Ico 0 (1 : ℝ)) : A :=
+  det μ (normalize r)
+
+@[fun_prop]
+lemma measurable_det₁
+    [StandardBorelSpace B]
+    {μ : A → Measure B} [∀ x, IsProbabilityMeasure (μ x)] (hμ : Measurable μ)
+    {i : A → Set.Ico 0 1} (hi : Measurable i)
+    : Measurable fun x ↦ det₁ (μ x) (i x) := by
+  unfold det₁
+  fun_prop
+
+@[simp]
+lemma eq_det₁_volume
+    [StandardBorelSpace A] (μ : Measure A) [IsProbabilityMeasure μ]
+    : volume.map (det₁ μ) = μ := by
+  change map (μ.det ∘ normalize) (_ • comap normalize volume) = μ
+  simp only [ENNReal.ofReal_one, one_smul]
+  rw [← map_map, MeasurableEmbedding.map_comap]
+  · simp only [zero_lt_one, range_normalize, volume_restrict_normalize, eq_det_volume]
+  · exact measurableEmbedding_normalize 1
+  · apply measurable_det <;> fun_prop
   · fun_prop
-  · apply Measurable.comp measurable_pack
-    apply measurable_quantile <;> fun_prop
+
+/-- The function `detf μ` is a function such that `volume.map (detf μ) = μ`. -/
+noncomputable def detf [StandardBorelSpace A]
+    (μ : Measure A) [IsFiniteMeasure μ]
+    (r : Set.Ico 0 (μ Set.univ).toReal) : A :=
+  have : NeZero μ := by
+    constructor
+    rintro rfl
+    simpa using r.property
+  det ((μ Set.univ)⁻¹ • μ) (normalize r)
+
+@[fun_prop]
+lemma measurable_detf
+    [StandardBorelSpace A]
+    {μ : Measure A} [IsFiniteMeasure μ]
+    : Measurable (detf μ) := by
+  unfold detf
+  simp only
+  wlog! hμ : μ ≠ 0
+  · subst hμ
+    simp only [coe_zero, Pi.ofNat_apply, ENNReal.toReal_zero, ENNReal.inv_zero, smul_zero]
+    apply measurable_of_empty
+  have : NeZero μ := ⟨hμ⟩
+  apply measurable_det <;> fun_prop
+
+@[simp]
+lemma eq_detf_volume
+    [StandardBorelSpace A] (μ : Measure A) [IsFiniteMeasure μ]
+    : volume.map (detf μ) = μ := by
+  wlog! hμ : μ ≠ 0
+  · subst hμ
+    unfold detf
+    simp
+  have : NeZero μ := ⟨hμ⟩
+  change map (((μ Set.univ)⁻¹ • μ).det ∘ normalize) (_ • comap normalize volume) = μ
+  simp only [ne_eq, measure_ne_top, not_false_eq_true, ENNReal.ofReal_toReal, Measure.map_smul]
+  rw [← map_map, MeasurableEmbedding.map_comap]
+  · have : 0 < (μ Set.univ).toReal := by
+      rw [(by simp : 0 = ENNReal.toReal 0), ENNReal.toReal_lt_toReal]
+      · simp only [measure_univ_pos, ne_eq, hμ, not_false_eq_true]
+      · simp only [ne_eq, ENNReal.zero_ne_top, not_false_eq_true]
+      · simp only [ne_eq, measure_ne_top, not_false_eq_true]
+    simp only [this, range_normalize, volume_restrict_normalize, eq_det_volume]
+    rw [smul_smul, ENNReal.mul_inv_cancel]
+    · simp only [one_smul]
+    · simp only [ne_eq, measure_univ_eq_zero, hμ, not_false_eq_true]
+    · simp only [ne_eq, measure_ne_top, not_false_eq_true]
+  · apply measurableEmbedding_normalize
+  · apply measurable_det <;> fun_prop
+  · fun_prop
 
 end MeasureTheory.Measure
