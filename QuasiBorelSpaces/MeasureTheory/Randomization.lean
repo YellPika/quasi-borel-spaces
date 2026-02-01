@@ -161,33 +161,6 @@ lemma eq_det_volume
   · fun_prop
   · apply measurable_quantile <;> fun_prop
 
-/-- The function `det₁ μ` is a function such that `volume.map (det₁ μ) = μ`. -/
-noncomputable def det₁ [StandardBorelSpace A]
-    (μ : Measure A) [IsProbabilityMeasure μ]
-    (r : Set.Ico 0 (1 : ℝ)) : A :=
-  det μ (normalize r)
-
-@[fun_prop]
-lemma measurable_det₁
-    [StandardBorelSpace B]
-    {μ : A → Measure B} [∀ x, IsProbabilityMeasure (μ x)] (hμ : Measurable μ)
-    {i : A → Set.Ico 0 1} (hi : Measurable i)
-    : Measurable fun x ↦ det₁ (μ x) (i x) := by
-  unfold det₁
-  fun_prop
-
-@[simp]
-lemma eq_det₁_volume
-    [StandardBorelSpace A] (μ : Measure A) [IsProbabilityMeasure μ]
-    : volume.map (det₁ μ) = μ := by
-  change map (μ.det ∘ normalize) (_ • comap normalize volume) = μ
-  simp only [ENNReal.ofReal_one, one_smul]
-  rw [← map_map, MeasurableEmbedding.map_comap]
-  · simp only [zero_lt_one, range_normalize, volume_restrict_normalize, eq_det_volume]
-  · exact measurableEmbedding_normalize 1
-  · apply measurable_det <;> fun_prop
-  · fun_prop
-
 /-- The function `detf μ` is a function such that `volume.map (detf μ) = μ`. -/
 noncomputable def detf [StandardBorelSpace A]
     (μ : Measure A) [IsFiniteMeasure μ]
