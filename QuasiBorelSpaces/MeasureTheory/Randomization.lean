@@ -212,3 +212,18 @@ lemma eq_detf_volume
   · fun_prop
 
 end MeasureTheory.Measure
+
+namespace MeasureTheory
+
+noncomputable def splitI : I → I × I := Measure.det volume
+
+@[simp, fun_prop]
+lemma measurable_splitI : Measurable splitI := by
+  unfold splitI
+  apply Measure.measurable_det <;> fun_prop
+
+lemma measurePreserving_splitI : MeasurePreserving splitI where
+  measurable := by fun_prop
+  map_eq := by simp only [splitI, Measure.eq_det_volume]
+
+end MeasureTheory
