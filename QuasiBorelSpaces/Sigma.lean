@@ -192,10 +192,11 @@ noncomputable def chain [∀ i, Preorder (P i)] (φ : Chain (Var I P)) : Var I f
     apply Set.Countable.mono
     · apply Set.range_comp_subset_range (g := (φ 0).embed)
     · apply Set.countable_range
-  mk' (Set.range (Sigma.fst ∘ (φ 0).apply))
-    Subtype.val
-    (Set.rangeFactorization _)
-    (fun i r ↦ {
+  mk'
+    (Index := Set.range (Sigma.fst ∘ (φ 0).apply))
+    (embed := Subtype.val)
+    (index := Set.rangeFactorization _)
+    (var := fun i r ↦ {
       toFun n :=
         if h : i.val = ((φ n).apply r).fst then
           h ▸ (φ n).var ((φ n).index r) r
@@ -214,52 +215,54 @@ noncomputable def chain [∀ i, Preorder (P i)] (φ : Chain (Var I P)) : Var I f
         · grind
         · grind
     })
-    (by simp only [
-          apply_fst, Chain.isHom_iff, Subtype.forall, Set.mem_range,
-          Function.comp_apply, forall_exists_index]
-        intro i r h n
-        classical
-        apply Prop.isHom_dite
-        · simp only [isHom_ofMeasurableSpace]
-          let : MeasurableSpace I := ⊤
-          apply Measurable.const_eq
-          fun_prop
-        · apply isHom_cases
-            (A := { x // i = (φ n).embed ((φ n).index x) })
-            (I := { j // (φ n).embed j = i })
-            (B := P i)
-            (ix := fun x : { x // i = (φ n).embed ((φ n).index x) } ↦
-              ⟨(φ n).index x.val, x.property.symm⟩)
-            (f := fun j x ↦ j.property ▸ (φ n).var j ↑x)
-          · apply isHom_mono
-            · fun_prop
-            · intro ψ hψ
-              simp only [isVar_iff_isHom, Subtype.isHom_def, isHom_ofMeasurableSpace] at ⊢ hψ
-              apply Measurable.comp (g := id)
-              · change Measurable[_, ⊤] _
-                apply Measurable.le
-                · change ⊤ ≤ _
-                  simp only [top_le_iff]
-                  ext
-                  simp only [MeasurableSpace.measurableSet_top, iff_true]
-                  apply MeasurableSet.of_subtype_image
-                  simp only [MeasurableSpace.measurableSet_top]
-                · apply measurable_id
-              · apply Measurable.subtype_mk hψ
-          · rintro ⟨m, rfl⟩
-            apply isHom_comp'
-            · apply (φ n).isHom_var
-            · apply Subtype.isHom_val
-              simp only [isHom_id']
-        · fun_prop)
-    (by let : MeasurableSpace I := ⊤
-        apply Measurable.mono
-        · apply Measurable.rangeFactorization
-          fun_prop
-        · rfl
-        · simp only [top_le_iff]
-          ext
-          simp only [MeasurableSpace.measurableSet_top, MeasurableSet.of_subtype_image])
+    (isHom_var := by
+      simp only [
+        apply_fst, Chain.isHom_iff, Subtype.forall, Set.mem_range,
+        Function.comp_apply, forall_exists_index]
+      intro i r h n
+      classical
+      apply Prop.isHom_dite
+      · simp only [isHom_ofMeasurableSpace]
+        let : MeasurableSpace I := ⊤
+        apply Measurable.const_eq
+        fun_prop
+      · apply isHom_cases
+          (A := { x // i = (φ n).embed ((φ n).index x) })
+          (I := { j // (φ n).embed j = i })
+          (B := P i)
+          (ix := fun x : { x // i = (φ n).embed ((φ n).index x) } ↦
+            ⟨(φ n).index x.val, x.property.symm⟩)
+          (f := fun j x ↦ j.property ▸ (φ n).var j ↑x)
+        · apply isHom_mono
+          · fun_prop
+          · intro ψ hψ
+            simp only [isVar_iff_isHom, Subtype.isHom_def, isHom_ofMeasurableSpace] at ⊢ hψ
+            apply Measurable.comp (g := id)
+            · change Measurable[_, ⊤] _
+              apply Measurable.le
+              · change ⊤ ≤ _
+                simp only [top_le_iff]
+                ext
+                simp only [MeasurableSpace.measurableSet_top, iff_true]
+                apply MeasurableSet.of_subtype_image
+                simp only [MeasurableSpace.measurableSet_top]
+              · apply measurable_id
+            · apply Measurable.subtype_mk hψ
+        · rintro ⟨m, rfl⟩
+          apply isHom_comp'
+          · apply (φ n).isHom_var
+          · apply Subtype.isHom_val
+            simp only [isHom_id']
+      · fun_prop)
+    (measurable_index := by
+      let : MeasurableSpace I := ⊤
+      apply Measurable.mono
+      · apply Measurable.rangeFactorization
+        fun_prop
+      · rfl
+      · simp only [top_le_iff]
+        ext
+        simp only [MeasurableSpace.measurableSet_top, MeasurableSet.of_subtype_image])
 
 @[simp]
 lemma chain_apply [∀ i, Preorder (P i)] (φ : Chain (Var I P)) (r)
