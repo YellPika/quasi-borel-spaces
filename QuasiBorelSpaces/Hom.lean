@@ -67,7 +67,7 @@ lemma toFun_eq_coe (f : A →𝒒 B) : toFun f = ⇑f := rfl
 @[simp, fun_prop]
 lemma isHom_coe (f : A →𝒒 B) : IsHom ⇑f := f.property
 
-instance [QuasiBorelSpace A] [QuasiBorelSpace B] : QuasiBorelSpace (A →𝒒 B) where
+instance : QuasiBorelSpace (A →𝒒 B) where
   IsVar φ := IsHom (fun x : ℝ × A ↦ φ x.1 x.2)
   isVar_const f := by fun_prop
   isVar_comp hf hφ := by
@@ -79,7 +79,7 @@ instance [QuasiBorelSpace A] [QuasiBorelSpace B] : QuasiBorelSpace (A →𝒒 B)
     · fun_prop
     · fun_prop
 
-instance [QuasiBorelSpace A] [QuasiBorelSpace A] : MeasurableSpace (A →𝒒 B) :=
+instance : MeasurableSpace (A →𝒒 B) :=
   toMeasurableSpace
 
 @[local simp]

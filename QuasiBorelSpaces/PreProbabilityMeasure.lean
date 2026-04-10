@@ -186,6 +186,17 @@ lemma lintegral_sub_le
   have : IsHom fun x ↦ g (μ.eval x) := by fun_prop
   simpa only [isHom_ofMeasurableSpace] using this
 
+theorem lintegral_lintegral_swap
+    {μ : PreProbabilityMeasure A} {ν : PreProbabilityMeasure B}
+    ⦃f : A → B → ENNReal⦄ (hf : IsHom (Function.uncurry f)) :
+    lintegral (fun x ↦ lintegral (f x) ν) μ =
+    lintegral (fun x ↦ lintegral (f · x) μ) ν := by
+  simp only [lintegral]
+  rw [MeasureTheory.lintegral_lintegral_swap]
+  apply Measurable.aemeasurable
+  apply measurable_of_isHom
+  fun_prop
+
 @[simp]
 lemma measureOf_empty (μ : PreProbabilityMeasure B) : measureOf μ ∅ = 0 := by
   rcases μ

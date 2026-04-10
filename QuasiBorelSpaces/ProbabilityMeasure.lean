@@ -205,6 +205,13 @@ lemma lintegral_sub_le
   unfold lintegral
   apply PreProbabilityMeasure.lintegral_sub_le f hg
 
+theorem lintegral_lintegral_swap
+    {μ : ProbabilityMeasure A} {ν : ProbabilityMeasure B}
+    ⦃f : A → B → ENNReal⦄ (hf : IsHom (Function.uncurry f)) :
+    ∫⁻ x, ∫⁻ y, f x y ∂ν ∂μ = ∫⁻ y, ∫⁻ x, f x y ∂μ ∂ν := by
+  unfold lintegral
+  apply PreProbabilityMeasure.lintegral_lintegral_swap hf
+
 /-! ## Measures -/
 
 /-- The `FunLike` instance for `ProbabilityMeasure`. -/
@@ -642,6 +649,25 @@ lemma choose_bind
   simp (disch := fun_prop) only [
     lintegral_bind, lintegral_choose, unitInterval.coe_symm_eq,
     lintegral_add_left, lintegral_mul_left]
+
+lemma bind_comm
+    {f : A → B → ProbabilityMeasure C} (hf : IsHom (Function.uncurry f))
+    (μ₁ : ProbabilityMeasure A) (μ₂ : ProbabilityMeasure B) :
+    bind (fun x ↦ bind (f x) μ₂) μ₁ = bind (fun x ↦ bind (f · x) μ₁) μ₂ := by
+  ext k hk
+  rw [lintegral_bind, lintegral_bind]
+  · conv_lhs =>
+      enter [1, x]
+      rw [lintegral_bind (by fun_prop) (by fun_prop)]
+    conv_rhs =>
+      enter [1, x]
+      rw [lintegral_bind (by fun_prop) (by fun_prop)]
+    apply lintegral_lintegral_swap
+    fun_prop
+  · fun_prop
+  · fun_prop
+  · fun_prop
+  · fun_prop
 
 end ProbabilityMeasure
 

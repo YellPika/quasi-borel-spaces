@@ -10,7 +10,7 @@ variable
   {C : Type*} [QuasiBorelSpace C]
 
 instance : QuasiBorelSpace (Multiset A) :=
-  lift (fun x : Quotient (List.isSetoid A) ↦ x)
+  lift (id : Quotient (List.isSetoid A) → Multiset A)
 
 @[fun_prop]
 lemma isHom_fold
